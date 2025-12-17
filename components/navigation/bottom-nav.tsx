@@ -39,26 +39,59 @@ export function BottomNav() {
   const t = useTranslations("nav");
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-sm supports-[backdrop-filter]:bg-card/80">
-      <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-around px-4">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60 shadow-[0_-4px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.3)]">
+      <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-around px-2 pb-safe">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          // Для главной страницы (/dashboard) проверяем точное совпадение
+          // Для остальных - точное совпадение или начало пути
+          const isActive =
+            item.href === "/dashboard"
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(item.href + "/");
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors",
-                "hover:bg-accent/50 active:bg-accent",
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                "relative flex flex-col items-center justify-center gap-1.5 flex-1 h-full",
+                "transition-all duration-300 ease-out",
+                "group"
               )}
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-xs font-medium hidden sm:block">
+              {/* Активный фон с закруглением (pill shape) */}
+              <div
+                className={cn(
+                  "absolute inset-x-2 inset-y-2 rounded-full",
+                  "transition-all duration-300 ease-out",
+                  isActive
+                    ? "bg-primary/10 scale-100 opacity-100"
+                    : "bg-transparent scale-95 opacity-0 group-hover:bg-accent/30 group-hover:scale-100 group-hover:opacity-100"
+                )}
+              />
+
+              {/* Иконка */}
+              <div className="relative z-10">
+                <Icon
+                  className={cn(
+                    "h-6 w-6 transition-all duration-300 ease-out",
+                    isActive
+                      ? "text-primary scale-110"
+                      : "text-muted-foreground group-hover:text-foreground group-hover:scale-105"
+                  )}
+                />
+              </div>
+
+              {/* Текст */}
+              <span
+                className={cn(
+                  "text-[10px] font-medium transition-all duration-300 ease-out relative z-10 hidden sm:block",
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground group-hover:text-foreground"
+                )}
+              >
                 {t(item.translationKey)}
               </span>
             </Link>
