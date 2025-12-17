@@ -1,0 +1,146 @@
+{
+  "common": {
+    "appName": "Pennora",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "settings": "Settings"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "categories": "Categories",
+    "budgets": "Budgets",
+    "settings": "Settings"
+  },
+  "home": {
+    "title": "Welcome to Pennora",
+    "subtitle": "Smart personal and family budget tracking",
+    "features": {
+      "offline": "Works offline",
+      "sync": "Sync across devices",
+      "multicurrency": "Multi-currency support",
+      "shared": "Shared budgets"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": {
+      "title": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": {
+      "title": "Language",
+      "ru": "Русский",
+      "en": "English"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Manage your account information",
+      "emailHint": "Email cannot be changed",
+      "save": "Save",
+      "success": "Profile updated successfully"
+    },
+    "password": {
+      "title": "Password",
+      "description": "Change your login password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm password",
+      "save": "Change password",
+      "success": "Password changed successfully"
+    },
+    "connections": {
+      "title": "Connected accounts",
+      "description": "Manage your login methods",
+      "googleLinked": "Account linked",
+      "googleNotLinked": "Account not linked",
+      "link": "Link",
+      "unlink": "Unlink"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome! Your financial statistics will appear here soon."
+  },
+  "errors": {
+    "invalidCredentials": "Invalid email or password",
+    "emailNotConfirmed": "Email not confirmed. Please check your inbox",
+    "userAlreadyExists": "User with this email already exists",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "invalidEmail": "Invalid email format",
+    "passwordRequired": "Please enter a password",
+    "rateLimitExceeded": "Too many attempts. Please wait a minute",
+    "databaseError": "Server error. Please try again later",
+    "networkError": "Network error. Please check your internet connection",
+    "unknown": "An error occurred. Please try again",
+    "cannotUnlinkOnly": "Cannot unlink the only login method"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "displayName": "Name",
+    "loading": "Loading...",
+    "backToHome": "Back to home",
+    "orContinueWith": "or",
+    "continueWithGoogle": "Continue with Google",
+    "placeholders": {
+      "displayName": "John Doe"
+    },
+    "passwordStrength": {
+      "weak": "Weak password",
+      "fair": "Fair password",
+      "good": "Good password",
+      "strong": "Strong password"
+    },
+    "passwordRequirements": {
+      "latinOnly": "Latin letters only",
+      "minLength": "At least 8 characters",
+      "hasUppercase": "Uppercase letter (A-Z)",
+      "hasLowercase": "Lowercase letter (a-z)",
+      "hasNumber": "Number"
+    },
+    "validation": {
+      "displayName": {
+        "min": "Name must be at least 2 characters",
+        "max": "Name must not exceed 50 characters",
+        "invalid": "Name can only contain letters, numbers, spaces, hyphens and underscores"
+      },
+      "email": {
+        "required": "Please enter your email",
+        "invalid": "Please enter a valid email"
+      },
+      "password": {
+        "required": "Please enter your password",
+        "min": "Password must be at least 8 characters",
+        "max": "Password must not exceed 128 characters",
+        "latinOnly": "Password must contain only Latin letters",
+        "uppercase": "Password must contain an uppercase letter",
+        "lowercase": "Password must contain a lowercase letter",
+        "number": "Password must contain a number",
+        "mismatch": "Passwords do not match"
+      }
+    },
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Sign in to your account",
+      "submit": "Sign In",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Register"
+    },
+    "register": {
+      "title": "Sign Up",
+      "subtitle": "Create a new account",
+      "submit": "Create Account",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign In"
+    },
+    "logout": "Sign Out"
+  }
+}

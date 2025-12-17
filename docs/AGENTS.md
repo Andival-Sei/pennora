@@ -21,6 +21,10 @@
 | React                  | 19.2.1  | UI библиотека                |
 | TypeScript             | 5.9.3   | Типизация                    |
 | Tailwind CSS           | 4.1.18  | CSS фреймворк                |
+| shadcn/ui              | latest  | UI компоненты                |
+| Zustand                | 5.0.9   | Управление состоянием        |
+| next-intl              | 4.6.1   | Интернационализация (i18n)   |
+| lucide-react           | latest  | Иконки                       |
 | ESLint                 | 9.x     | Линтинг                      |
 | Prettier               | 3.7.4   | Форматирование кода          |
 | eslint-config-prettier | 10.x    | Интеграция ESLint + Prettier |
@@ -30,8 +34,6 @@
 
 | Технология      | Назначение                        |
 | --------------- | --------------------------------- |
-| shadcn/ui       | UI компоненты                     |
-| Zustand         | Управление состоянием             |
 | TanStack Query  | Серверное состояние и кэширование |
 | Supabase        | База данных, Auth, Realtime       |
 | Dexie.js        | IndexedDB для офлайн-работы       |
@@ -52,19 +54,46 @@ pennora/
 ├── app/                  # Next.js App Router
 │   ├── layout.tsx        # Корневой layout
 │   ├── page.tsx          # Главная страница
-│   └── globals.css       # Глобальные стили
+│   └── globals.css       # Глобальные стили (темы)
+├── components/           # React компоненты
+│   ├── theme-toggle.tsx  # Переключатель темы
+│   ├── locale-toggle.tsx # Переключатель языка
+│   └── index.ts          # Экспорты
+├── providers/            # React провайдеры
+│   ├── theme-provider.tsx# Провайдер темы
+│   └── index.ts          # Экспорты
+├── i18n/                 # Интернационализация
+│   ├── request.ts        # Конфигурация next-intl
+│   └── actions.ts        # Server actions для смены языка
+├── messages/             # Переводы
+│   ├── ru.json           # Русский
+│   └── en.json           # English
+├── lib/                  # Утилиты
+│   └── utils.ts          # cn() и другие хелперы
 ├── docs/                 # Документация
 │   └── AGENTS.md         # Этот файл
 ├── public/               # Статические файлы
-├── .prettierrc           # Конфигурация Prettier
-├── .prettierignore       # Игнорируемые файлы Prettier
-├── eslint.config.mjs     # Конфигурация ESLint
-├── next.config.ts        # Конфигурация Next.js
-├── postcss.config.mjs    # Конфигурация PostCSS
-├── tailwind.config.ts    # Конфигурация Tailwind (если создан)
-├── tsconfig.json         # Конфигурация TypeScript
+├── components.json       # Конфигурация shadcn/ui
+├── next.config.ts        # Конфигурация Next.js + next-intl
 └── package.json          # Зависимости и скрипты
 ```
+
+## Темы и локализация
+
+### Темы
+
+- Поддержка светлой, тёмной и системной темы
+- По умолчанию — системная тема пользователя
+- Цветовая схема: изумрудно-зелёная (`#10b981` / `#00dc82`)
+- CSS переменные в `globals.css`
+- Класс `.dark` на `<html>` для тёмной темы
+
+### Локализация (i18n)
+
+- Поддержка русского и английского языков
+- По умолчанию — язык из Accept-Language браузера, иначе русский
+- Переводы в `messages/*.json`
+- Смена языка через cookie `locale`
 
 ## Правила разработки
 
