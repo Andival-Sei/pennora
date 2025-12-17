@@ -19,6 +19,25 @@ export async function signIn(formData: FormData) {
     return { error: getAuthErrorKey(error.message) };
   }
 
+  // Проверяем, прошел ли пользователь онбординг
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("default_currency")
+      .eq("id", user.id)
+      .single();
+
+    // Если нет default_currency, значит пользователь новый - отправляем на онбординг
+    if (!profile?.default_currency) {
+      revalidatePath("/", "layout");
+      redirect("/dashboard/onboarding");
+    }
+  }
+
   revalidatePath("/", "layout");
   redirect("/dashboard");
 }
@@ -30,13 +49,14 @@ export async function signUp(formData: FormData) {
   const password = formData.get("password") as string;
   const displayName = formData.get("displayName") as string;
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         display_name: displayName,
       },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/callback?next=/dashboard/onboarding`,
     },
   });
 
@@ -44,8 +64,15 @@ export async function signUp(formData: FormData) {
     return { error: getAuthErrorKey(error.message) };
   }
 
-  revalidatePath("/", "layout");
-  redirect("/dashboard");
+  // Если есть сессия (пользователь сразу авторизован), редирект на онбординг
+  // Если требуется подтверждение email, вернуть success для показа сообщения
+  if (data.session) {
+    revalidatePath("/", "layout");
+    redirect("/dashboard/onboarding");
+  }
+
+  // Если требуется подтверждение email, возвращаем success
+  return { success: true, requiresConfirmation: true };
 }
 
 export async function signOut() {

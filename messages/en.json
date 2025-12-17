@@ -8,7 +8,10 @@
     "edit": "Edit",
     "add": "Add",
     "search": "Search",
-    "settings": "Settings"
+    "settings": "Settings",
+    "next": "Next",
+    "skip": "Skip",
+    "back": "Back"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -77,7 +80,18 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome! Your financial statistics will appear here soon."
+    "welcome": "Welcome! Your financial statistics will appear here soon.",
+    "balance": {
+      "total": "Total Balance",
+      "card": "On Cards",
+      "cash": "Cash"
+    },
+    "reset": {
+      "button": "Start Over",
+      "title": "Start Over?",
+      "description": "All accounts will be deleted, and you'll be able to go through the setup process again. This action cannot be undone.",
+      "confirm": "Yes, start over"
+    }
   },
   "errors": {
     "invalidCredentials": "Invalid email or password",
@@ -154,5 +168,54 @@
       "loginLink": "Sign In"
     },
     "logout": "Sign Out"
+  },
+  "onboarding": {
+    "title": "Welcome to Pennora!",
+    "subtitle": "Let's set up your account",
+    "currency": {
+      "title": "Select Currency",
+      "description": "Choose your primary currency",
+      "required": "Please select a currency",
+      "options": {
+        "RUB": {
+          "name": "Russian Rubles"
+        },
+        "USD": {
+          "name": "US Dollars"
+        },
+        "EUR": {
+          "name": "Euros"
+        }
+      }
+    },
+    "card": {
+      "title": "Debit Card",
+      "description": "Add your card to track balance",
+      "bankLabel": "Bank",
+      "bankPlaceholder": "Select a bank",
+      "bankRequired": "Please select a bank",
+      "nameLabel": "Card Name",
+      "namePlaceholder": "e.g., Main Card",
+      "nameRequired": "Enter card name",
+      "balanceLabel": "Current Balance",
+      "balanceInvalid": "Enter a valid amount",
+      "banks": {
+        "sberbank": "SberBank",
+        "vtb": "VTB",
+        "tinkoff": "T-Bank",
+        "alpha": "Alfa-Bank",
+        "ozon": "Ozon Bank",
+        "yandex": "Yandex Bank",
+        "other": "Other Bank"
+      }
+    },
+    "cash": {
+      "title": "Cash",
+      "description": "Enter your cash amount",
+      "defaultName": "Cash",
+      "balanceLabel": "Cash Amount",
+      "balanceInvalid": "Enter a valid amount"
+    },
+    "finish": "Finish"
   }
 }

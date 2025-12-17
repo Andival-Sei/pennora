@@ -10,8 +10,10 @@ import {
   getPasswordStrengthLevel,
 } from "@/lib/validations/auth";
 
-interface PasswordInputProps
-  extends Omit<React.ComponentProps<"input">, "type"> {
+interface PasswordInputProps extends Omit<
+  React.ComponentProps<"input">,
+  "type"
+> {
   showStrengthIndicator?: boolean;
   strengthLabels?: {
     weak: string;
@@ -123,7 +125,10 @@ function PasswordInput({
             <div className="space-y-1">
               <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                 <motion.div
-                  className={cn("h-full rounded-full", strengthColors[strengthLevel])}
+                  className={cn(
+                    "h-full rounded-full",
+                    strengthColors[strengthLevel]
+                  )}
                   initial={{ width: 0 }}
                   animate={{ width: strengthWidths[strengthLevel] }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
@@ -135,7 +140,8 @@ function PasswordInput({
                     "text-xs transition-colors",
                     strengthLevel === "weak" && "text-red-500",
                     strengthLevel === "fair" && "text-orange-500",
-                    strengthLevel === "good" && "text-yellow-600 dark:text-yellow-500",
+                    strengthLevel === "good" &&
+                      "text-yellow-600 dark:text-yellow-500",
                     strengthLevel === "strong" && "text-green-500"
                   )}
                 >
@@ -145,30 +151,33 @@ function PasswordInput({
             </div>
 
             {/* Список требований - показываем при фокусе или если есть невыполненные */}
-            {requirementLabels && (isFocused || !Object.values(requirements).every(Boolean)) && (
-              <motion.ul
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-1 text-xs"
-              >
-                {Object.entries(requirements).map(([key, passed]) => (
-                  <li
-                    key={key}
-                    className={cn(
-                      "flex items-center gap-1.5 transition-colors",
-                      passed ? "text-green-600 dark:text-green-500" : "text-muted-foreground"
-                    )}
-                  >
-                    {passed ? (
-                      <Check className="h-3 w-3" />
-                    ) : (
-                      <X className="h-3 w-3" />
-                    )}
-                    {requirementLabels[key as keyof typeof requirementLabels]}
-                  </li>
-                ))}
-              </motion.ul>
-            )}
+            {requirementLabels &&
+              (isFocused || !Object.values(requirements).every(Boolean)) && (
+                <motion.ul
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-1 text-xs"
+                >
+                  {Object.entries(requirements).map(([key, passed]) => (
+                    <li
+                      key={key}
+                      className={cn(
+                        "flex items-center gap-1.5 transition-colors",
+                        passed
+                          ? "text-green-600 dark:text-green-500"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {passed ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        <X className="h-3 w-3" />
+                      )}
+                      {requirementLabels[key as keyof typeof requirementLabels]}
+                    </li>
+                  ))}
+                </motion.ul>
+              )}
           </motion.div>
         )}
       </AnimatePresence>

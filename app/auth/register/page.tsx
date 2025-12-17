@@ -57,6 +57,11 @@ export default function RegisterPage() {
     if (result?.error) {
       setServerError(result.error);
       setLoading(false);
+    } else if (result?.requiresConfirmation) {
+      // Показываем сообщение о необходимости подтверждения email
+      setServerError(null);
+      // TODO: Показать сообщение об успешной регистрации и необходимости подтверждения email
+      // redirect произойдет автоматически после подтверждения
     }
   }
 
@@ -180,9 +185,9 @@ export default function RegisterPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4 pt-2">
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full"
                 disabled={loading || !isValid}
               >
                 {loading ? t("loading") : t("register.submit")}

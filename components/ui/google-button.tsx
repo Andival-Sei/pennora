@@ -70,4 +70,3 @@ export function GoogleButton({ children, className }: GoogleButtonProps) {
     </Button>
   );
 }
-

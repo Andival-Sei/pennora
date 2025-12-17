@@ -27,7 +27,7 @@ export function calculatePasswordStrength(password: string): number {
   if (!password) return 0;
 
   const checks = checkPasswordRequirements(password);
-  
+
   // Если есть кириллица — сразу 0
   if (!checks.latinOnly) return 0;
 
@@ -87,7 +87,10 @@ export const registerSchema = z.object({
 
 // Схема для входа (упрощённая - просто проверяем что поля заполнены)
 export const loginSchema = z.object({
-  email: z.string().min(1, "validation.email.required").email("validation.email.invalid"),
+  email: z
+    .string()
+    .min(1, "validation.email.required")
+    .email("validation.email.invalid"),
   password: z.string().min(1, "validation.password.required"),
 });
 

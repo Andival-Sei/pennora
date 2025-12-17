@@ -2,7 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Защищённые роуты — требуют авторизации
-const protectedRoutes = ["/dashboard", "/transactions", "/categories", "/budgets", "/settings"];
+const protectedRoutes = [
+  "/dashboard",
+  "/transactions",
+  "/categories",
+  "/budgets",
+  "/settings",
+];
 
 // Публичные роуты для авторизации — редирект на dashboard если уже авторизован
 const authRoutes = ["/auth/login", "/auth/register"];

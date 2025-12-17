@@ -3,7 +3,10 @@
 import { motion, type HTMLMotionProps } from "framer-motion";
 import { type ReactNode } from "react";
 
-interface StaggerContainerProps extends Omit<HTMLMotionProps<"div">, "children"> {
+interface StaggerContainerProps extends Omit<
+  HTMLMotionProps<"div">,
+  "children"
+> {
   children: ReactNode;
   staggerDelay?: number;
   delayChildren?: number;
@@ -52,4 +55,3 @@ export function StaggerItem({
     </motion.div>
   );
 }
-

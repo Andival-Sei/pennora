@@ -40,14 +40,14 @@ export default async function Home() {
             {t("title")}
           </h1>
         </FadeIn>
-        
+
         <FadeIn delay={0.2}>
           <p className="mb-8 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             {t("subtitle")}
           </p>
         </FadeIn>
 
-        <StaggerContainer 
+        <StaggerContainer
           delayChildren={0.3}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left"
         >

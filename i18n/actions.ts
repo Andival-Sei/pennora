@@ -13,6 +13,3 @@ export async function setLocale(locale: Locale) {
   });
   revalidatePath("/");
 }
-
-
-

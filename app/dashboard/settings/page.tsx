@@ -165,7 +165,9 @@ export default function SettingsPage() {
       setProfileError("errors.databaseError");
     } else {
       setProfileSuccess(true);
-      setUser((prev) => (prev ? { ...prev, displayName: data.displayName } : null));
+      setUser((prev) =>
+        prev ? { ...prev, displayName: data.displayName } : null
+      );
       setTimeout(() => setProfileSuccess(false), 3000);
     }
 
@@ -234,7 +236,9 @@ export default function SettingsPage() {
         prev
           ? {
               ...prev,
-              identities: prev.identities.filter((i) => i.provider !== "google"),
+              identities: prev.identities.filter(
+                (i) => i.provider !== "google"
+              ),
             }
           : null
       );
@@ -415,7 +419,8 @@ export default function SettingsPage() {
                   {profileForm.formState.errors.displayName && (
                     <p className="text-xs text-destructive">
                       {tAuth(
-                        profileForm.formState.errors.displayName.message as string
+                        profileForm.formState.errors.displayName
+                          .message as string
                       )}
                     </p>
                   )}
@@ -524,8 +529,7 @@ export default function SettingsPage() {
                           type="button"
                           onClick={handleVerifyEmailChange}
                           disabled={
-                            emailChangeLoading ||
-                            verificationCode.length !== 6
+                            emailChangeLoading || verificationCode.length !== 6
                           }
                           className="flex-1"
                         >
@@ -555,7 +559,11 @@ export default function SettingsPage() {
                   <Button
                     type="button"
                     onClick={handleSendVerificationCode}
-                    disabled={emailChangeLoading || !newEmail || newEmail === user?.email}
+                    disabled={
+                      emailChangeLoading ||
+                      !newEmail ||
+                      newEmail === user?.email
+                    }
                   >
                     {emailChangeLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -738,4 +746,3 @@ export default function SettingsPage() {
     </main>
   );
 }
-

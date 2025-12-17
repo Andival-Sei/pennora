@@ -147,9 +147,9 @@ export default function LoginPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4 pt-2">
-              <Button 
-                type="submit" 
-                className="w-full" 
+              <Button
+                type="submit"
+                className="w-full"
                 disabled={loading || !isValid}
               >
                 {loading ? t("loading") : t("login.submit")}
