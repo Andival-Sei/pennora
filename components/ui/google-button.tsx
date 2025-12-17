@@ -16,12 +16,24 @@ export function GoogleButton({ children, className }: GoogleButtonProps) {
     setLoading(true);
     const supabase = createClient();
 
-    await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+
+    if (error) {
+      console.error("Ошибка при входе через Google:", error);
+      setLoading(false);
+      // TODO: Показать пользователю сообщение об ошибке
+      return;
+    }
+
+    // signInWithOAuth возвращает URL для редиректа
+    if (data?.url) {
+      window.location.href = data.url;
+    }
   }
 
   return (
