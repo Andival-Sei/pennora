@@ -63,6 +63,16 @@
       "googleNotLinked": "Account not linked",
       "link": "Link",
       "unlink": "Unlink"
+    },
+    "emailChange": {
+      "title": "Change email",
+      "description": "Change your email address",
+      "newEmail": "New email",
+      "code": "Verification code",
+      "codeHint": "Enter the 6-digit code sent to the new email",
+      "confirm": "Confirm",
+      "sendCode": "Send code",
+      "success": "Email changed successfully"
     }
   },
   "dashboard": {
@@ -80,7 +90,9 @@
     "databaseError": "Server error. Please try again later",
     "networkError": "Network error. Please check your internet connection",
     "unknown": "An error occurred. Please try again",
-    "cannotUnlinkOnly": "Cannot unlink the only login method"
+    "cannotUnlinkOnly": "Cannot unlink the only login method",
+    "invalidCode": "Invalid verification code",
+    "sameEmail": "New email is the same as current email"
   },
   "auth": {
     "email": "Email",

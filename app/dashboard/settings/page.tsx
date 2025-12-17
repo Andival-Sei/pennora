@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
+import { getAuthErrorKey } from "@/lib/auth-errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,6 +86,14 @@ export default function SettingsPage() {
 
   // Google linking
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Email change
+  const [newEmail, setNewEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [showVerificationCode, setShowVerificationCode] = useState(false);
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  const [emailChangeError, setEmailChangeError] = useState<string | null>(null);
+  const [emailChangeSuccess, setEmailChangeSuccess] = useState(false);
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -234,6 +243,86 @@ export default function SettingsPage() {
     setGoogleLoading(false);
   }
 
+  async function handleSendVerificationCode() {
+    // Валидация email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!newEmail || !emailRegex.test(newEmail)) {
+      setEmailChangeError("errors.invalidEmail");
+      return;
+    }
+
+    if (newEmail === user?.email) {
+      setEmailChangeError("errors.sameEmail");
+      return;
+    }
+
+    setEmailChangeLoading(true);
+    setEmailChangeError(null);
+    setEmailChangeSuccess(false);
+
+    const supabase = createClient();
+
+    // Вызываем updateUser с новым email - это отправит код подтверждения на новый email
+    const { error } = await supabase.auth.updateUser({
+      email: newEmail,
+    });
+
+    if (error) {
+      setEmailChangeError(getAuthErrorKey(error.message));
+      setEmailChangeLoading(false);
+    } else {
+      setShowVerificationCode(true);
+      setEmailChangeLoading(false);
+    }
+  }
+
+  async function handleVerifyEmailChange() {
+    if (!verificationCode || verificationCode.length !== 6) {
+      setEmailChangeError("errors.invalidCode");
+      return;
+    }
+
+    setEmailChangeLoading(true);
+    setEmailChangeError(null);
+    setEmailChangeSuccess(false);
+
+    const supabase = createClient();
+
+    // Подтверждаем код через verifyOtp
+    const { error } = await supabase.auth.verifyOtp({
+      email: newEmail,
+      token: verificationCode,
+      type: "email_change",
+    });
+
+    if (error) {
+      setEmailChangeError(getAuthErrorKey(error.message));
+      setEmailChangeLoading(false);
+    } else {
+      // Email успешно изменён, перезагружаем данные пользователя
+      const {
+        data: { user: updatedUser },
+      } = await supabase.auth.getUser();
+
+      if (updatedUser) {
+        setEmailChangeSuccess(true);
+        setUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                email: updatedUser.email || newEmail,
+              }
+            : null
+        );
+        setNewEmail("");
+        setVerificationCode("");
+        setShowVerificationCode(false);
+        setTimeout(() => setEmailChangeSuccess(false), 3000);
+      }
+      setEmailChangeLoading(false);
+    }
+  }
+
   const hasGoogleLinked = user?.identities.some((i) => i.provider === "google");
 
   if (loading) {
@@ -314,9 +403,6 @@ export default function SettingsPage() {
                     disabled
                     className="bg-muted"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    {t("profile.emailHint")}
-                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -345,6 +431,139 @@ export default function SettingsPage() {
                   {t("profile.save")}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+        </FadeIn>
+
+        {/* Изменение email */}
+        <FadeIn delay={0.15}>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("emailChange.title")}</CardTitle>
+              <CardDescription>{t("emailChange.description")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <AnimatePresence mode="wait">
+                  {emailChangeError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md"
+                    >
+                      {tErrors(emailChangeError)}
+                    </motion.div>
+                  )}
+                  {emailChangeSuccess && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="p-3 text-sm text-green-600 bg-green-500/10 border border-green-500/20 rounded-md flex items-center gap-2"
+                    >
+                      <Check className="h-4 w-4" />
+                      {t("emailChange.success")}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newEmail">{t("emailChange.newEmail")}</Label>
+                  <Input
+                    id="newEmail"
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => {
+                      setNewEmail(e.target.value);
+                      setShowVerificationCode(false);
+                      setVerificationCode("");
+                      setEmailChangeError(null);
+                    }}
+                    placeholder={tAuth("email")}
+                    disabled={emailChangeLoading || showVerificationCode}
+                    aria-invalid={!!emailChangeError}
+                  />
+                </div>
+
+                <AnimatePresence>
+                  {showVerificationCode && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-4"
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor="verificationCode">
+                          {t("emailChange.code")}
+                        </Label>
+                        <Input
+                          id="verificationCode"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={6}
+                          value={verificationCode}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            setVerificationCode(value);
+                            setEmailChangeError(null);
+                          }}
+                          placeholder="000000"
+                          disabled={emailChangeLoading}
+                          className="text-center text-lg tracking-widest"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {t("emailChange.codeHint")}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          onClick={handleVerifyEmailChange}
+                          disabled={
+                            emailChangeLoading ||
+                            verificationCode.length !== 6
+                          }
+                          className="flex-1"
+                        >
+                          {emailChangeLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : null}
+                          {t("emailChange.confirm")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setShowVerificationCode(false);
+                            setVerificationCode("");
+                            setEmailChangeError(null);
+                          }}
+                          disabled={emailChangeLoading}
+                        >
+                          {t("common.cancel")}
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {!showVerificationCode && (
+                  <Button
+                    type="button"
+                    onClick={handleSendVerificationCode}
+                    disabled={emailChangeLoading || !newEmail || newEmail === user?.email}
+                  >
+                    {emailChangeLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
+                    {t("emailChange.sendCode")}
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         </FadeIn>
