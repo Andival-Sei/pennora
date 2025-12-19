@@ -39,9 +39,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Схемы валидации
 const currencySchema = z.object({
-  currency: z.enum(["RUB", "USD", "EUR"], {
-    required_error: "currency.required",
-  }),
+  currency: z.enum(["RUB", "USD", "EUR"]),
 });
 
 const cardAccountSchema = z.object({
