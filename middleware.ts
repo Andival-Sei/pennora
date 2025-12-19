@@ -4,14 +4,11 @@ import { NextResponse, type NextRequest } from "next/server";
 // Защищённые роуты — требуют авторизации
 const protectedRoutes = [
   "/dashboard",
-  "/transactions",
-  "/categories",
-  "/budgets",
-  "/settings",
+  "/budgets", // Защищаем все маршруты /budgets/[id]/*
 ];
 
 // Публичные роуты для авторизации — редирект на dashboard если уже авторизован
-const authRoutes = ["/auth/login", "/auth/register"];
+const authRoutes = ["/login", "/register"];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -53,7 +50,7 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isProtectedRoute && !user) {
-    const redirectUrl = new URL("/auth/login", request.url);
+    const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(redirectUrl);
   }

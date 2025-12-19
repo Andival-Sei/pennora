@@ -22,6 +22,7 @@ interface PasswordInputProps extends Omit<
     strong: string;
   };
   requirementLabels?: {
+    latinOnly: string;
     minLength: string;
     hasUppercase: string;
     hasLowercase: string;

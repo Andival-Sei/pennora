@@ -20,12 +20,12 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8">
       <FadeIn className="absolute right-4 top-4 flex items-center gap-2 sm:gap-4">
-        <Link href="/auth/login">
+        <Link href="/login">
           <Button variant="ghost" size="sm" className="sm:size-default">
             {tAuth("login.title")}
           </Button>
         </Link>
-        <Link href="/auth/register">
+        <Link href="/register">
           <Button size="sm" className="sm:size-default">
             {tAuth("register.title")}
           </Button>
