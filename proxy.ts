@@ -10,7 +10,7 @@ const protectedRoutes = [
 // Публичные роуты для авторизации — редирект на dashboard если уже авторизован
 const authRoutes = ["/login", "/register"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Применяем middleware ко всем путям кроме:
+     * Применяем proxy ко всем путям кроме:
      * - _next/static (статические файлы)
      * - _next/image (оптимизация изображений)
      * - favicon.ico, sitemap.xml, robots.txt
@@ -76,3 +76,4 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
 };
+
