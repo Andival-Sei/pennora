@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
@@ -23,9 +23,14 @@ import { fetchAvailableMonthsAndYears } from "@/lib/query/queries/transactions";
 export function TransactionPageContent() {
   const t = useTranslations("transactions");
   const [open, setOpen] = useState(false);
-  // Исправление проблемы гидратации: используем useState с проверкой typeof window
-  // Это предотвращает несоответствие гидратации, так как на сервере window === undefined
-  const [mounted] = useState(() => typeof window !== "undefined");
+  // Исправление проблемы гидратации: используем useEffect для установки mounted
+  // Это предотвращает несоответствие гидратации, так как Dialog рендерится только на клиенте
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   // Используем React Query для загрузки доступных месяцев/лет
   const { data: availableData } = useQuery({
