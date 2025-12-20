@@ -340,9 +340,7 @@ export default function SettingsPage() {
       <FadeIn>
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <ResponsiveContainer className="flex items-center justify-between py-4">
-            <h1 className="text-xl font-bold text-foreground">
-              {t("title")}
-            </h1>
+            <h1 className="text-xl font-bold text-foreground">{t("title")}</h1>
           </ResponsiveContainer>
         </header>
       </FadeIn>
@@ -352,12 +350,18 @@ export default function SettingsPage() {
         <FadeIn delay={0.05}>
           <div className="flex gap-2 mb-6">
             <Link href="/dashboard/settings">
-              <Button variant="outline" className="w-full sm:w-auto cursor-pointer">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto cursor-pointer"
+              >
                 {t("account.title")}
               </Button>
             </Link>
             <Link href="/dashboard/settings/app">
-              <Button variant="outline" className="w-full sm:w-auto cursor-pointer">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto cursor-pointer"
+              >
                 {t("app.title")}
               </Button>
             </Link>

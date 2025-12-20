@@ -41,4 +41,3 @@ export async function loadUserSettings(): Promise<UserSettings> {
     displayCurrency: (profile?.display_currency as CurrencyCode) || null,
   };
 }
-

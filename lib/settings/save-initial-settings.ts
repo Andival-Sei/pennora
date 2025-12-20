@@ -10,12 +10,12 @@ import type { Locale } from "@/i18n/request";
  */
 export async function saveInitialSettings(userId: string) {
   const supabase = await createClient();
-  
+
   // Получаем текущую локаль из cookie
   const cookieStore = await cookies();
   const localeCookie = cookieStore.get("locale")?.value;
   const locale = (localeCookie === "en" ? "en" : "ru") as Locale;
-  
+
   // Обновляем профиль с начальными настройками
   // Тема будет установлена на клиенте через ThemeInitializer
   const { error } = await supabase
@@ -30,4 +30,3 @@ export async function saveInitialSettings(userId: string) {
     console.error("Error saving initial settings:", error);
   }
 }
-

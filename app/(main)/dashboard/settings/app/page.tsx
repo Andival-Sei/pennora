@@ -43,18 +43,19 @@ export default function AppSettingsPage() {
   const { theme: currentTheme, setTheme: setThemeProvider } = useTheme();
   const [locale, setLocaleState] = useState<Locale>("ru");
   const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>("RUB");
-  
+
   // Исходные значения для сравнения
   const [originalTheme, setOriginalTheme] = useState<Theme>("system");
   const [originalLocale, setOriginalLocale] = useState<Locale>("ru");
-  const [originalDisplayCurrency, setOriginalDisplayCurrency] = useState<CurrencyCode>("RUB");
-  
+  const [originalDisplayCurrency, setOriginalDisplayCurrency] =
+    useState<CurrencyCode>("RUB");
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  
+
   // Проверяем, есть ли изменения
   const hasChanges =
     currentTheme !== originalTheme ||
@@ -70,7 +71,12 @@ export default function AppSettingsPage() {
     setThemeProvider(originalTheme);
     setLocaleState(originalLocale);
     setDisplayCurrency(originalDisplayCurrency);
-  }, [originalTheme, originalLocale, originalDisplayCurrency, setThemeProvider]);
+  }, [
+    originalTheme,
+    originalLocale,
+    originalDisplayCurrency,
+    setThemeProvider,
+  ]);
 
   // Обработка несохранённых изменений при выходе
   useUnsavedChanges({
@@ -92,14 +98,14 @@ export default function AppSettingsPage() {
         setThemeProvider(originalTheme);
         setLocaleState(originalLocale);
         setDisplayCurrency(originalDisplayCurrency);
-        
+
         // Возвращаем язык к исходному
         if (locale !== originalLocale) {
           startTransition(() => {
             setLocale(originalLocale);
           });
         }
-        
+
         // Возвращаем тему к исходной
         if (typeof window !== "undefined") {
           localStorage.setItem("pennora-theme", originalTheme);
@@ -129,16 +135,22 @@ export default function AppSettingsPage() {
       .single();
 
     if (profile) {
-      const theme = (profile.theme && ["light", "dark", "system"].includes(profile.theme)
-        ? profile.theme
-        : "system") as Theme;
-      const localeValue = (profile.locale && ["ru", "en"].includes(profile.locale)
-        ? profile.locale
-        : "ru") as Locale;
-      const currency = (profile.display_currency &&
-      ["RUB", "USD", "EUR"].includes(profile.display_currency)
-        ? profile.display_currency
-        : "RUB") as CurrencyCode;
+      const theme = (
+        profile.theme && ["light", "dark", "system"].includes(profile.theme)
+          ? profile.theme
+          : "system"
+      ) as Theme;
+      const localeValue = (
+        profile.locale && ["ru", "en"].includes(profile.locale)
+          ? profile.locale
+          : "ru"
+      ) as Locale;
+      const currency = (
+        profile.display_currency &&
+        ["RUB", "USD", "EUR"].includes(profile.display_currency)
+          ? profile.display_currency
+          : "RUB"
+      ) as CurrencyCode;
 
       // Устанавливаем исходные значения
       setOriginalTheme(theme);
@@ -220,12 +232,18 @@ export default function AppSettingsPage() {
         <FadeIn delay={0.05}>
           <div className="flex gap-2 mb-6">
             <Link href="/dashboard/settings?section=account">
-              <Button variant="outline" className="w-full sm:w-auto cursor-pointer">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto cursor-pointer"
+              >
                 {t("account.title")}
               </Button>
             </Link>
             <Link href="/dashboard/settings/app">
-              <Button variant="outline" className="w-full sm:w-auto cursor-pointer">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto cursor-pointer"
+              >
                 {t("app.title")}
               </Button>
             </Link>
@@ -322,7 +340,9 @@ export default function AppSettingsPage() {
             <CardContent>
               <Select
                 value={displayCurrency}
-                onValueChange={(value) => setDisplayCurrency(value as CurrencyCode)}
+                onValueChange={(value) =>
+                  setDisplayCurrency(value as CurrencyCode)
+                }
               >
                 <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue />
@@ -391,4 +411,3 @@ export default function AppSettingsPage() {
     </main>
   );
 }
-

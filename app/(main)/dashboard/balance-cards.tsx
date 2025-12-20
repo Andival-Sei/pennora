@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { FadeIn } from "@/components/motion";
 import { Loader2 } from "lucide-react";
-import { convertMultipleCurrencies, formatCurrency } from "@/lib/currency/converter";
+import {
+  convertMultipleCurrencies,
+  formatCurrency,
+} from "@/lib/currency/converter";
 import type { CurrencyCode } from "@/lib/currency/rates";
 
 interface Account {
@@ -158,4 +161,3 @@ export function BalanceCards({
     </div>
   );
 }
-

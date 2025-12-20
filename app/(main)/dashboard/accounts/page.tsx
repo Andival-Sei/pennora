@@ -257,9 +257,7 @@ export default function AccountsPage() {
     const balance = parseFloat(data.balance.replace(",", "."));
 
     // Формируем название: "Наличные (Валюта)"
-    const currencyName = tOnboarding(
-      `currency.options.${data.currency}.name`
-    );
+    const currencyName = tOnboarding(`currency.options.${data.currency}.name`);
     const accountName = `${tOnboarding("cash.defaultName")} (${currencyName})`;
 
     const { error: accountError } = await supabase.from("accounts").insert({
@@ -444,7 +442,9 @@ export default function AccountsPage() {
                           >
                             <SelectTrigger>
                               <SelectValue
-                                placeholder={tOnboarding("card.bankPlaceholder")}
+                                placeholder={tOnboarding(
+                                  "card.bankPlaceholder"
+                                )}
                               />
                             </SelectTrigger>
                             <SelectContent>
@@ -477,8 +477,7 @@ export default function AccountsPage() {
                           {cardForm.formState.errors.name && (
                             <p className="text-xs text-destructive">
                               {tOnboarding(
-                                cardForm.formState.errors.name
-                                  .message as string
+                                cardForm.formState.errors.name.message as string
                               )}
                             </p>
                           )}
@@ -491,7 +490,10 @@ export default function AccountsPage() {
                           <Select
                             value={cardForm.watch("currency")}
                             onValueChange={(value) =>
-                              cardForm.setValue("currency", value as CurrencyCode)
+                              cardForm.setValue(
+                                "currency",
+                                value as CurrencyCode
+                              )
                             }
                           >
                             <SelectTrigger>
@@ -712,9 +714,7 @@ export default function AccountsPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-              onClick={() =>
-                !deletingId && setShowDeleteConfirm(null)
-              }
+              onClick={() => !deletingId && setShowDeleteConfirm(null)}
             />
 
             {/* Modal */}

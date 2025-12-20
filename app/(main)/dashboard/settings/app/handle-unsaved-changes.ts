@@ -61,12 +61,12 @@ export function useUnsavedChanges({
       if (typeof window !== "undefined") {
         localStorage.setItem("pennora-theme", originalTheme);
       }
-      
+
       // Возвращаем язык
       if (currentLocale !== originalLocale) {
         setLocale(originalLocale);
       }
-      
+
       // Вызываем callback для сброса состояния
       onReset();
     }
@@ -80,4 +80,3 @@ export function useUnsavedChanges({
     onReset,
   ]);
 }
-

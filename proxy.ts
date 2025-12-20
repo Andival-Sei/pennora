@@ -67,7 +67,9 @@ export async function proxy(request: NextRequest) {
   if (pathname === "/dashboard/settings" && user) {
     const section = request.nextUrl.searchParams.get("section");
     if (section !== "account") {
-      return NextResponse.redirect(new URL("/dashboard/settings/app", request.url));
+      return NextResponse.redirect(
+        new URL("/dashboard/settings/app", request.url)
+      );
     }
   }
 

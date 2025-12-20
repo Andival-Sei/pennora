@@ -49,7 +49,11 @@ export function ThemeInitializer() {
       }
 
       // Загружаем тему из БД только один раз при первой загрузке
-      if (!hasLoadedRef.current && profile?.theme && ["light", "dark", "system"].includes(profile.theme)) {
+      if (
+        !hasLoadedRef.current &&
+        profile?.theme &&
+        ["light", "dark", "system"].includes(profile.theme)
+      ) {
         if (profile.theme !== theme) {
           setTheme(profile.theme as "light" | "dark" | "system");
         }
@@ -63,4 +67,3 @@ export function ThemeInitializer() {
 
   return null;
 }
-
