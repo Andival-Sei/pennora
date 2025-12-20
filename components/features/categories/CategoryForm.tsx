@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import type { Category } from "@/lib/types/category";
 import * as LucideIcons from "lucide-react";
+import { CascadingCategorySelect } from "./CascadingCategorySelect";
 
 // Популярные иконки для выбора
 const availableIcons: Array<{
@@ -222,26 +223,15 @@ export function CategoryForm({
                 name="parent_id"
                 control={control}
                 render={({ field }) => (
-                  <Select
-                    value={field.value || "root"}
-                    onValueChange={(value) =>
-                      field.onChange(value === "root" ? null : value)
-                    }
-                  >
-                    <SelectTrigger id="parent_id">
-                      <SelectValue placeholder={t("categories.noParent")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="root">
-                        {t("categories.noParent")}
-                      </SelectItem>
-                      {availableParents.map((parent) => (
-                        <SelectItem key={parent.id} value={parent.id}>
-                          {parent.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CascadingCategorySelect
+                    categories={parentCategories}
+                    value={field.value || null}
+                    onChange={field.onChange}
+                    type={formType}
+                    excludeCategoryId={category?.id}
+                    placeholder={t("categories.noParent")}
+                    allowIntermediate={true}
+                  />
                 )}
               />
             </div>

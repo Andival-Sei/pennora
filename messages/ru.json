@@ -262,7 +262,41 @@
   },
   "transactions": {
     "title": "Транзакции",
-    "comingSoon": "Здесь скоро появится список всех ваших транзакций."
+    "add": "Добавить",
+    "createTitle": "Создать транзакцию",
+    "editTitle": "Редактировать транзакцию",
+    "loading": "Загрузка...",
+    "noTransactions": "Транзакций пока нет",
+    "deleteConfirm": "Вы уверены, что хотите удалить эту транзакцию?",
+    "uncategorized": "Без категории",
+    "list": {
+      "date": "Дата",
+      "category": "Категория",
+      "description": "Описание",
+      "amount": "Сумма"
+    },
+    "actions": {
+      "edit": "Редактировать",
+      "delete": "Удалить"
+    },
+    "form": {
+      "type": "Тип",
+      "types": {
+        "income": "Доход",
+        "expense": "Расход",
+        "transfer": "Перевод"
+      },
+      "amount": "Сумма",
+      "account": "Счёт",
+      "accountPlaceholder": "Выберите счёт",
+      "category": "Категория",
+      "date": "Дата",
+      "datePlaceholder": "Выберите дату",
+      "description": "Описание",
+      "create": "Создать",
+      "update": "Обновить",
+      "none": "Нет"
+    }
   },
   "categories": {
     "title": "Категории",
