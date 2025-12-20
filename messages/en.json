@@ -21,13 +21,55 @@
     "settings": "Settings"
   },
   "home": {
-    "title": "Welcome to Pennora",
-    "subtitle": "Smart personal and family budget tracking",
+    "title": "Smart Budget Tracking",
+    "titleGradient": "Pennora",
+    "subtitle": "Manage your personal and family finances with full control and convenience",
+    "cta": {
+      "startFree": "Start Free",
+      "demo": "Demo"
+    },
     "features": {
-      "offline": "Works offline",
-      "sync": "Sync across devices",
-      "multicurrency": "Multi-currency support",
-      "shared": "Shared budgets"
+      "offline": "Works Offline",
+      "offlineDesc": "Full functionality without internet connection",
+      "sync": "Sync Across Devices",
+      "syncDesc": "Your data is always up to date on all devices",
+      "multicurrency": "Multi-Currency",
+      "multicurrencyDesc": "Support for all world currencies with automatic conversion",
+      "shared": "Shared Budgets",
+      "sharedDesc": "Manage budgets together with family and friends"
+    },
+    "stats": {
+      "users": "users",
+      "countries": "countries",
+      "rating": "★ rating"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Three simple steps to financial control",
+      "step1": {
+        "title": "Create Budget",
+        "description": "Start by creating your first budget and setting up expense categories"
+      },
+      "step2": {
+        "title": "Track Transactions",
+        "description": "Add income and expenses, the app automatically updates statistics"
+      },
+      "step3": {
+        "title": "Achieve Goals",
+        "description": "Set financial goals and track progress in real-time"
+      }
+    },
+    "featuresSection": {
+      "title": "Features",
+      "subtitle": "Everything you need for budget management"
+    },
+    "footer": {
+      "description": "Smart budget management for you and your family",
+      "links": {
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      },
+      "copyright": "© 2025 Pennora. All rights reserved."
     }
   },
   "settings": {
