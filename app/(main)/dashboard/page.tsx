@@ -9,8 +9,8 @@ import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
 import { Home } from "lucide-react";
 import { ResetButton } from "./reset-button";
-import { BalanceCardsWrapper } from "./balance-cards-wrapper";
-import { BalanceCardsSkeleton } from "./balance-cards-skeleton";
+import { BalanceCards } from "./balance-cards";
+import { StatisticsCards } from "./statistics-cards";
 import type { CurrencyCode } from "@/lib/currency/rates";
 
 export default async function DashboardPage() {
@@ -111,6 +111,16 @@ export default async function DashboardPage() {
             }}
           />
         </Suspense>
+
+        {/* Карточки статистики за текущий месяц */}
+        <StatisticsCards
+          displayCurrency={displayCurrency}
+          t={{
+            income: t("statistics.income"),
+            expense: t("statistics.expense"),
+            balance: t("statistics.balance"),
+          }}
+        />
 
         <FadeIn delay={0.35}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

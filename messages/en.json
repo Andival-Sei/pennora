@@ -148,6 +148,11 @@
       "card": "On Cards",
       "cash": "Cash"
     },
+    "statistics": {
+      "income": "Income",
+      "expense": "Expenses",
+      "balance": "Balance"
+    },
     "reset": {
       "button": "Start Over",
       "title": "Start Over?",

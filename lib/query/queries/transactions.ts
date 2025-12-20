@@ -107,3 +107,92 @@ export async function fetchAvailableMonthsAndYears(): Promise<{
 
   return { months, years };
 }
+
+/**
+ * Интерфейс для статистики за месяц
+ */
+export interface MonthlyStatistics {
+  income: number; // Сумма доходов в исходной валюте
+  expense: number; // Сумма расходов в исходной валюте
+  balance: number; // income - expense
+  transactions: Array<{
+    amount: number;
+    currency: string;
+    type: "income" | "expense";
+  }>; // Транзакции с валютами для конвертации
+}
+
+/**
+ * Получает статистику транзакций за указанный месяц
+ * Возвращает агрегированные суммы доходов и расходов
+ * Исключает переводы (transfer) из статистики
+ */
+export async function fetchMonthlyStatistics(filters?: {
+  month?: number;
+  year?: number;
+}): Promise<MonthlyStatistics> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Пользователь не авторизован");
+  }
+
+  // Определяем месяц и год для фильтрации
+  const currentDate = new Date();
+  const month = filters?.month ?? currentDate.getMonth();
+  const year = filters?.year ?? currentDate.getFullYear();
+
+  // Вычисляем диапазон дат для месяца
+  const startDate = new Date(year, month, 1);
+  const endDate = new Date(year, month + 1, 0, 23, 59, 59);
+
+  // Загружаем транзакции за месяц, исключая переводы
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("amount, currency, type")
+    .eq("user_id", user.id)
+    .in("type", ["income", "expense"]) // Исключаем transfer
+    .gte("date", startDate.toISOString())
+    .lte("date", endDate.toISOString());
+
+  if (error) {
+    throw error;
+  }
+
+  // Агрегируем транзакции по типам
+  let income = 0;
+  let expense = 0;
+  const transactions: Array<{
+    amount: number;
+    currency: string;
+    type: "income" | "expense";
+  }> = [];
+
+  data?.forEach((transaction) => {
+    const amount = Number(transaction.amount);
+    const currency = transaction.currency;
+
+    transactions.push({
+      amount,
+      currency,
+      type: transaction.type as "income" | "expense",
+    });
+
+    if (transaction.type === "income") {
+      income += amount;
+    } else if (transaction.type === "expense") {
+      expense += amount;
+    }
+  });
+
+  return {
+    income,
+    expense,
+    balance: income - expense,
+    transactions,
+  };
+}
