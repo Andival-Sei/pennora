@@ -63,34 +63,23 @@ export function HeroSection({ user }: HeroSectionProps) {
       </div>
 
       {/* Navigation */}
-      <FadeIn className="absolute top-6 right-6 z-50 flex items-center gap-3">
-        {user ? (
-          <Link href="/dashboard">
+      {!user && (
+        <FadeIn className="absolute top-6 right-6 z-50 flex items-center gap-3">
+          <Link href="/login">
+            <Button variant="ghost" size="sm">
+              {tAuth("login.title")}
+            </Button>
+          </Link>
+          <Link href="/register">
             <Button
               size="sm"
               className="bg-emerald-500 hover:bg-emerald-600 text-black"
             >
-              {t("backToApp")}
+              {tAuth("register.title")}
             </Button>
           </Link>
-        ) : (
-          <>
-            <Link href="/login">
-              <Button variant="ghost" size="sm">
-                {tAuth("login.title")}
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button
-                size="sm"
-                className="bg-emerald-500 hover:bg-emerald-600 text-black"
-              >
-                {tAuth("register.title")}
-              </Button>
-            </Link>
-          </>
-        )}
-      </FadeIn>
+        </FadeIn>
+      )}
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
@@ -124,23 +113,36 @@ export function HeroSection({ user }: HeroSectionProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <Link href="/register">
-                <Button
-                  size="lg"
-                  className="bg-emerald-500 hover:bg-emerald-600 text-black text-lg px-8 py-6 shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
-                >
-                  {t("cta.startFree")}
-                </Button>
-              </Link>
-              <Link href="#demo">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-2 border-emerald-500/50 text-white hover:bg-emerald-500/10 text-lg px-8 py-6 backdrop-blur-sm"
-                >
-                  {t("cta.demo")}
-                </Button>
-              </Link>
+              {user ? (
+                <Link href="/dashboard">
+                  <Button
+                    size="lg"
+                    className="bg-emerald-500 hover:bg-emerald-600 text-black text-lg px-8 py-6 shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
+                  >
+                    {t("backToApp")}
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/register">
+                    <Button
+                      size="lg"
+                      className="bg-emerald-500 hover:bg-emerald-600 text-black text-lg px-8 py-6 shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
+                    >
+                      {t("cta.startFree")}
+                    </Button>
+                  </Link>
+                  <Link href="#demo">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-2 border-emerald-500/50 text-white hover:bg-emerald-500/10 text-lg px-8 py-6 backdrop-blur-sm"
+                    >
+                      {t("cta.demo")}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </motion.div>
           </div>
 

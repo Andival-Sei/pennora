@@ -14,13 +14,17 @@ export default async function Home() {
   // Обрабатываем ошибки подключения к Supabase (например, при отсутствии интернета)
   let user = null;
   try {
-    const {
-      data: { user: fetchedUser },
-    } = await supabase.auth.getUser();
-    user = fetchedUser;
+    const result = await supabase.auth.getUser();
+    // Supabase может вернуть ошибку в объекте, а не выбросить исключение
+    if (result.error) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("Supabase auth error (dev mode):", result.error.message);
+      }
+    } else {
+      user = result.data?.user ?? null;
+    }
   } catch (error) {
-    // В dev режиме игнорируем ошибки подключения к Supabase
-    // В production это должно логироваться, но не ломать приложение
+    // Обрабатываем сетевые ошибки и таймауты
     if (process.env.NODE_ENV === "development") {
       console.warn("Supabase connection error (dev mode):", error);
     }
