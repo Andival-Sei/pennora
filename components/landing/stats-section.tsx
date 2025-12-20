@@ -23,7 +23,7 @@ export function StatsSection() {
                   <Counter
                     value={stat.value}
                     suffix={stat.suffix}
-                    decimals={stat.decimals}
+                    {...("decimals" in stat ? { decimals: stat.decimals } : {})}
                   />
                 </div>
                 <p className="text-xl text-zinc-400">{t(stat.key)}</p>
