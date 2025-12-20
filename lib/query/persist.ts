@@ -1,21 +1,29 @@
 "use client";
 
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { queryClient } from "./client";
 import { queryKeys } from "./keys";
+import { indexedDBStorage } from "@/lib/db/indexeddb/persister";
 
 /**
  * Настраивает персистентное кеширование для React Query
- * Сохраняет данные в localStorage для доступа между сессиями
+ * Сохраняет данные в IndexedDB для доступа между сессиями и офлайн-режима
+ *
+ * Преимущества IndexedDB над localStorage:
+ * - Больший объем хранилища (~50MB vs 5-10MB)
+ * - Поддержка нативных типов (Date, File)
+ * - Лучшая производительность для больших данных
+ * - Автоматический офлайн-режим через TanStack Query
  */
 export function setupPersistCache() {
-  // Создаем persister для localStorage
-  const persister = createSyncStoragePersister({
-    storage: typeof window !== "undefined" ? window.localStorage : undefined,
+  // Создаем persister для IndexedDB
+  const persister = createAsyncStoragePersister({
+    storage: indexedDBStorage,
     key: "PENNORA_QUERY_CACHE",
     serialize: JSON.stringify,
     deserialize: JSON.parse,
+    throttleTime: 1000, // Задержка для батчинга операций записи
   });
 
   // Настраиваем персистентное кеширование
@@ -23,17 +31,24 @@ export function setupPersistCache() {
     queryClient,
     persister,
     maxAge: 24 * 60 * 60 * 1000, // 24 часа
-    // Персистентность только для определенных query keys
-    // В данном случае для категорий (они редко меняются)
+    // Персистентность для категорий и транзакций
     dehydrateOptions: {
       shouldDehydrateQuery: (query) => {
-        // Персистируем только категории
         const queryKey = query.queryKey;
-        return (
-          Array.isArray(queryKey) &&
-          queryKey[0] === "categories" &&
-          queryKey[1] === "list"
-        );
+        if (!Array.isArray(queryKey)) return false;
+
+        // Персистируем категории (редко меняются)
+        if (queryKey[0] === "categories" && queryKey[1] === "list") {
+          return true;
+        }
+
+        // Персистируем транзакции (для офлайн-доступа)
+        if (queryKey[0] === "transactions") {
+          // Персистируем списки транзакций (с фильтрами или без)
+          return queryKey[1] === "list";
+        }
+
+        return false;
       },
     },
   });

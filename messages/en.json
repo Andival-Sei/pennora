@@ -364,5 +364,22 @@
     "title": "Page Not Found",
     "description": "Sorry, the page you are looking for does not exist.",
     "backToHome": "Back to Home"
+  },
+  "sync": {
+    "offlineMode": "Offline mode",
+    "syncing": "Syncing...",
+    "syncNow": "Sync now",
+    "readyToSync": "Ready to sync",
+    "syncedJustNow": "Synced just now",
+    "syncedMinutesAgo": "Synced {count} min. ago",
+    "syncedHoursAgo": "Synced {count} hr. ago",
+    "syncedDaysAgo": "Synced {count} days ago",
+    "pendingOperations": "{count} operations in queue",
+    "syncSuccess": "Synced {count} operations",
+    "syncError": "Sync error",
+    "noConnection": "No internet connection",
+    "willSyncWhenOnline": "Transaction will be synced when connection is restored",
+    "changesWillSync": "Changes will be synced when connection is restored",
+    "deleteWillSync": "Deletion will be synced when connection is restored"
   }
 }

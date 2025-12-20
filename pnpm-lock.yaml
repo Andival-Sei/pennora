@@ -37,6 +37,9 @@ importers:
       "@tailwindcss/container-queries":
         specifier: ^0.1.1
         version: 0.1.1(tailwindcss@4.1.18)
+      "@tanstack/query-async-storage-persister":
+        specifier: ^5.90.14
+        version: 5.90.14
       "@tanstack/react-query":
         specifier: ^5.90.12
         version: 5.90.12(react@19.2.1)
@@ -55,6 +58,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      dexie:
+        specifier: ^4.2.1
+        version: 4.2.1
       framer-motion:
         specifier: ^12.23.26
         version: 12.23.26(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -1740,6 +1746,12 @@ packages:
         integrity: sha512-Ce0GFnzAOuPyfV5SxjXGn0CubwGcuDB0zcdaPuCSzAa/2vII24JTkH+I6jcbXLb1ctjZMZZI6OjDaLPJQL1S0g==,
       }
 
+  "@tanstack/query-async-storage-persister@5.90.14":
+    resolution:
+      {
+        integrity: sha512-oU+u40luly1PlrOrezeVxdF7AoF6dYw7BaU16Eg0+xLBwCRbW4cutxtxWG306Pgsnks5jIRDI4DjAPZKFnPSXQ==,
+      }
+
   "@tanstack/query-core@5.90.12":
     resolution:
       {
@@ -2504,6 +2516,12 @@ packages:
     resolution:
       {
         integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==,
+      }
+
+  dexie@4.2.1:
+    resolution:
+      {
+        integrity: sha512-Ckej0NS6jxQ4Po3OrSQBFddayRhTCic2DoCAG5zacOfOVB9P2Q5Xc5uL/nVa7ZVs+HdMnvUPzLFCB/JwpB6Csg==,
       }
 
   doctrine@2.1.0:
@@ -5569,6 +5587,11 @@ snapshots:
       postcss: 8.5.6
       tailwindcss: 4.1.18
 
+  "@tanstack/query-async-storage-persister@5.90.14":
+    dependencies:
+      "@tanstack/query-core": 5.90.12
+      "@tanstack/query-persist-client-core": 5.91.11
+
   "@tanstack/query-core@5.90.12": {}
 
   "@tanstack/query-devtools@5.91.1": {}
@@ -6019,6 +6042,8 @@ snapshots:
   detect-libc@2.1.2: {}
 
   detect-node-es@1.1.0: {}
+
+  dexie@4.2.1: {}
 
   doctrine@2.1.0:
     dependencies:

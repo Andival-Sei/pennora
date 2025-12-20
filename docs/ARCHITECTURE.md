@@ -59,7 +59,7 @@ pennora/
 │   │   │   ├── CurrencySelector.tsx
 │   │   │   └── CurrencyConverter.tsx
 │   │   └── sync/
-│   │       └── SyncStatus.tsx
+│   │       └── SyncStatus.tsx     # Компонент статуса синхронизации
 │   ├── layouts/                  # Layout компоненты
 │   │   ├── MainLayout.tsx
 │   │   └── AuthLayout.tsx
@@ -74,9 +74,10 @@ pennora/
 │   │   │   ├── client.ts        # Браузерный клиент
 │   │   │   ├── server.ts        # Серверный клиент
 │   │   │   └── types.ts         # TypeScript типы из Supabase
-│   │   ├── indexeddb/           # IndexedDB через Dexie (TODO)
-│   │   │   ├── database.ts
-│   │   │   └── models.ts
+│   │   ├── indexeddb/           # IndexedDB через Dexie
+│   │   │   ├── persister.ts     # Адаптер для TanStack Query
+│   │   │   ├── database.ts      # База данных для очереди синхронизации
+│   │   │   └── models.ts        # Типы для очереди операций
 │   │   └── rxdb/                # RxDB (TODO, если понадобится)
 │   ├── query/                    # TanStack Query (кеширование)
 │   │   ├── client.ts            # Конфигурация QueryClient
@@ -102,9 +103,8 @@ pennora/
 │   │   ├── syncStore.ts
 │   │   └── uiStore.ts
 │   ├── sync/                     # Логика синхронизации
-│   │   ├── syncManager.ts
-│   │   ├── conflictResolver.ts
-│   │   └── queueManager.ts
+│   │   ├── syncManager.ts        # Менеджер синхронизации
+│   │   └── queueManager.ts       # Менеджер очереди операций
 │   ├── currency/                 # Работа с валютами
 │   │   ├── converter.ts
 │   │   ├── rates.ts
@@ -117,6 +117,7 @@ pennora/
 │   ├── utils/                    # Утилиты
 │   │   ├── date.ts
 │   │   ├── validation.ts
+│   │   ├── network.ts            # Утилиты для работы с сетью
 │   │   └── index.ts              # Общие утилиты (cn, etc.)
 │   ├── validations/              # Схемы валидации
 │   │   └── auth.ts
@@ -225,14 +226,15 @@ pennora/
 - **Query функции**: `lib/query/queries/` — функции для загрузки данных
 - **Mutation функции**: `lib/query/mutations/` — функции для изменения данных с оптимистичными обновлениями
 - **Query Keys**: `lib/query/keys.ts` — централизованная фабрика ключей кеша
-- **Персистентность**: `lib/query/persist.ts` — персистентное кеширование в localStorage
+- **Персистентность**: `lib/query/persist.ts` — персистентное кеширование в IndexedDB
 
 **Основные принципы:**
 
 - Все данные из Supabase кешируются через TanStack Query
 - Оптимистичные обновления для мгновенного UI
 - Автоматическая инвалидация кеша при мутациях
-- Персистентное кеширование для критичных данных (категории)
+- Персистентное кеширование в IndexedDB для категорий и транзакций
+- Офлайн-режим для чтения данных через IndexedDB persister
 
 ### Supabase (основная БД)
 
@@ -243,16 +245,21 @@ pennora/
 
 ### IndexedDB (офлайн-режим)
 
-- **Планируется**: Использование Dexie для работы с IndexedDB
+- **Реализовано**: Использование Dexie для работы с IndexedDB
 - **Структура**: `lib/db/indexeddb/`
-- **Интеграция**: Будет работать совместно с TanStack Query для офлайн-доступа
+  - `persister.ts` — адаптер для TanStack Query persister
+  - `database.ts` — база данных Dexie для очереди синхронизации
+  - `models.ts` — типы для очереди операций
+- **Интеграция**: Работает совместно с TanStack Query для офлайн-доступа
+- **Документация**: [`docs/OFFLINE_SYNC.md`](./OFFLINE_SYNC.md) — подробное описание офлайн-режима
 
 ### Синхронизация
 
-- **Менеджер**: `lib/sync/syncManager.ts`
-- **Разрешение конфликтов**: `lib/sync/conflictResolver.ts`
-- **Очередь операций**: `lib/sync/queueManager.ts`
+- **Менеджер**: `lib/sync/syncManager.ts` — основной менеджер синхронизации
+- **Очередь операций**: `lib/sync/queueManager.ts` — управление очередью операций
+- **Store**: `lib/stores/syncStore.ts` — Zustand store для состояния синхронизации
 - **Инвалидация кеша**: Автоматическая инвалидация TanStack Query при синхронизации
+- **Документация**: [`docs/OFFLINE_SYNC.md`](./OFFLINE_SYNC.md) — подробное описание синхронизации
 
 ## State Management
 
@@ -326,13 +333,12 @@ pennora/
 
 ## TODO и будущие улучшения
 
-- [ ] Реализация IndexedDB через Dexie
-- [ ] Реализация синхронизации данных
-- [ ] Реализация компонентов features
-- [ ] Реализация хуков для работы с данными
+- [x] Реализация IndexedDB через Dexie
+- [x] Реализация синхронизации данных
+- [ ] Ручное разрешение конфликтов через UI
+- [ ] Синхронизация через Supabase Realtime
 - [ ] Настройка PWA (next-pwa)
 - [ ] Настройка Capacitor для мобильного приложения
-- [ ] Реализация разрешения конфликтов при синхронизации
 
 ## Зависимости
 
@@ -351,4 +357,5 @@ pennora/
 
 - **Архитектура**: [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) (этот файл)
 - **Кеширование**: [`docs/CACHING.md`](./CACHING.md) — подробное описание системы кеширования через TanStack Query
+- **Офлайн и синхронизация**: [`docs/OFFLINE_SYNC.md`](./OFFLINE_SYNC.md) — подробное описание офлайн-режима и синхронизации данных
 - **Для AI-агентов**: [`docs/AGENTS.md`](./AGENTS.md) — контекст для AI-ассистентов

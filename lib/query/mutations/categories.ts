@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/db/supabase/client";
 import { toast } from "sonner";
 import { queryKeys } from "../keys";
+import { queueManager } from "@/lib/sync/queueManager";
+import { isNetworkError } from "@/lib/utils/network";
 import type {
   Category,
   CategoryInsert,
@@ -146,7 +148,21 @@ export function useCreateCategory() {
 
       return { previousCategories };
     },
-    onError: (err, newCategory, context) => {
+    onError: async (err, newCategory, context) => {
+      // Если это сетевая ошибка - добавляем в очередь
+      if (isNetworkError(err)) {
+        try {
+          await queueManager.enqueue("categories", "create", null, newCategory);
+          toast.success(
+            "Категория будет синхронизирована при восстановлении сети"
+          );
+          return;
+        } catch (queueError) {
+          console.error("Error adding to sync queue:", queueError);
+        }
+      }
+
+      // Для других ошибок откатываем изменения
       if (context?.previousCategories) {
         queryClient.setQueryData(
           queryKeys.categories.list(),
@@ -200,7 +216,24 @@ export function useUpdateCategory() {
 
       return { previousCategories };
     },
-    onError: (err, variables, context) => {
+    onError: async (err, variables, context) => {
+      // Если это сетевая ошибка - добавляем в очередь
+      if (isNetworkError(err)) {
+        try {
+          await queueManager.enqueue(
+            "categories",
+            "update",
+            variables.id,
+            variables.updates
+          );
+          toast.success("Changes will be synced when connection is restored");
+          return;
+        } catch (queueError) {
+          console.error("Error adding to sync queue:", queueError);
+        }
+      }
+
+      // Для других ошибок откатываем изменения
       if (context?.previousCategories) {
         queryClient.setQueryData(
           queryKeys.categories.list(),
@@ -249,7 +282,19 @@ export function useDeleteCategory() {
 
       return { previousCategories };
     },
-    onError: (err, id, context) => {
+    onError: async (err, id, context) => {
+      // Если это сетевая ошибка - добавляем в очередь
+      if (isNetworkError(err)) {
+        try {
+          await queueManager.enqueue("categories", "delete", id, { id });
+          toast.success("Deletion will be synced when connection is restored");
+          return;
+        } catch (queueError) {
+          console.error("Error adding to sync queue:", queueError);
+        }
+      }
+
+      // Для других ошибок откатываем изменения
       if (context?.previousCategories) {
         queryClient.setQueryData(
           queryKeys.categories.list(),

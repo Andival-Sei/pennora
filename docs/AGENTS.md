@@ -31,12 +31,18 @@
 | eslint-config-prettier | 10.x    | Интеграция ESLint + Prettier      |
 | eslint-plugin-prettier | 5.x     | Prettier как правило ESLint       |
 
+### Установлено (дополнительно)
+
+| Технология                              | Версия  | Назначение                         |
+| --------------------------------------- | ------- | ---------------------------------- |
+| Dexie                                   | 4.2.1   | IndexedDB для офлайн-работы        |
+| @tanstack/query-async-storage-persister | 5.90.14 | Персистентность для TanStack Query |
+
 ### Планируется
 
 | Технология      | Назначение                  |
 | --------------- | --------------------------- |
 | Supabase        | База данных, Auth, Realtime |
-| Dexie.js        | IndexedDB для офлайн-работы |
 | Zod             | Валидация схем              |
 | React Hook Form | Работа с формами            |
 | Capacitor       | Конвертация PWA → Native    |
@@ -75,11 +81,27 @@ pennora/
 │   │   ├── keys.ts       # Query keys factory
 │   │   ├── queries/      # Query функции
 │   │   └── mutations/    # Mutation хуки
+│   ├── db/               # Базы данных
+│   │   ├── supabase/     # Supabase клиенты
+│   │   └── indexeddb/   # IndexedDB (Dexie)
+│   │       ├── persister.ts  # Адаптер для TanStack Query
+│   │       ├── database.ts   # База для очереди синхронизации
+│   │       └── models.ts     # Типы для очереди
+│   ├── sync/             # Синхронизация
+│   │   ├── syncManager.ts    # Менеджер синхронизации
+│   │   └── queueManager.ts   # Менеджер очереди
+│   ├── stores/           # Zustand stores
+│   │   └── syncStore.ts  # Store для синхронизации
 │   ├── hooks/            # React хуки
-│   └── utils.ts          # cn() и другие хелперы
+│   │   └── useSync.ts    # Хук для синхронизации
+│   └── utils/            # Утилиты
+│       ├── network.ts    # Утилиты для работы с сетью
+│       └── index.ts      # cn() и другие хелперы
 ├── docs/                 # Документация
 │   ├── AGENTS.md         # Этот файл
-│   └── CACHING.md        # Документация по кешированию
+│   ├── ARCHITECTURE.md   # Архитектура проекта
+│   ├── CACHING.md        # Документация по кешированию
+│   └── OFFLINE_SYNC.md   # Офлайн-режим и синхронизация
 ├── public/               # Статические файлы
 ├── components.json       # Конфигурация shadcn/ui
 ├── next.config.ts        # Конфигурация Next.js + next-intl
@@ -168,16 +190,39 @@ pnpm format:check  # Проверка форматирования
 
 ### Офлайн-first
 
-- Все операции сначала сохраняются в IndexedDB (Dexie.js)
-- При подключении к сети — синхронизация с Supabase
+**Реализовано:**
+
+- Офлайн-чтение данных через IndexedDB persister для TanStack Query
+- Офлайн-запись через очередь операций в Dexie
+- Автоматическая синхронизация при восстановлении сети
 - Оптимистичные обновления UI через TanStack Query
+
+**Документация:** [`docs/OFFLINE_SYNC.md`](./OFFLINE_SYNC.md)
+
+**Основные компоненты:**
+
+- `lib/db/indexeddb/persister.ts` — IndexedDB адаптер для TanStack Query
+- `lib/sync/syncManager.ts` — менеджер синхронизации
+- `lib/sync/queueManager.ts` — очередь операций
+- `components/features/sync/SyncStatus.tsx` — UI компонент статуса
 
 ### Синхронизация
 
+**Реализовано:**
+
+- Очередь синхронизации для офлайн-операций (Dexie)
+- Автоматическая синхронизация при восстановлении сети
+- Периодическая синхронизация (каждые 5 минут)
+- Разрешение конфликтов: Last-Write-Wins по `updated_at`
+- Автоматическая инвалидация кеша TanStack Query при синхронизации
+- UI компонент для мониторинга статуса синхронизации
+
+**Планируется:**
+
 - Supabase Realtime для обновлений в реальном времени
-- Очередь синхронизации для офлайн-операций
-- Разрешение конфликтов: Last-Write-Wins или выбор пользователя
-- Автоматическая инвалидация кеша TanStack Query при изменениях
+- Ручное разрешение конфликтов через UI
+
+**Документация:** [`docs/OFFLINE_SYNC.md`](./OFFLINE_SYNC.md)
 
 ### Мультивалютность
 

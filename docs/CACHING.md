@@ -23,10 +23,11 @@
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
-│  Персистентный кеш (localStorage)   │
+│  Персистентный кеш (IndexedDB)     │
 │  - Сохранение между сессиями        │
-│  - Только для категорий             │
-│  - Время жизни: 24 часа              │
+│  - Категории и транзакции           │
+│  - Время жизни: 24 часа             │
+│  - Объем: до ~50MB                  │
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
@@ -211,25 +212,36 @@ queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
 
 ## Персистентное кеширование
 
-Категории сохраняются в localStorage для доступа между сессиями:
+Категории и транзакции сохраняются в IndexedDB для доступа между сессиями и офлайн-режима:
 
 ```typescript
 // lib/query/persist.ts
 persistQueryClient({
   queryClient,
-  persister: createSyncStoragePersister({
-    storage: window.localStorage,
+  persister: createAsyncStoragePersister({
+    storage: indexedDBStorage, // IndexedDB адаптер
     key: "PENNORA_QUERY_CACHE",
   }),
   maxAge: 24 * 60 * 60 * 1000, // 24 часа
   dehydrateOptions: {
     shouldDehydrateQuery: (query) => {
-      // Персистируем только категории
-      return query.queryKey[0] === "categories";
+      const queryKey = query.queryKey;
+      // Персистируем категории и транзакции
+      return (
+        (queryKey[0] === "categories" && queryKey[1] === "list") ||
+        (queryKey[0] === "transactions" && queryKey[1] === "list")
+      );
     },
   },
 });
 ```
+
+**Преимущества IndexedDB над localStorage:**
+
+- Больший объем хранилища (~50MB vs 5-10MB)
+- Поддержка нативных типов (Date, File)
+- Лучшая производительность для больших данных
+- Автоматический офлайн-режим через TanStack Query
 
 ## Правила использования
 
@@ -406,7 +418,8 @@ queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
 
 1. Проверить, что `setupPersistCache()` вызывается
 2. Проверить `shouldDehydrateQuery` в конфигурации
-3. Проверить localStorage в DevTools
+3. Проверить IndexedDB в DevTools (Application → IndexedDB)
+4. Проверить поддержку IndexedDB в браузере
 
 ## Дополнительные ресурсы
 

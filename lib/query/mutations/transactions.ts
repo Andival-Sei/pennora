@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/db/supabase/client";
 import { toast } from "sonner";
 import { queryKeys } from "../keys";
+import { queueManager } from "@/lib/sync/queueManager";
+import { isNetworkError } from "@/lib/utils/network";
 import type {
   TransactionInsert,
   TransactionUpdate,
@@ -114,8 +116,28 @@ export function useCreateTransaction() {
 
       return { previousQueries };
     },
-    onError: (err, newTransaction, context) => {
-      // Откатываем изменения при ошибке
+    onError: async (err, newTransaction, context) => {
+      // Если это сетевая ошибка - добавляем в очередь и не откатываем оптимистичное обновление
+      if (isNetworkError(err)) {
+        try {
+          await queueManager.enqueue(
+            "transactions",
+            "create",
+            null,
+            newTransaction
+          );
+          // Сообщение будет переведено в компоненте, если нужно
+          toast.success(
+            "Transaction will be synced when connection is restored"
+          );
+          // Не откатываем оптимистичное обновление - оставляем в UI
+          return;
+        } catch (queueError) {
+          console.error("Error adding to sync queue:", queueError);
+        }
+      }
+
+      // Для других ошибок откатываем изменения
       if (context?.previousQueries) {
         context.previousQueries.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
@@ -178,7 +200,24 @@ export function useUpdateTransaction() {
 
       return { previousQueries };
     },
-    onError: (err, variables, context) => {
+    onError: async (err, variables, context) => {
+      // Если это сетевая ошибка - добавляем в очередь
+      if (isNetworkError(err)) {
+        try {
+          await queueManager.enqueue(
+            "transactions",
+            "update",
+            variables.id,
+            variables.transaction
+          );
+          toast.success("Changes will be synced when connection is restored");
+          return;
+        } catch (queueError) {
+          console.error("Error adding to sync queue:", queueError);
+        }
+      }
+
+      // Для других ошибок откатываем изменения
       if (context?.previousQueries) {
         context.previousQueries.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
@@ -226,7 +265,19 @@ export function useDeleteTransaction() {
 
       return { previousQueries };
     },
-    onError: (err, id, context) => {
+    onError: async (err, id, context) => {
+      // Если это сетевая ошибка - добавляем в очередь
+      if (isNetworkError(err)) {
+        try {
+          await queueManager.enqueue("transactions", "delete", id, { id });
+          toast.success("Deletion will be synced when connection is restored");
+          return;
+        } catch (queueError) {
+          console.error("Error adding to sync queue:", queueError);
+        }
+      }
+
+      // Для других ошибок откатываем изменения
       if (context?.previousQueries) {
         context.previousQueries.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
