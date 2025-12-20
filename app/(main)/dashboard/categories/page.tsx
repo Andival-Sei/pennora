@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
 import { FolderTree } from "lucide-react";
+import { CategoryList } from "@/components/features/categories/CategoryList";
 
 export default async function CategoriesPage() {
   const supabase = await createClient();
@@ -27,7 +28,7 @@ export default async function CategoriesPage() {
           </div>
         </FadeIn>
         <FadeIn delay={0.2}>
-          <p className="text-muted-foreground">{t("comingSoon")}</p>
+          <CategoryList />
         </FadeIn>
       </ResponsiveContainer>
     </main>
