@@ -2,8 +2,6 @@
  * Утилиты для мокирования Supabase клиента в performance-тестах
  */
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 export interface MockSupabaseOptions {
   user?: {
     id: string;
@@ -15,9 +13,7 @@ export interface MockSupabaseOptions {
 /**
  * Создает мок Supabase клиента для тестирования производительности
  */
-export function createMockSupabaseClient(
-  options: MockSupabaseOptions = {}
-): Partial<SupabaseClient> {
+export function createMockSupabaseClient(options: MockSupabaseOptions = {}) {
   const { user, delay = 0 } = options;
 
   const delayPromise = () =>
@@ -76,24 +72,7 @@ export function createMockSupabaseClient(
           error: null,
         };
       },
-    } as {
-      auth: {
-        getUser: () => Promise<{
-          data: { user: { id: string; email: string } | null };
-        }>;
-        getSession: () => Promise<{
-          data: {
-            session: {
-              access_token: string;
-              refresh_token: string;
-              expires_in: number;
-              expires_at: number;
-              token_type: string;
-              user: { id: string; email: string };
-            } | null;
-          };
-        }>;
-      };
     },
-  };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any; // Используем any для упрощения типизации в тестах (мок не требует полной реализации SupabaseClient)
 }
