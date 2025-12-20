@@ -27,10 +27,7 @@ export function useUnsavedChanges({
   hasChanges,
   originalTheme,
   originalLocale,
-  originalDisplayCurrency,
-  currentTheme,
   currentLocale,
-  currentDisplayCurrency,
   onReset,
 }: UseUnsavedChangesProps) {
   const pathname = usePathname();

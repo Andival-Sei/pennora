@@ -10,7 +10,7 @@ export default async function BudgetCategoriesPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  await params; // id будет использован в будущем
   const supabase = await createClient();
   const {
     data: { user },
