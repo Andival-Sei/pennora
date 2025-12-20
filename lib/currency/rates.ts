@@ -6,9 +6,9 @@
 export type CurrencyCode = "RUB" | "USD" | "EUR";
 
 export interface ExchangeRates {
-  [key: string]: number; // Код валюты -> курс относительно базовой валюты
   base: string; // Базовая валюта (обычно USD)
   date: string; // Дата курса
+  rates: Record<string, number>; // Код валюты -> курс относительно базовой валюты
 }
 
 // Кеш курсов валют (в памяти)
@@ -46,14 +46,14 @@ async function fetchExchangeRates(): Promise<ExchangeRates> {
       return {
         base: data.base_code || "USD",
         date: data.time_last_update_utc || new Date().toISOString(),
-        ...data.conversion_rates,
+        rates: data.conversion_rates || {},
       };
     } else {
       // v4 API формат (бесплатный, без ключа)
       return {
         base: data.base || "USD",
         date: data.date || new Date().toISOString(),
-        ...data.rates,
+        rates: data.rates || {},
       };
     }
   } catch (error) {
@@ -74,9 +74,11 @@ function getFallbackRates(): ExchangeRates {
   return {
     base: "USD",
     date: new Date().toISOString(),
-    USD: 1,
-    EUR: 0.92,
-    RUB: 90.0,
+    rates: {
+      USD: 1,
+      EUR: 0.92,
+      RUB: 90.0,
+    },
   };
 }
 
@@ -114,8 +116,8 @@ export async function getExchangeRate(
 
   // Если базовая валюта USD, конвертируем через неё
   if (rates.base === "USD") {
-    const fromRate = rates[from] || 1;
-    const toRate = rates[to] || 1;
+    const fromRate = rates.rates[from] || 1;
+    const toRate = rates.rates[to] || 1;
 
     // Конвертация: from -> USD -> to
     // Если from = RUB, то 1 RUB = 1/90 USD
@@ -125,8 +127,8 @@ export async function getExchangeRate(
   }
 
   // Если базовая валюта другая, используем прямую конвертацию
-  const fromRate = rates[from] || 1;
-  const toRate = rates[to] || 1;
+  const fromRate = rates.rates[from] || 1;
+  const toRate = rates.rates[to] || 1;
   return toRate / fromRate;
 }
 
