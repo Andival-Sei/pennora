@@ -4,8 +4,9 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Edit2, Trash2, MoreVertical } from "lucide-react";
+import { Edit2, Trash2, MoreVertical, X, Loader2 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
   Table,
@@ -74,9 +75,14 @@ interface TransactionListProps {
 
 export function TransactionList({ monthFilter }: TransactionListProps) {
   const t = useTranslations("transactions");
+  const tCommon = useTranslations("common");
   const { deleteTransaction } = useTransactions();
   const [editingTransaction, setEditingTransaction] =
     useState<TransactionWithCategory | null>(null);
+  const [deletingTransactionId, setDeletingTransactionId] = useState<
+    string | null
+  >(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Используем React Query напрямую для загрузки транзакций
   const filters = monthFilter
@@ -106,9 +112,13 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm(t("deleteConfirm"))) {
+    setIsDeleting(true);
+    try {
       await deleteTransaction(id);
+      setDeletingTransactionId(null);
       // React Query автоматически обновит данные после мутации
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -208,7 +218,7 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600"
-                        onClick={() => handleDelete(transaction.id)}
+                        onClick={() => setDeletingTransactionId(transaction.id)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         {t("actions.delete")}
@@ -298,7 +308,7 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600"
-                        onClick={() => handleDelete(transaction.id)}
+                        onClick={() => setDeletingTransactionId(transaction.id)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         {t("actions.delete")}
@@ -331,6 +341,82 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      <AnimatePresence>
+        {deletingTransactionId && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              onClick={() => !isDeleting && setDeletingTransactionId(null)}
+            />
+
+            {/* Modal */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-card border border-border rounded-lg shadow-lg p-6 max-w-md w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-destructive/10">
+                      <Trash2 className="h-5 w-5 text-destructive" />
+                    </div>
+                    <h3 className="text-lg font-semibold">
+                      {t("actions.delete")}
+                    </h3>
+                  </div>
+                  {!isDeleting && (
+                    <button
+                      onClick={() => setDeletingTransactionId(null)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+
+                <p className="text-muted-foreground mb-6">
+                  {t("deleteConfirm")}
+                </p>
+
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeletingTransactionId(null)}
+                    disabled={isDeleting}
+                  >
+                    {tCommon("cancel")}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() =>
+                      deletingTransactionId &&
+                      handleDelete(deletingTransactionId)
+                    }
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {tCommon("loading")}
+                      </>
+                    ) : (
+                      t("actions.delete")
+                    )}
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }
