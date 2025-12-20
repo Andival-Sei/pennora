@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -37,10 +37,14 @@ import { ru as dayPickerRu } from "react-day-picker/locale/ru";
 import { CalendarIcon } from "lucide-react";
 
 import { useTransactions } from "@/lib/hooks/useTransactions";
+import { useCategories } from "@/lib/hooks/useCategories";
 import { Transaction, TransactionInsert } from "@/lib/types/transaction";
 import { createClient } from "@/lib/db/supabase/client";
 import { toast } from "sonner";
-import type { Category, Account } from "@/lib/db/supabase/types";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query/keys";
+import { fetchAccounts } from "@/lib/query/queries/accounts";
+import type { Account } from "@/lib/db/supabase/types";
 import { CascadingCategorySelect } from "@/components/features/categories/CascadingCategorySelect";
 import { motion } from "framer-motion";
 
@@ -67,52 +71,20 @@ export function TransactionForm({
   const t = useTranslations("transactions.form");
   const locale = useLocale();
   const { addTransaction, updateTransaction } = useTransactions();
+  const { categories, loading: loadingCategories } = useCategories();
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   // Локаль для date-fns и react-day-picker
   const dateFnsLocale = locale === "ru" ? dateFnsRu : dateFnsEn;
   const dayPickerLocale = locale === "ru" ? dayPickerRu : undefined; // enUS is default
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-  const [loadingAccounts, setLoadingAccounts] = useState(true);
 
-  // Fetch categories and accounts
-  useEffect(() => {
-    const fetchData = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setLoadingCategories(false);
-        setLoadingAccounts(false);
-        return;
-      }
-
-      setLoadingCategories(true);
-      setLoadingAccounts(true);
-
-      const { data: categoriesData } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("is_archived", false);
-      const { data: accountsData } = await supabase
-        .from("accounts")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("is_archived", false);
-
-      if (categoriesData) setCategories(categoriesData);
-      if (accountsData) setAccounts(accountsData);
-
-      setLoadingCategories(false);
-      setLoadingAccounts(false);
-    };
-    fetchData();
-  }, []);
+  // Используем React Query для загрузки аккаунтов
+  const { data: accounts = [], isLoading: loadingAccounts } = useQuery({
+    queryKey: queryKeys.accounts.list(),
+    queryFn: fetchAccounts,
+    staleTime: 10 * 60 * 1000, // 10 минут - данные редко меняются
+    gcTime: 30 * 60 * 1000, // 30 минут
+  });
 
   // Создаем валидную дату по умолчанию (сегодняшняя дата, время установлено на начало дня)
   const getDefaultDate = () => {

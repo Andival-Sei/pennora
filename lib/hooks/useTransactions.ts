@@ -1,195 +1,116 @@
-import { useState, useCallback } from "react";
-import { createClient } from "@/lib/db/supabase/client";
+"use client";
+
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query/keys";
 import {
-  Transaction,
+  fetchTransactions,
+  fetchAvailableMonthsAndYears,
+} from "@/lib/query/queries/transactions";
+import {
+  useCreateTransaction,
+  useUpdateTransaction,
+  useDeleteTransaction,
+} from "@/lib/query/mutations/transactions";
+import type {
   TransactionInsert,
   TransactionUpdate,
   TransactionWithCategory,
 } from "@/lib/types/transaction";
-import { toast } from "sonner"; // Assuming sonner is used, or can switch to another toast lib
 
+/**
+ * Хук для работы с транзакциями
+ * Использует React Query для кеширования и управления состоянием
+ * Сохраняет обратную совместимость с предыдущим API
+ */
 export function useTransactions() {
-  const [loading, setLoading] = useState(false);
-  const supabase = createClient();
+  const queryClient = useQueryClient();
 
-  const fetchTransactions = useCallback(
-    async (filters?: { month?: number; year?: number }) => {
-      setLoading(true);
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+  // Используем mutations из lib/query/mutations
+  const createMutation = useCreateTransaction();
+  const updateMutation = useUpdateTransaction();
+  const deleteMutation = useDeleteTransaction();
 
-        if (!user) {
-          toast.error("Пользователь не авторизован");
-          return [];
-        }
+  // Функция для загрузки транзакций (для обратной совместимости)
+  // Возвращает Promise, как в старой версии
+  const fetchTransactionsFn = async (filters?: {
+    month?: number;
+    year?: number;
+  }): Promise<TransactionWithCategory[]> => {
+    // Используем queryClient для получения данных из кеша или загрузки
+    const queryKey = queryKeys.transactions.list(filters);
+    const cachedData =
+      queryClient.getQueryData<TransactionWithCategory[]>(queryKey);
 
-        let query = supabase
-          .from("transactions")
-          .select(
-            `
-          *,
-          category:categories(*)
-        `
-          )
-          .eq("user_id", user.id);
-
-        // Применяем фильтр по месяцу и году, если они указаны
-        if (filters?.month !== undefined && filters?.year !== undefined) {
-          const startDate = new Date(filters.year, filters.month, 1);
-          const endDate = new Date(
-            filters.year,
-            filters.month + 1,
-            0,
-            23,
-            59,
-            59
-          );
-          query = query
-            .gte("date", startDate.toISOString())
-            .lte("date", endDate.toISOString());
-        }
-
-        const { data, error } = await query.order("date", { ascending: false });
-
-        if (error) throw error;
-        return data as TransactionWithCategory[];
-      } catch (error) {
-        console.error("Error fetching transactions:", error);
-        toast.error("Не удалось загрузить транзакции");
-        return [];
-      } finally {
-        setLoading(false);
-      }
-    },
-    [supabase]
-  );
-
-  const addTransaction = async (transaction: TransactionInsert) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("transactions")
-        .insert(transaction)
-        .select()
-        .single();
-
-      if (error) throw error;
-      toast.success("Транзакция добавлена");
-      return data;
-    } catch (error) {
-      console.error("Error adding transaction:", error);
-      toast.error("Не удалось добавить транзакцию");
-      return null;
-    } finally {
-      setLoading(false);
+    if (cachedData) {
+      return cachedData;
     }
+
+    // Если данных нет в кеше, загружаем их
+    const data = await queryClient.fetchQuery({
+      queryKey,
+      queryFn: () => fetchTransactions(filters),
+      staleTime: 2 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+    });
+
+    return data;
+  };
+
+  // Функция для получения доступных месяцев и лет (для обратной совместимости)
+  const getAvailableMonthsAndYears = async () => {
+    const queryKey = queryKeys.transactions.availableMonths();
+    const cachedData = queryClient.getQueryData<{
+      months: Array<{ month: number; year: number }>;
+      years: number[];
+    }>(queryKey);
+
+    if (cachedData) {
+      return cachedData;
+    }
+
+    const data = await queryClient.fetchQuery({
+      queryKey,
+      queryFn: fetchAvailableMonthsAndYears,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+    });
+
+    return data;
+  };
+
+  // Обертки для обратной совместимости
+  const addTransaction = async (transaction: TransactionInsert) => {
+    const result = await createMutation.mutateAsync(transaction);
+    return result || null;
   };
 
   const updateTransaction = async (
     id: string,
     transaction: TransactionUpdate
   ) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("transactions")
-        .update(transaction)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      toast.success("Транзакция обновлена");
-      return data;
-    } catch (error) {
-      console.error("Error updating transaction:", error);
-      toast.error("Не удалось обновить транзакцию");
-      return null;
-    } finally {
-      setLoading(false);
-    }
+    const result = await updateMutation.mutateAsync({ id, transaction });
+    return result || null;
   };
 
   const deleteTransaction = async (id: string) => {
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from("transactions")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-      toast.success("Транзакция удалена");
-      return true;
-    } catch (error) {
-      console.error("Error deleting transaction:", error);
-      toast.error("Не удалось удалить транзакцию");
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    await deleteMutation.mutateAsync(id);
+    return true;
   };
 
-  const getAvailableMonthsAndYears = useCallback(async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        return { months: [], years: [] };
-      }
-
-      // Получаем все транзакции пользователя
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("date")
-        .eq("user_id", user.id);
-
-      if (error) throw error;
-
-      // Извлекаем уникальные месяцы и годы
-      const monthYearSet = new Set<string>();
-      const yearSet = new Set<number>();
-
-      data?.forEach((transaction) => {
-        const date = new Date(transaction.date);
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        monthYearSet.add(`${year}-${month}`);
-        yearSet.add(year);
-      });
-
-      // Преобразуем в массивы и сортируем
-      const months: Array<{ month: number; year: number }> = Array.from(
-        monthYearSet
-      )
-        .map((item) => {
-          const [year, month] = item.split("-").map(Number);
-          return { month, year };
-        })
-        .sort((a, b) => {
-          if (a.year !== b.year) return b.year - a.year;
-          return b.month - a.month;
-        });
-
-      const years = Array.from(yearSet).sort((a, b) => b - a);
-
-      return { months, years };
-    } catch (error) {
-      console.error("Error fetching available months/years:", error);
-      return { months: [], years: [] };
-    }
-  }, [supabase]);
-
   return {
-    loading,
-    fetchTransactions,
+    // Для обратной совместимости
+    loading:
+      createMutation.isPending ||
+      updateMutation.isPending ||
+      deleteMutation.isPending,
+    fetchTransactions: fetchTransactionsFn,
     addTransaction,
     updateTransaction,
     deleteTransaction,
     getAvailableMonthsAndYears,
+    // Прямой доступ к mutations для компонентов, которые хотят использовать React Query напрямую
+    createMutation,
+    updateMutation,
+    deleteMutation,
   };
 }

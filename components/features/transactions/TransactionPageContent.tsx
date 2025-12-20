@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,47 +17,43 @@ import { FadeIn } from "@/components/motion";
 import { TransactionList } from "./TransactionList";
 import { TransactionForm } from "./TransactionForm";
 import { MonthYearSelector } from "./MonthYearSelector";
-import { useTransactions } from "@/lib/hooks/useTransactions";
+import { queryKeys } from "@/lib/query/keys";
+import { fetchAvailableMonthsAndYears } from "@/lib/query/queries/transactions";
 
 export function TransactionPageContent() {
   const t = useTranslations("transactions");
   const [open, setOpen] = useState(false);
-  const [key, setKey] = useState(0); // To force refresh list
-  const { getAvailableMonthsAndYears } = useTransactions();
-  const [availableMonths, setAvailableMonths] = useState<
-    Array<{ month: number; year: number }>
-  >([]);
-  const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [monthFilter, setMonthFilter] = useState<{
     month: number;
     year: number;
   } | null>(null);
 
-  // Загружаем доступные месяцы/годы и устанавливаем начальный фильтр только при первой загрузке
+  // Используем React Query для загрузки доступных месяцев/лет
+  const { data: availableData, isLoading: loadingMonths } = useQuery({
+    queryKey: queryKeys.transactions.availableMonths(),
+    queryFn: fetchAvailableMonthsAndYears,
+    staleTime: 5 * 60 * 1000, // 5 минут
+    gcTime: 30 * 60 * 1000, // 30 минут
+  });
+
+  const availableMonths = availableData?.months || [];
+  const availableYears = availableData?.years || [];
+
+  // Устанавливаем фильтр на первый доступный месяц при первой загрузке
   useEffect(() => {
-    const loadAvailableMonthsAndYears = async () => {
-      const { months, years } = await getAvailableMonthsAndYears();
-      setAvailableMonths(months);
-      setAvailableYears(years);
-
-      // Устанавливаем фильтр на первый доступный месяц (самый свежий) только если фильтр еще не установлен
-      if (!monthFilter) {
-        if (months.length > 0) {
-          setMonthFilter(months[0]);
-        } else {
-          // Если транзакций нет, используем текущий месяц/год
-          const currentDate = new Date();
-          setMonthFilter({
-            month: currentDate.getMonth(),
-            year: currentDate.getFullYear(),
-          });
-        }
+    if (!monthFilter && !loadingMonths) {
+      if (availableMonths.length > 0) {
+        setMonthFilter(availableMonths[0]);
+      } else {
+        // Если транзакций нет, используем текущий месяц/год
+        const currentDate = new Date();
+        setMonthFilter({
+          month: currentDate.getMonth(),
+          year: currentDate.getFullYear(),
+        });
       }
-    };
-
-    loadAvailableMonthsAndYears();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getAvailableMonthsAndYears]); // Убрали key из зависимостей, чтобы не сбрасывать выбранный месяц
+    }
+  }, [monthFilter, loadingMonths, availableMonths]);
 
   if (!monthFilter) {
     return <div className="text-center py-4">{t("loading")}</div>;
@@ -70,7 +67,7 @@ export function TransactionPageContent() {
             value={monthFilter}
             onChange={(value) => {
               setMonthFilter(value);
-              setKey((prev) => prev + 1); // Refresh list
+              // React Query автоматически обновит список транзакций
             }}
             availableMonths={availableMonths}
             availableYears={availableYears}
@@ -87,26 +84,10 @@ export function TransactionPageContent() {
                 <DialogTitle>{t("createTitle")}</DialogTitle>
               </DialogHeader>
               <TransactionForm
-                onSuccess={async () => {
+                onSuccess={() => {
                   setOpen(false);
-                  // Обновляем доступные месяцы/годы после добавления транзакции
-                  const { months, years } = await getAvailableMonthsAndYears();
-                  setAvailableMonths(months);
-                  setAvailableYears(years);
-                  // Если добавлена транзакция в новый месяц/год, переключаемся на него
-                  // Но только если текущий фильтр не соответствует ни одному доступному месяцу
-                  if (months.length > 0) {
-                    const currentFilterExists = months.some(
-                      (m) =>
-                        m.month === monthFilter?.month &&
-                        m.year === monthFilter?.year
-                    );
-                    // Переключаемся на новый месяц только если текущий фильтр больше не существует
-                    if (!currentFilterExists) {
-                      setMonthFilter(months[0]);
-                    }
-                  }
-                  setKey((prev) => prev + 1); // Refresh list
+                  // React Query автоматически обновит доступные месяцы/годы и список транзакций
+                  // после успешной мутации через инвалидацию кеша
                 }}
               />
             </DialogContent>
@@ -115,7 +96,7 @@ export function TransactionPageContent() {
       </FadeIn>
 
       <FadeIn delay={0.2}>
-        <TransactionList key={key} monthFilter={monthFilter} />
+        <TransactionList monthFilter={monthFilter} />
       </FadeIn>
     </div>
   );

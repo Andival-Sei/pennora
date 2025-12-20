@@ -78,9 +78,23 @@ pennora/
 │   │   │   ├── database.ts
 │   │   │   └── models.ts
 │   │   └── rxdb/                # RxDB (TODO, если понадобится)
+│   ├── query/                    # TanStack Query (кеширование)
+│   │   ├── client.ts            # Конфигурация QueryClient
+│   │   ├── provider.tsx         # QueryClientProvider
+│   │   ├── persist.ts          # Персистентное кеширование
+│   │   ├── keys.ts              # Query keys factory
+│   │   ├── queries/             # Query функции для чтения
+│   │   │   ├── transactions.ts
+│   │   │   ├── categories.ts
+│   │   │   ├── currency.ts
+│   │   │   └── accounts.ts
+│   │   └── mutations/           # Mutation хуки для изменения
+│   │       ├── transactions.ts
+│   │       └── categories.ts
 │   ├── hooks/                    # Переиспользуемые React хуки
 │   │   ├── useSync.ts
-│   │   ├── useTransactions.ts
+│   │   ├── useTransactions.ts   # Использует TanStack Query
+│   │   ├── useCategories.ts     # Использует TanStack Query
 │   │   ├── useBudgets.ts
 │   │   └── useCurrency.ts
 │   ├── stores/                   # Zustand stores
@@ -203,26 +217,57 @@ pennora/
 
 ## Работа с данными
 
+### Кеширование (TanStack Query)
+
+- **Документация**: [`docs/CACHING.md`](./CACHING.md) — подробное описание системы кеширования
+- **Конфигурация**: `lib/query/client.ts` — настройки QueryClient
+- **Провайдер**: `lib/query/provider.tsx` — QueryClientProvider для всего приложения
+- **Query функции**: `lib/query/queries/` — функции для загрузки данных
+- **Mutation функции**: `lib/query/mutations/` — функции для изменения данных с оптимистичными обновлениями
+- **Query Keys**: `lib/query/keys.ts` — централизованная фабрика ключей кеша
+- **Персистентность**: `lib/query/persist.ts` — персистентное кеширование в localStorage
+
+**Основные принципы:**
+
+- Все данные из Supabase кешируются через TanStack Query
+- Оптимистичные обновления для мгновенного UI
+- Автоматическая инвалидация кеша при мутациях
+- Персистентное кеширование для критичных данных (категории)
+
 ### Supabase (основная БД)
 
 - **Клиент**: `lib/db/supabase/client.ts` (браузер) и `server.ts` (сервер)
 - **Типы**: Автоматически генерируются из схемы БД в `lib/db/supabase/types.ts`
 - **Реэкспорты**: Для обратной совместимости в `lib/supabase/`
+- **Кеширование**: Все запросы к Supabase кешируются через TanStack Query
 
 ### IndexedDB (офлайн-режим)
 
 - **Планируется**: Использование Dexie для работы с IndexedDB
 - **Структура**: `lib/db/indexeddb/`
+- **Интеграция**: Будет работать совместно с TanStack Query для офлайн-доступа
 
 ### Синхронизация
 
 - **Менеджер**: `lib/sync/syncManager.ts`
 - **Разрешение конфликтов**: `lib/sync/conflictResolver.ts`
 - **Очередь операций**: `lib/sync/queueManager.ts`
+- **Инвалидация кеша**: Автоматическая инвалидация TanStack Query при синхронизации
 
 ## State Management
 
-### Zustand Stores
+### TanStack Query (Серверное состояние)
+
+- **Назначение**: Кеширование и управление серверным состоянием
+- **Документация**: [`docs/CACHING.md`](./CACHING.md)
+- **Использование**: Все данные из Supabase кешируются через TanStack Query
+- **Особенности**:
+  - Автоматическое кеширование при переходах между вкладками
+  - Оптимистичные обновления для мгновенного UI
+  - Автоматическая инвалидация кеша при мутациях
+  - Персистентное кеширование для категорий
+
+### Zustand Stores (Клиентское состояние)
 
 - **`authStore.ts`** — Состояние аутентификации
 - **`syncStore.ts`** — Состояние синхронизации
@@ -230,8 +275,9 @@ pennora/
 
 ### React Hooks
 
+- **`useTransactions`** — Работа с транзакциями (использует TanStack Query)
+- **`useCategories`** — Работа с категориями (использует TanStack Query)
 - **`useBudgets`** — Работа с бюджетами
-- **`useTransactions`** — Работа с транзакциями
 - **`useCurrency`** — Работа с валютами
 - **`useSync`** — Синхронизация данных
 
@@ -273,9 +319,10 @@ pennora/
 1. **Route Groups**: Использование для организации без влияния на URL
 2. **Feature-based структура**: Компоненты группируются по доменам
 3. **Типизация**: Строгая типизация TypeScript
-4. **Офлайн-first**: Поддержка офлайн-режима через IndexedDB
-5. **Синхронизация**: Автоматическая синхронизация при наличии сети
-6. **Мультивалютность**: Поддержка нескольких валют с конвертацией
+4. **Кеширование**: Все данные из Supabase кешируются через TanStack Query (см. [`docs/CACHING.md`](./CACHING.md))
+5. **Офлайн-first**: Поддержка офлайн-режима через IndexedDB
+6. **Синхронизация**: Автоматическая синхронизация при наличии сети
+7. **Мультивалютность**: Поддержка нескольких валют с конвертацией
 
 ## TODO и будущие улучшения
 
@@ -293,8 +340,15 @@ pennora/
 
 - **Next.js 16** — React фреймворк
 - **Supabase** — Backend и аутентификация
-- **Zustand** — State management
+- **TanStack Query 5** — Серверное состояние и кеширование
+- **Zustand** — Клиентское состояние (UI, auth, sync)
 - **next-intl** — Интернационализация
 - **shadcn/ui** — UI компоненты
 - **Tailwind CSS** — Стилизация
 - **Framer Motion** — Анимации
+
+## Документация
+
+- **Архитектура**: [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) (этот файл)
+- **Кеширование**: [`docs/CACHING.md`](./CACHING.md) — подробное описание системы кеширования через TanStack Query
+- **Для AI-агентов**: [`docs/AGENTS.md`](./AGENTS.md) — контекст для AI-ассистентов

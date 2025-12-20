@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { BottomNav } from "@/components/navigation/bottom-nav";
+import { QueryProvider } from "@/lib/query/provider";
 
 export default function MainLayout({
   children,
@@ -13,13 +14,13 @@ export default function MainLayout({
 
   // Не показываем навигацию на странице онбординга
   if (isOnboarding) {
-    return <>{children}</>;
+    return <QueryProvider>{children}</QueryProvider>;
   }
 
   return (
-    <>
+    <QueryProvider>
       <div className="pb-16">{children}</div>
       <BottomNav />
-    </>
+    </QueryProvider>
   );
 }

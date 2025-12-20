@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
 import { Edit2, Trash2, MoreVertical } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 
@@ -22,6 +23,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useTransactions } from "@/lib/hooks/useTransactions";
+import { queryKeys } from "@/lib/query/keys";
+import { fetchTransactions } from "@/lib/query/queries/transactions";
 import { TransactionWithCategory } from "@/lib/types/transaction";
 import { cn } from "@/lib/utils";
 import {
@@ -69,37 +72,26 @@ interface TransactionListProps {
 
 export function TransactionList({ monthFilter }: TransactionListProps) {
   const t = useTranslations("transactions");
-  const { fetchTransactions, deleteTransaction } = useTransactions();
-  const [transactions, setTransactions] = useState<TransactionWithCategory[]>(
-    []
-  );
-  const [loading, setLoading] = useState(true);
+  const { deleteTransaction } = useTransactions();
   const [editingTransaction, setEditingTransaction] =
     useState<TransactionWithCategory | null>(null);
 
-  const loadData = useCallback(async () => {
-    const data = await fetchTransactions(
-      monthFilter
-        ? { month: monthFilter.month, year: monthFilter.year }
-        : undefined
-    );
-    setTransactions(data);
-    setLoading(false);
-  }, [fetchTransactions, monthFilter]);
+  // Используем React Query напрямую для загрузки транзакций
+  const filters = monthFilter
+    ? { month: monthFilter.month, year: monthFilter.year }
+    : undefined;
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      await loadData();
-    })();
-  }, [loadData]);
+  const { data: transactions = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.transactions.list(filters),
+    queryFn: () => fetchTransactions(filters),
+    staleTime: 2 * 60 * 1000, // 2 минуты
+    gcTime: 15 * 60 * 1000, // 15 минут
+  });
 
   const handleDelete = async (id: string) => {
     if (confirm(t("deleteConfirm"))) {
-      const success = await deleteTransaction(id);
-      if (success) {
-        loadData();
-      }
+      await deleteTransaction(id);
+      // React Query автоматически обновит данные после мутации
     }
   };
 
@@ -280,7 +272,7 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
               initialData={editingTransaction}
               onSuccess={() => {
                 setEditingTransaction(null);
-                loadData();
+                // React Query автоматически обновит данные после мутации
               }}
             />
           )}
