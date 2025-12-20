@@ -34,6 +34,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TransactionForm } from "./TransactionForm";
 import { formatCurrency } from "@/lib/currency/formatter";
 import { ArrowRight } from "lucide-react";
@@ -74,9 +84,13 @@ interface TransactionListProps {
 
 export function TransactionList({ monthFilter }: TransactionListProps) {
   const t = useTranslations("transactions");
+  const tCommon = useTranslations("common");
   const { deleteTransaction } = useTransactions();
   const [editingTransaction, setEditingTransaction] =
     useState<TransactionWithCategory | null>(null);
+  const [deletingTransactionId, setDeletingTransactionId] = useState<
+    string | null
+  >(null);
 
   // Используем React Query напрямую для загрузки транзакций
   const filters = monthFilter
@@ -106,10 +120,9 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm(t("deleteConfirm"))) {
-      await deleteTransaction(id);
-      // React Query автоматически обновит данные после мутации
-    }
+    await deleteTransaction(id);
+    setDeletingTransactionId(null);
+    // React Query автоматически обновит данные после мутации
   };
 
   if (loading) {
@@ -208,7 +221,7 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600"
-                        onClick={() => handleDelete(transaction.id)}
+                        onClick={() => setDeletingTransactionId(transaction.id)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         {t("actions.delete")}
@@ -298,7 +311,7 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600"
-                        onClick={() => handleDelete(transaction.id)}
+                        onClick={() => setDeletingTransactionId(transaction.id)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         {t("actions.delete")}
@@ -331,6 +344,31 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={deletingTransactionId !== null}
+        onOpenChange={(open) => !open && setDeletingTransactionId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("actions.delete")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteConfirm")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                deletingTransactionId && handleDelete(deletingTransactionId)
+              }
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("actions.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
