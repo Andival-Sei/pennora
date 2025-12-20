@@ -37,7 +37,11 @@ export async function fetchTransactions(filters?: {
       .lte("date", endDate.toISOString());
   }
 
-  const { data, error } = await query.order("date", { ascending: false });
+  // Сортируем по дате создания (created_at) по убыванию, чтобы новые транзакции были сверху
+  // Если даты создания одинаковые, сортируем по дате транзакции
+  const { data, error } = await query
+    .order("created_at", { ascending: false })
+    .order("date", { ascending: false });
 
   if (error) {
     throw error;

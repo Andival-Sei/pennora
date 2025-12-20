@@ -23,6 +23,9 @@ import { fetchAvailableMonthsAndYears } from "@/lib/query/queries/transactions";
 export function TransactionPageContent() {
   const t = useTranslations("transactions");
   const [open, setOpen] = useState(false);
+  // Исправление проблемы гидратации: используем useState с проверкой typeof window
+  // Это предотвращает несоответствие гидратации, так как на сервере window === undefined
+  const [mounted] = useState(() => typeof window !== "undefined");
 
   // Используем React Query для загрузки доступных месяцев/лет
   const { data: availableData } = useQuery({
@@ -73,26 +76,33 @@ export function TransactionPageContent() {
             availableMonths={availableMonths}
             availableYears={availableYears}
           />
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                {t("add")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t("createTitle")}</DialogTitle>
-              </DialogHeader>
-              <TransactionForm
-                onSuccess={() => {
-                  setOpen(false);
-                  // React Query автоматически обновит доступные месяцы/годы и список транзакций
-                  // после успешной мутации через инвалидацию кеша
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+          {mounted ? (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t("add")}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{t("createTitle")}</DialogTitle>
+                </DialogHeader>
+                <TransactionForm
+                  onSuccess={() => {
+                    setOpen(false);
+                    // React Query автоматически обновит доступные месяцы/годы и список транзакций
+                    // после успешной мутации через инвалидацию кеша
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Button disabled>
+              <Plus className="mr-2 h-4 w-4" />
+              {t("add")}
+            </Button>
+          )}
         </div>
       </FadeIn>
 

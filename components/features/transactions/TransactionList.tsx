@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { useTransactions } from "@/lib/hooks/useTransactions";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchTransactions } from "@/lib/query/queries/transactions";
+import { fetchAccounts } from "@/lib/query/queries/accounts";
 import { TransactionWithCategory } from "@/lib/types/transaction";
 import { cn } from "@/lib/utils";
 import {
@@ -35,6 +36,7 @@ import {
 } from "@/components/ui/dialog";
 import { TransactionForm } from "./TransactionForm";
 import { formatCurrency } from "@/lib/currency/formatter";
+import { ArrowRight } from "lucide-react";
 
 // Маппинг иконок категорий (как в CategoryItem)
 const defaultIcons: Record<string, keyof typeof LucideIcons> = {
@@ -88,6 +90,21 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
     gcTime: 15 * 60 * 1000, // 15 минут
   });
 
+  // Загружаем счета для отображения названий в переводах
+  const { data: accounts = [] } = useQuery({
+    queryKey: queryKeys.accounts.list(),
+    queryFn: fetchAccounts,
+    staleTime: 10 * 60 * 1000, // 10 минут
+    gcTime: 30 * 60 * 1000, // 30 минут
+  });
+
+  // Функция для получения названия счета по ID
+  const getAccountName = (accountId: string | null) => {
+    if (!accountId) return "";
+    const account = accounts.find((acc) => acc.id === accountId);
+    return account?.name || "";
+  };
+
   const handleDelete = async (id: string) => {
     if (confirm(t("deleteConfirm"))) {
       await deleteTransaction(id);
@@ -128,21 +145,36 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
                   {format(new Date(transaction.date), "dd.MM.yyyy")}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      const IconComponent = transaction.category?.icon
-                        ? getCategoryIcon(transaction.category.icon)
-                        : null;
-                      return IconComponent ? (
-                        <IconComponent className="h-4 w-4 text-muted-foreground" />
-                      ) : null;
-                    })()}
-                    <span>
-                      {transaction.category?.name || t("uncategorized")}
-                    </span>
-                  </div>
+                  {transaction.type === "transfer" ? (
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <ArrowRight className="h-4 w-4" />
+                      <span className="text-sm">
+                        {t("list.transferFrom")}{" "}
+                        {getAccountName(transaction.account_id)} →{" "}
+                        {t("list.transferTo")}{" "}
+                        {getAccountName(transaction.to_account_id)}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const IconComponent = transaction.category?.icon
+                          ? getCategoryIcon(transaction.category.icon)
+                          : null;
+                        return IconComponent ? (
+                          <IconComponent className="h-4 w-4 text-muted-foreground" />
+                        ) : null;
+                      })()}
+                      <span>
+                        {transaction.category?.name || t("uncategorized")}
+                      </span>
+                    </div>
+                  )}
                 </TableCell>
-                <TableCell>{transaction.description}</TableCell>
+                <TableCell>
+                  {transaction.description ||
+                    (transaction.type === "transfer" ? "" : null)}
+                </TableCell>
                 <TableCell
                   className={cn(
                     "text-right font-medium",
@@ -153,7 +185,11 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
                         : "text-blue-600"
                   )}
                 >
-                  {transaction.type === "income" ? "+" : "-"}
+                  {transaction.type === "transfer"
+                    ? ""
+                    : transaction.type === "income"
+                      ? "+"
+                      : "-"}
                   {formatCurrency(transaction.amount, transaction.currency)}
                 </TableCell>
                 <TableCell>
@@ -199,19 +235,32 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    {IconComponent && (
-                      <IconComponent className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span className="font-medium">
-                      {transaction.category?.name || t("uncategorized")}
-                    </span>
-                  </div>
-                  {transaction.description && (
-                    <p className="text-sm text-muted-foreground">
-                      {transaction.description}
-                    </p>
+                  {transaction.type === "transfer" ? (
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <ArrowRight className="h-4 w-4" />
+                      <span className="font-medium text-sm">
+                        {t("list.transferFrom")}{" "}
+                        {getAccountName(transaction.account_id)} →{" "}
+                        {t("list.transferTo")}{" "}
+                        {getAccountName(transaction.to_account_id)}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {IconComponent && (
+                        <IconComponent className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span className="font-medium">
+                        {transaction.category?.name || t("uncategorized")}
+                      </span>
+                    </div>
                   )}
+                  {transaction.description &&
+                    transaction.type !== "transfer" && (
+                      <p className="text-sm text-muted-foreground">
+                        {transaction.description}
+                      </p>
+                    )}
                   <p className="text-xs text-muted-foreground">
                     {format(new Date(transaction.date), "dd.MM.yyyy")}
                   </p>
@@ -227,7 +276,11 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
                           : "text-blue-600"
                     )}
                   >
-                    {transaction.type === "income" ? "+" : "-"}
+                    {transaction.type === "transfer"
+                      ? ""
+                      : transaction.type === "income"
+                        ? "+"
+                        : "-"}
                     {formatCurrency(transaction.amount, transaction.currency)}
                   </span>
                   <DropdownMenu>

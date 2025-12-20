@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +29,7 @@ import { GoogleButton } from "@/components/ui/google-button";
 export default function LoginPage() {
   const t = useTranslations("auth");
   const tErrors = useTranslations();
+  const searchParams = useSearchParams();
   const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -50,6 +52,12 @@ export default function LoginPage() {
     const formData = new FormData();
     formData.append("email", data.email);
     formData.append("password", data.password);
+
+    // Передаем параметр redirect, если он есть в URL
+    const redirectTo = searchParams.get("redirect");
+    if (redirectTo) {
+      formData.append("redirect", redirectTo);
+    }
 
     const result = await signIn(formData);
     if (result?.error) {

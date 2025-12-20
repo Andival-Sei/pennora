@@ -45,6 +45,13 @@ export async function signIn(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
+
+  // Проверяем, есть ли параметр redirect в URL
+  const redirectTo = formData.get("redirect") as string | null;
+  if (redirectTo && redirectTo.startsWith("/dashboard")) {
+    redirect(redirectTo);
+  }
+
   redirect("/dashboard");
 }
 

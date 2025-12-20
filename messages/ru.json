@@ -293,7 +293,9 @@
       "date": "Дата",
       "category": "Категория",
       "description": "Описание",
-      "amount": "Сумма"
+      "amount": "Сумма",
+      "transferFrom": "С",
+      "transferTo": "На"
     },
     "actions": {
       "edit": "Редактировать",
@@ -315,7 +317,11 @@
       "description": "Описание",
       "create": "Создать",
       "update": "Обновить",
-      "none": "Нет"
+      "none": "Нет",
+      "toAccount": "На счёт",
+      "toAccountPlaceholder": "Выберите целевой счёт",
+      "toAccountError": "Выберите целевой счёт",
+      "toAccountSameError": "Целевой счёт должен отличаться от исходного"
     }
   },
   "categories": {

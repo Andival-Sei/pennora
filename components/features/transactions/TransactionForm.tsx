@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -47,14 +47,32 @@ import { fetchAccounts } from "@/lib/query/queries/accounts";
 import { CascadingCategorySelect } from "@/components/features/categories/CascadingCategorySelect";
 import { motion } from "framer-motion";
 
-const formSchema = z.object({
-  amount: z.number().min(0.01, "Сумма должна быть больше 0"),
-  type: z.enum(["income", "expense", "transfer"]),
-  category_id: z.string().optional().or(z.literal("__none__")),
-  account_id: z.string().min(1, "Выберите счет"),
-  date: z.date(),
-  description: z.string().optional(),
-});
+const formSchema = z
+  .object({
+    amount: z.number().min(0.01, "Сумма должна быть больше 0"),
+    type: z.enum(["income", "expense", "transfer"]),
+    category_id: z.string().optional().or(z.literal("__none__")),
+    account_id: z.string().min(1, "Выберите счет"),
+    to_account_id: z.string().optional(),
+    date: z.date(),
+    description: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.type === "transfer") {
+        return (
+          data.to_account_id &&
+          data.to_account_id.length > 0 &&
+          data.to_account_id !== data.account_id
+        );
+      }
+      return true;
+    },
+    {
+      message: "Целевой счёт должен отличаться от исходного",
+      path: ["to_account_id"],
+    }
+  );
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -105,6 +123,7 @@ export function TransactionForm({
         ? initialData.category_id
         : "__none__",
       account_id: initialData?.account_id || "",
+      to_account_id: initialData?.to_account_id || "",
       date: getDefaultDate(),
       description: initialData?.description || "",
     },
@@ -115,6 +134,34 @@ export function TransactionForm({
     control: form.control,
     name: "type",
   });
+  const accountId = useWatch({
+    control: form.control,
+    name: "account_id",
+  });
+
+  // Получаем валюту исходного счета
+  const sourceAccount = accounts.find((acc) => acc.id === accountId);
+  const sourceCurrency = sourceAccount?.currency;
+
+  // Фильтруем счета для целевого счета:
+  // 1. Исключаем исходный счет
+  // 2. Показываем только счета с той же валютой (запрещаем переводы между разными валютами)
+  const availableToAccounts = accounts.filter(
+    (acc) => acc.id !== accountId && acc.currency === sourceCurrency
+  );
+
+  // Сбрасываем целевой счет, если он больше не доступен (например, изменилась валюта исходного счета)
+  useEffect(() => {
+    if (transactionType === "transfer" && accountId) {
+      const currentToAccountId = form.getValues("to_account_id");
+      if (
+        currentToAccountId &&
+        !availableToAccounts.find((acc) => acc.id === currentToAccountId)
+      ) {
+        form.setValue("to_account_id", "");
+      }
+    }
+  }, [accountId, sourceCurrency, transactionType, availableToAccounts, form]);
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -134,6 +181,13 @@ export function TransactionForm({
           ? values.date
           : getDefaultDate();
 
+      // Форматируем дату в формат YYYY-MM-DD (без времени, чтобы избежать проблем с часовыми поясами)
+      // Используем локальную дату, а не UTC
+      const year = transactionDate.getFullYear();
+      const month = String(transactionDate.getMonth() + 1).padStart(2, "0");
+      const day = String(transactionDate.getDate()).padStart(2, "0");
+      const dateString = `${year}-${month}-${day}`;
+
       // Получаем валюту из выбранного счета
       const selectedAccount = accounts.find(
         (acc) => acc.id === values.account_id
@@ -144,11 +198,15 @@ export function TransactionForm({
         amount: values.amount,
         type: values.type,
         category_id:
-          values.category_id === "__none__" || !values.category_id
+          values.type === "transfer" ||
+          values.category_id === "__none__" ||
+          !values.category_id
             ? null
             : values.category_id,
         account_id: values.account_id,
-        date: transactionDate.toISOString(),
+        to_account_id:
+          values.type === "transfer" ? values.to_account_id || null : null,
+        date: dateString,
         description: values.description || null,
         currency,
         user_id: user.id,
@@ -166,6 +224,7 @@ export function TransactionForm({
         type: "expense",
         category_id: "__none__",
         account_id: "",
+        to_account_id: "",
         date: getDefaultDate(),
         description: "",
       });
@@ -192,6 +251,11 @@ export function TransactionForm({
                     // Сбрасываем категорию при изменении типа на transfer
                     if (value === "transfer") {
                       form.setValue("category_id", "__none__");
+                      // Сбрасываем целевой счет при смене типа
+                      form.setValue("to_account_id", "");
+                    } else {
+                      // Сбрасываем целевой счет при смене типа на не-transfer
+                      form.setValue("to_account_id", "");
                     }
                   }}
                 >
@@ -205,9 +269,11 @@ export function TransactionForm({
                       {t("types.expense")}
                     </SelectItem>
                     <SelectItem value="income">{t("types.income")}</SelectItem>
-                    <SelectItem value="transfer">
-                      {t("types.transfer")}
-                    </SelectItem>
+                    {accounts.length >= 2 && (
+                      <SelectItem value="transfer">
+                        {t("types.transfer")}
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -257,7 +323,17 @@ export function TransactionForm({
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // При изменении исходного счета сбрасываем целевой счет,
+                        // так как он может быть недоступен для новой валюты
+                        if (transactionType === "transfer") {
+                          form.setValue("to_account_id", "");
+                        }
+                      }}
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={t("accountPlaceholder")} />
@@ -278,7 +354,62 @@ export function TransactionForm({
             )}
           />
 
-          {transactionType !== "transfer" && (
+          {transactionType === "transfer" ? (
+            <FormField
+              control={form.control}
+              name="to_account_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("toAccount")}</FormLabel>
+                  {loadingAccounts ? (
+                    <div className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs ring-offset-background">
+                      <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+                      <div className="h-4 w-4 bg-muted animate-pulse rounded opacity-50" />
+                    </div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={availableToAccounts.length === 0}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={
+                                availableToAccounts.length === 0
+                                  ? t("toAccountError")
+                                  : t("toAccountPlaceholder")
+                              }
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableToAccounts.length === 0 ? (
+                            <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                              {t("toAccountError")}
+                            </div>
+                          ) : (
+                            availableToAccounts.map((acc) => (
+                              <SelectItem key={acc.id} value={acc.id}>
+                                {acc.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </motion.div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : (
             <FormField
               control={form.control}
               name="category_id"

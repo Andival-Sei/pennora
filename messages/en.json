@@ -293,7 +293,9 @@
       "date": "Date",
       "category": "Category",
       "description": "Description",
-      "amount": "Amount"
+      "amount": "Amount",
+      "transferFrom": "From",
+      "transferTo": "To"
     },
     "actions": {
       "edit": "Edit",
@@ -315,7 +317,11 @@
       "description": "Description",
       "create": "Create",
       "update": "Update",
-      "none": "None"
+      "none": "None",
+      "toAccount": "To account",
+      "toAccountPlaceholder": "Select destination account",
+      "toAccountError": "Select destination account",
+      "toAccountSameError": "Destination account must differ from source"
     }
   },
   "categories": {
