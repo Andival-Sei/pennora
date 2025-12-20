@@ -20,6 +20,8 @@ export default async function DashboardPage() {
   } = await supabase.auth.getSession();
   const user = session?.user;
 
+  // ⚠️ Безопасность: getSession() проверяет JWT локально. Для запросов к БД это безопасно,
+  // так как RLS проверяет токен на уровне БД при каждом запросе.
   if (!user) {
     redirect("/login");
   }

@@ -30,6 +30,9 @@ export async function loadUserSettings(): Promise<UserSettings> {
 
   // Используем getSession() вместо getUser() для лучшей производительности
   // getSession() проверяет JWT локально без сетевого запроса
+  //
+  // ⚠️ Безопасность: Для запросов к БД это безопасно, так как RLS проверяет токен
+  // на уровне БД. Если токен отозван, RLS заблокирует запросы.
   const {
     data: { session },
   } = await supabase.auth.getSession();
