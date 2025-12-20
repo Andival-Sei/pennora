@@ -22,7 +22,7 @@ export function MonthYearSelector({
   value,
   onChange,
   availableMonths = [],
-  availableYears = [] as unknown[],
+  availableYears = [],
 }: MonthYearSelectorProps) {
   const locale = useLocale();
   const dateFnsLocale = locale === "ru" ? dateFnsRu : dateFnsEn;
