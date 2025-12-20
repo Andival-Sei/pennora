@@ -9,6 +9,7 @@ import { ResponsiveContainer } from "@/components/layout";
 import { Home } from "lucide-react";
 import { ResetButton } from "./reset-button";
 import { BalanceCards } from "./balance-cards";
+import { StatisticsCards } from "./statistics-cards";
 import type { CurrencyCode } from "@/lib/currency/rates";
 
 export default async function DashboardPage() {
@@ -102,6 +103,16 @@ export default async function DashboardPage() {
             total: t("balance.total"),
             card: t("balance.card"),
             cash: t("balance.cash"),
+          }}
+        />
+
+        {/* Карточки статистики за текущий месяц */}
+        <StatisticsCards
+          displayCurrency={displayCurrency}
+          t={{
+            income: t("statistics.income"),
+            expense: t("statistics.expense"),
+            balance: t("statistics.balance"),
           }}
         />
 

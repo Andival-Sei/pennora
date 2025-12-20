@@ -158,6 +158,10 @@ export function useCreateTransaction() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.availableMonths(),
       });
+      // Инвалидируем статистику
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.statistics.all,
+      });
       // Если это перевод, инвалидируем кеш счетов для обновления балансов
       if (variables.type === "transfer") {
         queryClient.invalidateQueries({
@@ -239,6 +243,10 @@ export function useUpdateTransaction() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.lists(),
       });
+      // Инвалидируем статистику
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.statistics.all,
+      });
       // Если это перевод или изменен тип на перевод, инвалидируем кеш счетов
       if (
         variables.transaction.type === "transfer" ||
@@ -310,6 +318,10 @@ export function useDeleteTransaction() {
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.availableMonths(),
+      });
+      // Инвалидируем статистику
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.statistics.all,
       });
       // Проверяем, была ли удаленная транзакция переводом
       // Для этого нужно получить транзакцию из кеша перед удалением

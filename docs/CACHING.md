@@ -155,6 +155,31 @@ const { categories, loading } = useCategories();
 - `gcTime`: 30 минут
 - `refetchOnMount`: false
 
+### Статистика (Statistics)
+
+**Настройки:**
+
+- `staleTime`: 2 минуты (данные часто меняются)
+- `gcTime`: 15 минут
+- `refetchOnWindowFocus`: true
+
+**Особенности:**
+
+- Кеширование по месяцу и году
+- Автоматическая инвалидация при изменении транзакций
+- Агрегирует доходы и расходы за период
+- Исключает переводы (transfer) из статистики
+- Поддерживает мультивалютность с конвертацией
+
+**Использование:**
+
+```typescript
+const { data: statistics, isLoading } = useQuery({
+  queryKey: queryKeys.statistics.monthly(month, year),
+  queryFn: () => fetchMonthlyStatistics({ month, year }),
+});
+```
+
 ## Оптимистичные обновления
 
 При мутациях (создание, обновление, удаление) UI обновляется мгновенно, до получения ответа от сервера:
