@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/actions";
@@ -93,24 +92,22 @@ export default async function DashboardPage() {
           <h2 className="text-2xl sm:text-3xl font-bold mb-6">{t("title")}</h2>
         </FadeIn>
 
-        {/* Карточки балансов с конвертацией валют на сервере */}
-        <Suspense fallback={<BalanceCardsSkeleton />}>
-          <BalanceCardsWrapper
-            accounts={
-              accounts?.map((acc) => ({
-                currency: acc.currency as CurrencyCode,
-                balance: Number(acc.balance),
-                type: acc.type,
-              })) || []
-            }
-            displayCurrency={displayCurrency}
-            t={{
-              total: t("balance.total"),
-              card: t("balance.card"),
-              cash: t("balance.cash"),
-            }}
-          />
-        </Suspense>
+        {/* Карточки балансов с конвертацией валют */}
+        <BalanceCards
+          accounts={
+            accounts?.map((acc) => ({
+              currency: acc.currency as CurrencyCode,
+              balance: Number(acc.balance),
+              type: acc.type,
+            })) || []
+          }
+          displayCurrency={displayCurrency}
+          t={{
+            total: t("balance.total"),
+            card: t("balance.card"),
+            cash: t("balance.cash"),
+          }}
+        />
 
         {/* Карточки статистики за текущий месяц */}
         <StatisticsCards
