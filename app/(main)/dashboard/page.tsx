@@ -47,15 +47,10 @@ export default async function DashboardPage() {
 
   // Подготавливаем данные для конвертации (конвертация происходит в клиентском компоненте)
 
-  // Проверяем, прошел ли пользователь онбординг (если нет счетов, перенаправляем)
-  // Но не перенаправляем если он уже на онбординге
-  if (!accounts || accounts.length === 0) {
-    // Это проверка будет выполняться только если пользователь зашел на dashboard
-    // Если он только что прошел онбординг, accounts может быть пустым из-за задержки репликации
-    // Поэтому лучше проверять наличие default_currency в профиле
-    if (!profile?.default_currency) {
-      redirect("/dashboard/onboarding");
-    }
+  // Проверяем, прошел ли пользователь онбординг
+  // Если default_currency не установлен, перенаправляем на онбординг
+  if (!profile?.default_currency) {
+    redirect("/dashboard/onboarding");
   }
 
   const t = await getTranslations("dashboard");
@@ -115,7 +110,6 @@ export default async function DashboardPage() {
           t={{
             income: t("statistics.income"),
             expense: t("statistics.expense"),
-            balance: t("statistics.balance"),
           }}
         />
 

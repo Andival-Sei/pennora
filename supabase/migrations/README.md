@@ -41,3 +41,18 @@ supabase migration up 20250101000000_create_default_categories
 - Использует `ON CONFLICT DO NOTHING` для профилей
 - Проверяет наличие категорий перед созданием
 - Не создаёт дубликаты
+
+### 20250116000000_allow_null_default_currency.sql
+
+Разрешает NULL для поля `default_currency` в таблице `profiles`.
+
+**Что делает:**
+
+- Удаляет NOT NULL constraint с поля `default_currency`
+- Позволяет использовать NULL для обозначения "не прошел онбординг"
+
+**Важно:**
+
+- После применения миграции `default_currency` может быть NULL
+- NULL означает, что пользователь не прошел онбординг
+- При прохождении онбординга устанавливается валюта (RUB, USD, EUR)

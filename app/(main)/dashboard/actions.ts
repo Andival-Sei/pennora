@@ -46,11 +46,20 @@ export async function resetAccounts() {
   }
 
   // Очищаем валюту по умолчанию в профиле, чтобы запустить онбординг
-  await supabase
+  // Устанавливаем default_currency в null, чтобы обозначить, что онбординг не пройден
+  const { error: profileError } = await supabase
     .from("profiles")
-    .update({ default_currency: null })
+    .update({
+      default_currency: null,
+      // display_currency оставляем как есть, чтобы не терять настройки пользователя
+    })
     .eq("id", user.id);
 
+  if (profileError) {
+    return { error: profileError.message };
+  }
+
   revalidatePath("/dashboard", "layout");
+  revalidatePath("/dashboard/onboarding", "layout");
   redirect("/dashboard/onboarding");
 }

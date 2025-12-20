@@ -11,9 +11,24 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Обрабатываем ошибки подключения к Supabase (например, при отсутствии интернета)
+  let user = null;
+  try {
+    const result = await supabase.auth.getUser();
+    // Supabase может вернуть ошибку в объекте, а не выбросить исключение
+    if (result.error) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("Supabase auth error (dev mode):", result.error.message);
+      }
+    } else {
+      user = result.data?.user ?? null;
+    }
+  } catch (error) {
+    // Обрабатываем сетевые ошибки и таймауты
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Supabase connection error (dev mode):", error);
+    }
+  }
 
   return (
     <main className="relative min-h-screen">

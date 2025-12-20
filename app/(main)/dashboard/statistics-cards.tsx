@@ -21,7 +21,6 @@ interface StatisticsCardsProps {
   t: {
     income: string;
     expense: string;
-    balance: string;
   };
 }
 
@@ -43,7 +42,6 @@ export function StatisticsCards({ displayCurrency, t }: StatisticsCardsProps) {
 
   const [convertedIncome, setConvertedIncome] = useState<number | null>(null);
   const [convertedExpense, setConvertedExpense] = useState<number | null>(null);
-  const [convertedBalance, setConvertedBalance] = useState<number | null>(null);
   const [converting, setConverting] = useState(false);
 
   // Конвертируем суммы в display_currency
@@ -52,7 +50,6 @@ export function StatisticsCards({ displayCurrency, t }: StatisticsCardsProps) {
       if (!statistics || statistics.transactions.length === 0) {
         setConvertedIncome(0);
         setConvertedExpense(0);
-        setConvertedBalance(0);
         return;
       }
 
@@ -87,13 +84,8 @@ export function StatisticsCards({ displayCurrency, t }: StatisticsCardsProps) {
             ? await convertMultipleCurrencies(expenseAmounts, displayCurrency)
             : 0;
 
-        // Вычисляем баланс
-        const convertedBalanceValue =
-          convertedIncomeValue - convertedExpenseValue;
-
         setConvertedIncome(convertedIncomeValue);
         setConvertedExpense(convertedExpenseValue);
-        setConvertedBalance(convertedBalanceValue);
       } catch (error) {
         console.error("Error converting statistics:", error);
         // Fallback: используем исходные значения, если валюта совпадает
@@ -102,12 +94,10 @@ export function StatisticsCards({ displayCurrency, t }: StatisticsCardsProps) {
         ) {
           setConvertedIncome(statistics.income);
           setConvertedExpense(statistics.expense);
-          setConvertedBalance(statistics.balance);
         } else {
           // Если валюты разные и конвертация не удалась, показываем 0
           setConvertedIncome(0);
           setConvertedExpense(0);
-          setConvertedBalance(0);
         }
       } finally {
         setConverting(false);
@@ -121,8 +111,8 @@ export function StatisticsCards({ displayCurrency, t }: StatisticsCardsProps) {
 
   if (isLoadingData) {
     return (
-      <div className="grid gap-4 md:grid-cols-3 mb-8">
-        {[1, 2, 3].map((i) => (
+      <div className="grid gap-4 md:grid-cols-2 mb-8">
+        {[1, 2].map((i) => (
           <FadeIn key={i} delay={0.1 * i}>
             <Card>
               <CardContent className="pt-6">
@@ -138,7 +128,7 @@ export function StatisticsCards({ displayCurrency, t }: StatisticsCardsProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-3 mb-8">
+    <div className="grid gap-4 md:grid-cols-2 mb-8">
       <FadeIn delay={0.2}>
         <Card>
           <CardContent className="pt-6">
@@ -160,26 +150,6 @@ export function StatisticsCards({ displayCurrency, t }: StatisticsCardsProps) {
             <div className="text-3xl font-bold text-red-600 dark:text-red-400">
               {convertedExpense !== null
                 ? formatCurrency(convertedExpense, displayCurrency)
-                : formatCurrency(0, displayCurrency)}
-            </div>
-          </CardContent>
-        </Card>
-      </FadeIn>
-      <FadeIn delay={0.3}>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground mb-1">
-              {t.balance}
-            </div>
-            <div
-              className={`text-3xl font-bold ${
-                (convertedBalance ?? 0) >= 0
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
-            >
-              {convertedBalance !== null
-                ? formatCurrency(convertedBalance, displayCurrency)
                 : formatCurrency(0, displayCurrency)}
             </div>
           </CardContent>

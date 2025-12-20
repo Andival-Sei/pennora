@@ -20,15 +20,8 @@ export function ResetButton() {
 
   async function handleReset() {
     setLoading(true);
-    const result = await resetAccounts();
-    if (result?.error) {
-      setLoading(false);
-      // TODO: Показать ошибку
-      console.error("Ошибка при сбросе:", result.error);
-      return;
-    }
 
-    // Очищаем кеш React Query для транзакций и статистики
+    // Очищаем кеш React Query перед сбросом
     queryClient.removeQueries({
       queryKey: queryKeys.transactions.all,
     });
@@ -39,9 +32,21 @@ export function ResetButton() {
       queryKey: queryKeys.accounts.all,
     });
 
-    // Обновляем страницу для применения изменений
-    router.refresh();
-    // Если успешно, произойдет редирект на онбординг
+    const result = await resetAccounts();
+
+    // Если функция вернула результат, значит была ошибка
+    // (если редирект произошел успешно, функция не вернет значение из-за redirect())
+    if (result?.error) {
+      setLoading(false);
+      setShowConfirm(false);
+      // TODO: Показать ошибку пользователю
+      console.error("Ошибка при сбросе:", result.error);
+      return;
+    }
+
+    // Если ошибки нет, серверный redirect() должен сработать автоматически
+    // Закрываем модальное окно (редirect произойдет на сервере)
+    setShowConfirm(false);
   }
 
   return (
