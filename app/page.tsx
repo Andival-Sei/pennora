@@ -25,7 +25,7 @@ export default async function Home() {
         </div>
       )}
 
-      <HeroSection user={user} />
+      <HeroSection user={user || null} />
       <FeaturesSection />
       <StatsSection />
       <HowItWorksSection />
