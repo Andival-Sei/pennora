@@ -7,13 +7,9 @@ import { createClient } from "@/lib/supabase/server";
 export async function resetAccounts() {
   const supabase = await createClient();
 
-  // ⚠️ Безопасность: Используем getSession() вместо getUser() для производительности.
-  // Операции с БД защищены RLS, который проверяет токен на уровне БД.
-  // Если токен отозван, RLS заблокирует запросы даже при валидной подписи JWT.
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const user = session?.user;
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { error: "Unauthorized" };

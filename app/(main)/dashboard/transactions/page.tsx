@@ -8,11 +8,9 @@ import { TransactionPageContent } from "@/components/features/transactions/Trans
 export default async function TransactionsPage() {
   const supabase = await createClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const user = session?.user;
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // Если пользователь не авторизован, редиректим на логин
   if (!user) {
     redirect("/login");
   }

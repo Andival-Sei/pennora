@@ -9,9 +9,8 @@ import { CategoryList } from "@/components/features/categories/CategoryList";
 export default async function CategoriesPage() {
   const supabase = await createClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const user = session?.user;
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/login");

@@ -28,16 +28,11 @@ export interface UserSettings {
 export async function loadUserSettings(): Promise<UserSettings> {
   const supabase = await createClient();
 
-  // Используем getSession() вместо getUser() для лучшей производительности
-  // getSession() проверяет JWT локально без сетевого запроса
-  //
-  // ⚠️ Безопасность: Для запросов к БД это безопасно, так как RLS проверяет токен
-  // на уровне БД. Если токен отозван, RLS заблокирует запросы.
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     return {
       theme: null,
       locale: null,
@@ -48,7 +43,7 @@ export async function loadUserSettings(): Promise<UserSettings> {
   const { data: profile } = await supabase
     .from("profiles")
     .select("theme, locale, display_currency")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single();
 
   return {

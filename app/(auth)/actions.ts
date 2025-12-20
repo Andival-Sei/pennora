@@ -22,9 +22,8 @@ export async function signIn(formData: FormData) {
 
   // Проверяем, прошел ли пользователь онбординг
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const user = session?.user;
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (user) {
     const { data: profile } = await supabase

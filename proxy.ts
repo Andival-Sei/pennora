@@ -48,18 +48,9 @@ export async function proxy(request: NextRequest) {
   // Проверяем auth роуты
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  // Используем getSession() вместо getUser() для лучшей производительности
-  // getSession() проверяет JWT локально без сетевого запроса к Supabase
-  // Это намного быстрее для проверки авторизации (было ~100-200ms, стало ~5-10ms)
-  //
-  // ⚠️ Безопасность: getSession() проверяет только валидность JWT локально.
-  // Для операций с БД это безопасно, так как RLS проверяет токен на уровне БД.
-  // Для критичных операций (платежи, удаление аккаунта) рекомендуется getUser().
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  const user = session?.user;
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Проверка защищённых роутов
   if (isProtectedRoute && !user) {
