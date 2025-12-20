@@ -1,15 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { RotateCcw, Loader2, X } from "lucide-react";
 import { resetAccounts } from "./actions";
+import { queryKeys } from "@/lib/query/keys";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function ResetButton() {
   const t = useTranslations("dashboard");
   const tCommon = useTranslations("common");
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -20,8 +25,23 @@ export function ResetButton() {
       setLoading(false);
       // TODO: Показать ошибку
       console.error("Ошибка при сбросе:", result.error);
+      return;
     }
-    // Если успешно, произойдет редирект
+
+    // Очищаем кеш React Query для транзакций и статистики
+    queryClient.removeQueries({
+      queryKey: queryKeys.transactions.all,
+    });
+    queryClient.removeQueries({
+      queryKey: queryKeys.statistics.all,
+    });
+    queryClient.removeQueries({
+      queryKey: queryKeys.accounts.all,
+    });
+
+    // Обновляем страницу для применения изменений
+    router.refresh();
+    // Если успешно, произойдет редирект на онбординг
   }
 
   return (

@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateDashboard } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -210,6 +211,9 @@ export default function OnboardingPage() {
       return;
     }
 
+    // Инвалидируем кеш dashboard перед редиректом
+    await revalidateDashboard();
+
     // Завершение онбординга
     router.push("/dashboard");
   }
@@ -218,6 +222,8 @@ export default function OnboardingPage() {
     if (step === "card") {
       setStep("cash");
     } else if (step === "cash") {
+      // Инвалидируем кеш dashboard перед редиректом
+      await revalidateDashboard();
       router.push("/dashboard");
     }
   }
