@@ -48,9 +48,20 @@ export async function proxy(request: NextRequest) {
   // Проверяем auth роуты
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Обрабатываем ошибки подключения к Supabase (например, при отсутствии интернета)
+  let user = null;
+  try {
+    const {
+      data: { user: fetchedUser },
+    } = await supabase.auth.getUser();
+    user = fetchedUser;
+  } catch (error) {
+    // В dev режиме игнорируем ошибки подключения к Supabase
+    // В production это должно логироваться, но не ломать приложение
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Supabase connection error (dev mode):", error);
+    }
+  }
 
   // Проверка защищённых роутов
   if (isProtectedRoute && !user) {
