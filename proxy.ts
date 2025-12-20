@@ -62,6 +62,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
+  // Редирект с /dashboard/settings на /dashboard/settings/app
+  // Но только если нет query параметра section=account (явный переход на настройки аккаунта)
+  if (pathname === "/dashboard/settings" && user) {
+    const section = request.nextUrl.searchParams.get("section");
+    if (section !== "account") {
+      return NextResponse.redirect(new URL("/dashboard/settings/app", request.url));
+    }
+  }
+
   return supabaseResponse;
 }
 

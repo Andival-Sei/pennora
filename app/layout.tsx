@@ -5,6 +5,7 @@ import { getLocale, getMessages } from "next-intl/server";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeInitializer } from "@/components/settings/theme-initializer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +37,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
+          <ThemeInitializer />
           <NextIntlClientProvider messages={messages}>
             {children}
             <Toaster />

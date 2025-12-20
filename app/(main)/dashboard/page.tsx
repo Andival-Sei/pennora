@@ -4,24 +4,12 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { LocaleToggle } from "@/components/locale-toggle";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
-import { Settings } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Home } from "lucide-react";
 import { ResetButton } from "./reset-button";
-
-// Функция форматирования валют
-function formatCurrency(amount: number, currency: string): string {
-  const formatter = new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-  return formatter.format(amount);
-}
+import { BalanceCards } from "./balance-cards";
+import type { CurrencyCode } from "@/lib/currency/rates";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -36,11 +24,14 @@ export default async function DashboardPage() {
   // Получаем профиль пользователя
   const { data: profile } = await supabase
     .from("profiles")
-    .select("default_currency")
+    .select("default_currency, display_currency")
     .eq("id", user.id)
     .single();
 
-  const defaultCurrency = profile?.default_currency || "RUB";
+  // Используем display_currency если есть, иначе default_currency
+  const displayCurrency = (profile?.display_currency ||
+    profile?.default_currency ||
+    "RUB") as CurrencyCode;
 
   // Получаем все счета пользователя
   const { data: accounts } = await supabase
@@ -50,25 +41,7 @@ export default async function DashboardPage() {
     .eq("is_archived", false)
     .order("created_at", { ascending: true });
 
-  // Вычисляем балансы
-  const totalBalance =
-    accounts?.reduce((sum, account) => {
-      // TODO: Конвертация валют (пока суммируем только одинаковую валюту)
-      if (account.currency === defaultCurrency) {
-        return sum + Number(account.balance);
-      }
-      return sum;
-    }, 0) || 0;
-
-  const cardBalance =
-    accounts
-      ?.filter((a) => a.type === "card" && a.currency === defaultCurrency)
-      .reduce((sum, a) => sum + Number(a.balance), 0) || 0;
-
-  const cashBalance =
-    accounts
-      ?.filter((a) => a.type === "cash" && a.currency === defaultCurrency)
-      .reduce((sum, a) => sum + Number(a.balance), 0) || 0;
+  // Подготавливаем данные для конвертации (конвертация происходит в клиентском компоненте)
 
   // Проверяем, прошел ли пользователь онбординг (если нет счетов, перенаправляем)
   // Но не перенаправляем если он уже на онбординге
@@ -94,11 +67,10 @@ export default async function DashboardPage() {
               <span className="text-sm text-muted-foreground hidden sm:inline">
                 {user.email}
               </span>
-              <LocaleToggle />
-              <ThemeToggle />
-              <Link href="/dashboard/settings">
-                <Button variant="ghost" size="icon">
-                  <Settings className="h-4 w-4" />
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <Home className="h-4 w-4 mr-2" />
+                  {t("backToLanding")}
                 </Button>
               </Link>
               <form action={signOut}>
@@ -116,45 +88,22 @@ export default async function DashboardPage() {
           <h2 className="text-2xl sm:text-3xl font-bold mb-6">{t("title")}</h2>
         </FadeIn>
 
-        {/* Карточки балансов */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
-          <FadeIn delay={0.2}>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-sm text-muted-foreground mb-1">
-                  {t("balance.total")}
-                </div>
-                <div className="text-3xl font-bold">
-                  {formatCurrency(totalBalance, defaultCurrency)}
-                </div>
-              </CardContent>
-            </Card>
-          </FadeIn>
-          <FadeIn delay={0.25}>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-sm text-muted-foreground mb-1">
-                  {t("balance.card")}
-                </div>
-                <div className="text-3xl font-bold">
-                  {formatCurrency(cardBalance, defaultCurrency)}
-                </div>
-              </CardContent>
-            </Card>
-          </FadeIn>
-          <FadeIn delay={0.3}>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-sm text-muted-foreground mb-1">
-                  {t("balance.cash")}
-                </div>
-                <div className="text-3xl font-bold">
-                  {formatCurrency(cashBalance, defaultCurrency)}
-                </div>
-              </CardContent>
-            </Card>
-          </FadeIn>
-        </div>
+        {/* Карточки балансов с конвертацией валют */}
+        <BalanceCards
+          accounts={
+            accounts?.map((acc) => ({
+              currency: acc.currency as CurrencyCode,
+              balance: Number(acc.balance),
+              type: acc.type,
+            })) || []
+          }
+          displayCurrency={displayCurrency}
+          t={{
+            total: t("balance.total"),
+            card: t("balance.card"),
+            cash: t("balance.cash"),
+          }}
+        />
 
         <FadeIn delay={0.35}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

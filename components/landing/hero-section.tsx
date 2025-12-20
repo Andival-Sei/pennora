@@ -6,8 +6,13 @@ import { Button } from "@/components/ui/button";
 import { PhoneMockup } from "./phone-mockup";
 import { FadeIn } from "@/components/motion";
 import { useTranslations } from "next-intl";
+import type { User } from "@supabase/supabase-js";
 
-export function HeroSection() {
+interface HeroSectionProps {
+  user: User | null;
+}
+
+export function HeroSection({ user }: HeroSectionProps) {
   const t = useTranslations("home");
   const tAuth = useTranslations("auth");
 
@@ -59,19 +64,32 @@ export function HeroSection() {
 
       {/* Navigation */}
       <FadeIn className="absolute top-6 right-6 z-50 flex items-center gap-3">
-        <Link href="/login">
-          <Button variant="ghost" size="sm">
-            {tAuth("login.title")}
-          </Button>
-        </Link>
-        <Link href="/register">
-          <Button
-            size="sm"
-            className="bg-emerald-500 hover:bg-emerald-600 text-black"
-          >
-            {tAuth("register.title")}
-          </Button>
-        </Link>
+        {user ? (
+          <Link href="/dashboard">
+            <Button
+              size="sm"
+              className="bg-emerald-500 hover:bg-emerald-600 text-black"
+            >
+              {t("backToApp")}
+            </Button>
+          </Link>
+        ) : (
+          <>
+            <Link href="/login">
+              <Button variant="ghost" size="sm">
+                {tAuth("login.title")}
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button
+                size="sm"
+                className="bg-emerald-500 hover:bg-emerald-600 text-black"
+              >
+                {tAuth("register.title")}
+              </Button>
+            </Link>
+          </>
+        )}
       </FadeIn>
 
       {/* Content */}

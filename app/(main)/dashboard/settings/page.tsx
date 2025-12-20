@@ -20,10 +20,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { FadeIn } from "@/components/motion";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { LocaleToggle } from "@/components/locale-toggle";
 import { ResponsiveContainer } from "@/components/layout";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Схема для обновления профиля
@@ -342,26 +340,30 @@ export default function SettingsPage() {
       <FadeIn>
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <ResponsiveContainer className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/dashboard"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
-              <h1 className="text-xl font-bold text-foreground">
-                {t("title")}
-              </h1>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-4">
-              <LocaleToggle />
-              <ThemeToggle />
-            </div>
+            <h1 className="text-xl font-bold text-foreground">
+              {t("title")}
+            </h1>
           </ResponsiveContainer>
         </header>
       </FadeIn>
 
       <ResponsiveContainer className="py-8 space-y-6">
+        {/* Навигация по разделам */}
+        <FadeIn delay={0.05}>
+          <div className="flex gap-2 mb-6">
+            <Link href="/dashboard/settings">
+              <Button variant="outline" className="w-full sm:w-auto cursor-pointer">
+                {t("account.title")}
+              </Button>
+            </Link>
+            <Link href="/dashboard/settings/app">
+              <Button variant="outline" className="w-full sm:w-auto cursor-pointer">
+                {t("app.title")}
+              </Button>
+            </Link>
+          </div>
+        </FadeIn>
+
         {/* Профиль */}
         <FadeIn delay={0.1}>
           <Card>

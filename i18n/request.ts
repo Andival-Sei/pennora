@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
+import { loadUserSettings } from "@/lib/settings/load-user-settings";
 
 // Поддерживаемые локали
 export const locales = ["ru", "en"] as const;
@@ -8,11 +9,22 @@ export const defaultLocale: Locale = "ru";
 
 /**
  * Определяет локаль пользователя из:
- * 1. Cookie (если пользователь выбрал язык)
- * 2. Accept-Language заголовка браузера
- * 3. По умолчанию — русский
+ * 1. Настройки пользователя в БД (если залогинен)
+ * 2. Cookie (если пользователь выбрал язык)
+ * 3. Accept-Language заголовка браузера
+ * 4. По умолчанию — русский
  */
 async function getLocale(): Promise<Locale> {
+  // Сначала проверяем настройки пользователя в БД
+  try {
+    const settings = await loadUserSettings();
+    if (settings.locale && locales.includes(settings.locale)) {
+      return settings.locale;
+    }
+  } catch (error) {
+    // Игнорируем ошибки при загрузке настроек (пользователь может быть не залогинен)
+  }
+
   // Проверяем cookie
   const cookieStore = await cookies();
   const localeCookie = cookieStore.get("locale")?.value;

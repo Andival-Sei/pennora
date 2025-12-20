@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthErrorKey } from "@/lib/auth-errors";
+import { saveInitialSettings } from "@/lib/settings/save-initial-settings";
 
 export async function signIn(formData: FormData) {
   const supabase = await createClient();
@@ -27,9 +28,14 @@ export async function signIn(formData: FormData) {
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("default_currency")
+      .select("default_currency, locale, theme")
       .eq("id", user.id)
       .single();
+
+    // Если нет настроек, сохраняем начальные настройки
+    if (!profile?.locale || !profile?.theme) {
+      await saveInitialSettings(user.id);
+    }
 
     // Если нет default_currency, значит пользователь новый - отправляем на онбординг
     if (!profile?.default_currency) {

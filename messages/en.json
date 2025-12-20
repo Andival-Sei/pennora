@@ -15,6 +15,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "accounts": "Accounts",
     "transactions": "Transactions",
     "categories": "Categories",
     "budgets": "Budgets",
@@ -24,6 +25,7 @@
     "title": "Smart Budget Tracking",
     "titleGradient": "Pennora",
     "subtitle": "Manage your personal and family finances with full control and convenience",
+    "backToApp": "Back to App",
     "cta": {
       "startFree": "Start Free",
       "demo": "Demo"
@@ -118,11 +120,29 @@
       "confirm": "Confirm",
       "sendCode": "Send code",
       "success": "Email changed successfully"
+    },
+    "account": {
+      "title": "Account Settings"
+    },
+    "app": {
+      "title": "App Settings",
+      "theme": {
+        "description": "Choose the interface theme"
+      },
+      "language": {
+        "description": "Choose the interface language"
+      },
+      "currency": {
+        "title": "Display Currency",
+        "description": "Choose the currency for displaying balances"
+      },
+      "success": "Settings saved successfully"
     }
   },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome! Your financial statistics will appear here soon.",
+    "backToLanding": "Back to Home",
     "balance": {
       "total": "Total Balance",
       "card": "On Cards",
@@ -330,6 +350,15 @@
   "budgets": {
     "title": "Budgets",
     "comingSoon": "Budget management will appear here soon."
+  },
+  "accounts": {
+    "title": "Accounts",
+    "description": "Manage your cards and accounts",
+    "addCard": "Add Card",
+    "add": "Add",
+    "currency": "Currency",
+    "noAccounts": "You don't have any accounts yet",
+    "deleteConfirm": "Are you sure you want to delete this account?"
   },
   "notFound": {
     "title": "Page Not Found",

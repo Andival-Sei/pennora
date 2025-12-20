@@ -4,13 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { Home, Receipt, FolderTree, Wallet, Settings } from "lucide-react";
+import { Home, Receipt, FolderTree, Wallet, Settings, CreditCard } from "lucide-react";
 
 const navItems = [
   {
     href: "/dashboard",
     icon: Home,
     translationKey: "dashboard",
+  },
+  {
+    href: "/dashboard/accounts",
+    icon: CreditCard,
+    translationKey: "accounts",
   },
   {
     href: "/dashboard/transactions",
@@ -23,12 +28,7 @@ const navItems = [
     translationKey: "categories",
   },
   {
-    href: "/dashboard/budgets",
-    icon: Wallet,
-    translationKey: "budgets",
-  },
-  {
-    href: "/dashboard/settings",
+    href: "/dashboard/settings/app",
     icon: Settings,
     translationKey: "settings",
   },

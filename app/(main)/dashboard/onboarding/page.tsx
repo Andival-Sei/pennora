@@ -121,10 +121,13 @@ export default function OnboardingPage() {
       return;
     }
 
-    // Обновляем валюту в профиле
+    // Обновляем валюту в профиле (и default_currency, и display_currency)
     const { error: profileError } = await supabase
       .from("profiles")
-      .update({ default_currency: data.currency })
+      .update({
+        default_currency: data.currency,
+        display_currency: data.currency,
+      })
       .eq("id", user.id);
 
     if (profileError) {
