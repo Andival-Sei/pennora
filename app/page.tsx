@@ -12,8 +12,9 @@ import { createClient } from "@/lib/supabase/server";
 export default async function Home() {
   const supabase = await createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   return (
     <main className="relative min-h-screen">
@@ -25,7 +26,7 @@ export default async function Home() {
         </div>
       )}
 
-      <HeroSection user={user} />
+      <HeroSection user={user || null} />
       <FeaturesSection />
       <StatsSection />
       <HowItWorksSection />

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/actions";
@@ -8,38 +9,43 @@ import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
 import { Home } from "lucide-react";
 import { ResetButton } from "./reset-button";
-import { BalanceCards } from "./balance-cards";
+import { BalanceCardsWrapper } from "./balance-cards-wrapper";
+import { BalanceCardsSkeleton } from "./balance-cards-skeleton";
 import type { CurrencyCode } from "@/lib/currency/rates";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) {
     redirect("/login");
   }
 
-  // Получаем профиль пользователя
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("default_currency, display_currency")
-    .eq("id", user.id)
-    .single();
+  // Параллельная загрузка профиля и счетов для ускорения
+  const [profileResult, accountsResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("default_currency, display_currency")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("accounts")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_archived", false)
+      .order("created_at", { ascending: true }),
+  ]);
+
+  const profile = profileResult.data;
+  const accounts = accountsResult.data;
 
   // Используем display_currency если есть, иначе default_currency
   const displayCurrency = (profile?.display_currency ||
     profile?.default_currency ||
     "RUB") as CurrencyCode;
-
-  // Получаем все счета пользователя
-  const { data: accounts } = await supabase
-    .from("accounts")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("is_archived", false)
-    .order("created_at", { ascending: true });
 
   // Подготавливаем данные для конвертации (конвертация происходит в клиентском компоненте)
 
@@ -88,22 +94,24 @@ export default async function DashboardPage() {
           <h2 className="text-2xl sm:text-3xl font-bold mb-6">{t("title")}</h2>
         </FadeIn>
 
-        {/* Карточки балансов с конвертацией валют */}
-        <BalanceCards
-          accounts={
-            accounts?.map((acc) => ({
-              currency: acc.currency as CurrencyCode,
-              balance: Number(acc.balance),
-              type: acc.type,
-            })) || []
-          }
-          displayCurrency={displayCurrency}
-          t={{
-            total: t("balance.total"),
-            card: t("balance.card"),
-            cash: t("balance.cash"),
-          }}
-        />
+        {/* Карточки балансов с конвертацией валют на сервере */}
+        <Suspense fallback={<BalanceCardsSkeleton />}>
+          <BalanceCardsWrapper
+            accounts={
+              accounts?.map((acc) => ({
+                currency: acc.currency as CurrencyCode,
+                balance: Number(acc.balance),
+                type: acc.type,
+              })) || []
+            }
+            displayCurrency={displayCurrency}
+            t={{
+              total: t("balance.total"),
+              card: t("balance.card"),
+              cash: t("balance.cash"),
+            }}
+          />
+        </Suspense>
 
         <FadeIn delay={0.35}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
