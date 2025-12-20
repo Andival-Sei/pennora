@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateDashboard } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -210,6 +211,9 @@ export default function OnboardingPage() {
       return;
     }
 
+    // Инвалидируем кеш dashboard перед редиректом
+    await revalidateDashboard();
+
     // Завершение онбординга
     router.push("/dashboard");
   }
@@ -218,6 +222,8 @@ export default function OnboardingPage() {
     if (step === "card") {
       setStep("cash");
     } else if (step === "cash") {
+      // Инвалидируем кеш dashboard перед редиректом
+      await revalidateDashboard();
       router.push("/dashboard");
     }
   }
@@ -230,7 +236,15 @@ export default function OnboardingPage() {
     }
   }
 
-  const currencyValue = currencyForm.watch("currency");
+  const currencyValue = useWatch({
+    control: currencyForm.control,
+    name: "currency",
+  });
+
+  const cardBankValue = useWatch({
+    control: cardForm.control,
+    name: "bank",
+  });
 
   // Получаем символ валюты
   const getCurrencySymbol = (code: string) => {
@@ -409,7 +423,7 @@ export default function OnboardingPage() {
                             {tOnboarding("card.bankLabel")}
                           </Label>
                           <Select
-                            value={cardForm.watch("bank") || ""}
+                            value={cardBankValue || ""}
                             onValueChange={(value) =>
                               cardForm.setValue("bank", value, {
                                 shouldValidate: true,
