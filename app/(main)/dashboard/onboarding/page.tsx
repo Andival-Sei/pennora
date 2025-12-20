@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
@@ -236,7 +236,15 @@ export default function OnboardingPage() {
     }
   }
 
-  const currencyValue = currencyForm.watch("currency");
+  const currencyValue = useWatch({
+    control: currencyForm.control,
+    name: "currency",
+  });
+
+  const cardBankValue = useWatch({
+    control: cardForm.control,
+    name: "bank",
+  });
 
   // Получаем символ валюты
   const getCurrencySymbol = (code: string) => {
@@ -415,7 +423,7 @@ export default function OnboardingPage() {
                             {tOnboarding("card.bankLabel")}
                           </Label>
                           <Select
-                            value={cardForm.watch("bank") || ""}
+                            value={cardBankValue || ""}
                             onValueChange={(value) =>
                               cardForm.setValue("bank", value, {
                                 shouldValidate: true,
