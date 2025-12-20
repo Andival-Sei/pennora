@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
@@ -23,37 +23,38 @@ import { fetchAvailableMonthsAndYears } from "@/lib/query/queries/transactions";
 export function TransactionPageContent() {
   const t = useTranslations("transactions");
   const [open, setOpen] = useState(false);
-  const [monthFilter, setMonthFilter] = useState<{
-    month: number;
-    year: number;
-  } | null>(null);
 
   // Используем React Query для загрузки доступных месяцев/лет
-  const { data: availableData, isLoading: loadingMonths } = useQuery({
+  const { data: availableData } = useQuery({
     queryKey: queryKeys.transactions.availableMonths(),
     queryFn: fetchAvailableMonthsAndYears,
     staleTime: 5 * 60 * 1000, // 5 минут
     gcTime: 30 * 60 * 1000, // 30 минут
   });
 
-  const availableMonths = availableData?.months || [];
+  const availableMonths = useMemo(
+    () => availableData?.months || [],
+    [availableData?.months]
+  );
   const availableYears = availableData?.years || [];
 
-  // Устанавливаем фильтр на первый доступный месяц при первой загрузке
-  useEffect(() => {
-    if (!monthFilter && !loadingMonths) {
-      if (availableMonths.length > 0) {
-        setMonthFilter(availableMonths[0]);
-      } else {
-        // Если транзакций нет, используем текущий месяц/год
-        const currentDate = new Date();
-        setMonthFilter({
-          month: currentDate.getMonth(),
-          year: currentDate.getFullYear(),
-        });
-      }
+  // Вычисляем начальное значение месяца
+  const initialMonthFilter = useMemo(() => {
+    if (availableMonths.length > 0) {
+      return availableMonths[0];
     }
-  }, [monthFilter, loadingMonths, availableMonths]);
+    // Если транзакций нет, используем текущий месяц/год
+    const currentDate = new Date();
+    return {
+      month: currentDate.getMonth(),
+      year: currentDate.getFullYear(),
+    };
+  }, [availableMonths]);
+
+  const [monthFilter, setMonthFilter] = useState<{
+    month: number;
+    year: number;
+  } | null>(initialMonthFilter);
 
   if (!monthFilter) {
     return <div className="text-center py-4">{t("loading")}</div>;

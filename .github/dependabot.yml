@@ -1,0 +1,27 @@
+version: 2
+updates:
+  # npm (pnpm) зависимости
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "automated"
+    # Группировать patch и minor обновления
+    groups:
+      production-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    # Отдельные PR для major обновлений
+    versioning-strategy: increase
+    # Игнорировать определенные зависимости (если нужно)
+    # ignore:
+    #   - dependency-name: "package-name"
+    #     update-types: ["version-update:semver-major"]
