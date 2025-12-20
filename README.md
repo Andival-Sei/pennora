@@ -105,8 +105,6 @@ git checkout -b feature/my-feature
 - **[CACHING.md](./docs/CACHING.md)** — система кеширования через TanStack Query
 - **[OFFLINE_SYNC.md](./docs/OFFLINE_SYNC.md)** — офлайн-режим и синхронизация данных
 - **[AGENTS.md](./docs/AGENTS.md)** — контекст для AI-ассистентов
-- **[VERCEL_SETUP.md](./docs/VERCEL_SETUP.md)** — настройка Vercel для деплоя
-- **[BRANCH_PROTECTION.md](./docs/BRANCH_PROTECTION.md)** — настройка защиты веток
 
 ## Лицензия
 
