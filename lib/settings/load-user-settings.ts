@@ -14,14 +14,21 @@ export interface UserSettings {
 
 /**
  * Загружает настройки пользователя из БД
+ *
+ * ⚠️ ВНИМАНИЕ: Эта функция делает запросы к БД и должна использоваться
+ * только когда действительно необходимо получить настройки пользователя.
+ * Для определения локали используйте cookie (см. i18n/request.ts).
  */
 export async function loadUserSettings(): Promise<UserSettings> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) {
+  // Используем getSession() вместо getUser() для лучшей производительности
+  // getSession() проверяет JWT локально без сетевого запроса
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.user) {
     return {
       theme: null,
       locale: null,
@@ -32,7 +39,7 @@ export async function loadUserSettings(): Promise<UserSettings> {
   const { data: profile } = await supabase
     .from("profiles")
     .select("theme, locale, display_currency")
-    .eq("id", user.id)
+    .eq("id", session.user.id)
     .single();
 
   return {
