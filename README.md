@@ -73,14 +73,40 @@ pennora/
 └── ...
 ```
 
+## Git Workflow
+
+Проект использует Git Flow с ветками `main` (production) и `develop` (staging).
+
+**Быстрый старт:**
+
+```bash
+# Создать feature ветку
+git checkout develop
+git pull origin develop
+git checkout -b feature/my-feature
+
+# После разработки - создать PR в develop
+```
+
+Подробная документация: **[GIT_WORKFLOW.md](./docs/GIT_WORKFLOW.md)**
+
+**Pre-commit hooks:**
+
+- Автоматическая проверка ESLint и форматирование Prettier при каждом коммите
+- Настроено через Husky + lint-staged
+
 ## Документация
 
 Подробная документация доступна в папке [`docs/`](./docs/):
 
+- **[GIT_WORKFLOW.md](./docs/GIT_WORKFLOW.md)** — Git workflow и процесс разработки
+- **[COMMIT_CONVENTION.md](./docs/COMMIT_CONVENTION.md)** — соглашение о коммитах
 - **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — общая архитектура проекта
 - **[CACHING.md](./docs/CACHING.md)** — система кеширования через TanStack Query
 - **[OFFLINE_SYNC.md](./docs/OFFLINE_SYNC.md)** — офлайн-режим и синхронизация данных
 - **[AGENTS.md](./docs/AGENTS.md)** — контекст для AI-ассистентов
+- **[VERCEL_SETUP.md](./docs/VERCEL_SETUP.md)** — настройка Vercel для деплоя
+- **[BRANCH_PROTECTION.md](./docs/BRANCH_PROTECTION.md)** — настройка защиты веток
 
 ## Лицензия
 

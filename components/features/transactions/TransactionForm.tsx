@@ -44,7 +44,6 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchAccounts } from "@/lib/query/queries/accounts";
-import type { Account } from "@/lib/db/supabase/types";
 import { CascadingCategorySelect } from "@/components/features/categories/CascadingCategorySelect";
 import { motion } from "framer-motion";
 

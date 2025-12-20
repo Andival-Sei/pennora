@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useInView,
-  useTransform,
-} from "framer-motion";
+import { useMotionValue, useInView, useTransform } from "framer-motion";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +15,6 @@ interface CounterProps {
 
 export function Counter({
   value,
-  duration = 2,
   decimals = 0,
   suffix = "",
   prefix = "",

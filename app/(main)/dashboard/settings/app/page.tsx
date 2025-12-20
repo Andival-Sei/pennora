@@ -54,7 +54,7 @@ export default function AppSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   // Проверяем, есть ли изменения
   const hasChanges =
@@ -62,9 +62,70 @@ export default function AppSettingsPage() {
     locale !== originalLocale ||
     displayCurrency !== originalDisplayCurrency;
 
+  // Загружаем настройки при монтировании
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadSettings() {
+      setLoading(true);
+      setError(null);
+
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("theme, locale, display_currency")
+        .eq("id", user.id)
+        .single();
+
+      if (cancelled) return;
+
+      if (profile) {
+        const theme = (
+          profile.theme && ["light", "dark", "system"].includes(profile.theme)
+            ? profile.theme
+            : "system"
+        ) as Theme;
+        const localeValue = (
+          profile.locale && ["ru", "en"].includes(profile.locale)
+            ? profile.locale
+            : "ru"
+        ) as Locale;
+        const currency = (
+          profile.display_currency &&
+          ["RUB", "USD", "EUR"].includes(profile.display_currency)
+            ? profile.display_currency
+            : "RUB"
+        ) as CurrencyCode;
+
+        // Устанавливаем исходные значения
+        setOriginalTheme(theme);
+        setOriginalLocale(localeValue);
+        setOriginalDisplayCurrency(currency);
+
+        // Устанавливаем текущие значения
+        setThemeProvider(theme);
+        setLocaleState(localeValue);
+        setDisplayCurrency(currency);
+      }
+
+      setLoading(false);
+    }
+
     loadSettings();
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router, setThemeProvider]);
 
   // Функция для сброса к исходным значениям
   const handleReset = useCallback(() => {
@@ -112,59 +173,15 @@ export default function AppSettingsPage() {
         }
       }
     };
-  }, []); // Только при размонтировании
-
-  async function loadSettings() {
-    setLoading(true);
-    setError(null);
-
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("theme, locale, display_currency")
-      .eq("id", user.id)
-      .single();
-
-    if (profile) {
-      const theme = (
-        profile.theme && ["light", "dark", "system"].includes(profile.theme)
-          ? profile.theme
-          : "system"
-      ) as Theme;
-      const localeValue = (
-        profile.locale && ["ru", "en"].includes(profile.locale)
-          ? profile.locale
-          : "ru"
-      ) as Locale;
-      const currency = (
-        profile.display_currency &&
-        ["RUB", "USD", "EUR"].includes(profile.display_currency)
-          ? profile.display_currency
-          : "RUB"
-      ) as CurrencyCode;
-
-      // Устанавливаем исходные значения
-      setOriginalTheme(theme);
-      setOriginalLocale(localeValue);
-      setOriginalDisplayCurrency(currency);
-
-      // Устанавливаем текущие значения
-      setThemeProvider(theme);
-      setLocaleState(localeValue);
-      setDisplayCurrency(currency);
-    }
-
-    setLoading(false);
-  }
+  }, [
+    hasChanges,
+    locale,
+    originalDisplayCurrency,
+    originalLocale,
+    originalTheme,
+    setThemeProvider,
+    startTransition,
+  ]); // Только при размонтировании
 
   async function handleSave() {
     setSaving(true);

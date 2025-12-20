@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSync } from "@/lib/hooks/useSync";
 import { useTranslations } from "next-intl";
 import {
@@ -18,7 +18,12 @@ import { cn } from "@/lib/utils";
  * Отображает текущее состояние синхронизации и позволяет запустить её вручную
  */
 export function SyncStatus() {
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(() => {
+    if (typeof window !== "undefined") {
+      return true;
+    }
+    return false;
+  });
   const t = useTranslations("sync");
   const {
     isOnline,
@@ -28,11 +33,6 @@ export function SyncStatus() {
     pendingOperations,
     syncNow,
   } = useSync();
-
-  // Предотвращаем гидратацию - рендерим только на клиенте
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSync = async () => {
     try {
