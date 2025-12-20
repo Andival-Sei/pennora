@@ -9,9 +9,11 @@ export default async function TransactionsPage() {
   const supabase = await createClient();
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  // Если ошибка аутентификации или пользователь не авторизован, редиректим на логин
+  if (authError || !user) {
     redirect("/login");
   }
 

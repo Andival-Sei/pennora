@@ -38,16 +38,34 @@ export async function convertMultipleCurrencies(
 
 /**
  * Форматирует сумму валюты для отображения
+ * Убирает нули после запятой, если их нет
  */
 export function formatCurrency(
   amount: number,
   currency: CurrencyCode,
   locale: string = "ru-RU"
 ): string {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+  // Округляем до 2 знаков после запятой
+  const rounded = Math.round(amount * 100) / 100;
+
+  // Проверяем, есть ли дробная часть
+  const hasDecimals = rounded % 1 !== 0;
+
+  if (hasDecimals) {
+    // Если есть дробная часть, форматируем с 2 знаками
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(rounded);
+  } else {
+    // Если дробной части нет, показываем только целое число без десятичных знаков
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(rounded);
+  }
 }

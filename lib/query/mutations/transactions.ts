@@ -149,7 +149,7 @@ export function useCreateTransaction() {
     onSuccess: () => {
       toast.success("Транзакция добавлена");
     },
-    onSettled: () => {
+    onSettled: (data, error, variables) => {
       // Инвалидируем все списки транзакций для обновления данных
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.lists(),
@@ -158,6 +158,12 @@ export function useCreateTransaction() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.availableMonths(),
       });
+      // Если это перевод, инвалидируем кеш счетов для обновления балансов
+      if (variables.type === "transfer") {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.accounts.list(),
+        });
+      }
     },
   });
 }
@@ -229,10 +235,19 @@ export function useUpdateTransaction() {
     onSuccess: () => {
       toast.success("Транзакция обновлена");
     },
-    onSettled: () => {
+    onSettled: (data, error, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.lists(),
       });
+      // Если это перевод или изменен тип на перевод, инвалидируем кеш счетов
+      if (
+        variables.transaction.type === "transfer" ||
+        (data && data.type === "transfer")
+      ) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.accounts.list(),
+        });
+      }
     },
   });
 }
@@ -289,13 +304,37 @@ export function useDeleteTransaction() {
     onSuccess: () => {
       toast.success("Транзакция удалена");
     },
-    onSettled: () => {
+    onSettled: async (data, error, id) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.lists(),
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.availableMonths(),
       });
+      // Проверяем, была ли удаленная транзакция переводом
+      // Для этого нужно получить транзакцию из кеша перед удалением
+      const previousQueries = queryClient.getQueriesData<
+        TransactionWithCategory[]
+      >({
+        queryKey: queryKeys.transactions.lists(),
+      });
+      // Ищем удаленную транзакцию в кеше для проверки типа
+      let wasTransfer = false;
+      for (const [, transactions] of previousQueries) {
+        if (transactions) {
+          const deletedTransaction = transactions.find((t) => t.id === id);
+          if (deletedTransaction?.type === "transfer") {
+            wasTransfer = true;
+            break;
+          }
+        }
+      }
+      // Если это был перевод, инвалидируем кеш счетов
+      if (wasTransfer) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.accounts.list(),
+        });
+      }
     },
   });
 }
