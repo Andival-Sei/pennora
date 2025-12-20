@@ -223,14 +223,16 @@ export function CategoryForm({
                 control={control}
                 render={({ field }) => (
                   <Select
-                    value={field.value || ""}
-                    onValueChange={(value) => field.onChange(value || null)}
+                    value={field.value || "root"}
+                    onValueChange={(value) =>
+                      field.onChange(value === "root" ? null : value)
+                    }
                   >
                     <SelectTrigger id="parent_id">
                       <SelectValue placeholder={t("categories.noParent")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">
+                      <SelectItem value="root">
                         {t("categories.noParent")}
                       </SelectItem>
                       {availableParents.map((parent) => (
