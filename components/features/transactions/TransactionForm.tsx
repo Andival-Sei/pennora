@@ -114,6 +114,17 @@ export function TransactionForm({
     fetchData();
   }, []);
 
+  // Создаем валидную дату по умолчанию (сегодняшняя дата, время установлено на начало дня)
+  const getDefaultDate = () => {
+    if (initialData?.date) {
+      return new Date(initialData.date);
+    }
+    const today = new Date();
+    // Устанавливаем время на начало дня для консистентности
+    today.setHours(0, 0, 0, 0);
+    return today;
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -123,7 +134,7 @@ export function TransactionForm({
         ? initialData.category_id
         : "__none__",
       account_id: initialData?.account_id || "",
-      date: initialData?.date ? new Date(initialData.date) : new Date(),
+      date: getDefaultDate(),
       description: initialData?.description || "",
     },
   });
@@ -146,6 +157,12 @@ export function TransactionForm({
         return;
       }
 
+      // Убеждаемся, что дата валидна
+      const transactionDate =
+        values.date && values.date instanceof Date
+          ? values.date
+          : getDefaultDate();
+
       // Получаем валюту из выбранного счета
       const selectedAccount = accounts.find(
         (acc) => acc.id === values.account_id
@@ -160,7 +177,7 @@ export function TransactionForm({
             ? null
             : values.category_id,
         account_id: values.account_id,
-        date: values.date.toISOString(),
+        date: transactionDate.toISOString(),
         description: values.description || null,
         currency,
         user_id: user.id,
@@ -172,7 +189,15 @@ export function TransactionForm({
         await addTransaction(transactionData);
       }
 
-      form.reset();
+      // Сбрасываем форму с валидными значениями по умолчанию
+      form.reset({
+        amount: 0,
+        type: "expense",
+        category_id: "__none__",
+        account_id: "",
+        date: getDefaultDate(),
+        description: "",
+      });
       onSuccess?.();
     } catch (error) {
       console.error(error);
@@ -334,7 +359,7 @@ export function TransactionForm({
                         !field.value && "text-muted-foreground"
                       )}
                     >
-                      {field.value ? (
+                      {field.value && field.value instanceof Date ? (
                         format(field.value, "PPP", { locale: dateFnsLocale })
                       ) : (
                         <span>{t("datePlaceholder")}</span>
@@ -350,10 +375,16 @@ export function TransactionForm({
                 >
                   <Calendar
                     mode="single"
-                    selected={field.value}
+                    selected={
+                      field.value && field.value instanceof Date
+                        ? field.value
+                        : getDefaultDate()
+                    }
                     onSelect={(date) => {
-                      field.onChange(date);
-                      setCalendarOpen(false); // Закрываем календарь при выборе даты
+                      if (date) {
+                        field.onChange(date);
+                        setCalendarOpen(false); // Закрываем календарь при выборе даты
+                      }
                     }}
                     disabled={(date) =>
                       date > new Date() || date < new Date("1900-01-01")

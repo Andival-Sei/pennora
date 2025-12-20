@@ -288,7 +288,7 @@ export function CascadingCategorySelect({
                         duration: 0.2,
                         ease: [0.4, 0, 0.2, 1],
                       }}
-                      className="flex-shrink-0"
+                      className="shrink-0"
                     >
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </motion.div>
@@ -340,8 +340,8 @@ export function CascadingCategorySelect({
                       <SelectContent>
                         <SelectItem value="__none__">
                           <span className="text-muted-foreground">
-                            Не выбирать (остановиться на "
-                            {getCategoryName(lastSelectedId)}")
+                            Не выбирать (остановиться на &quot;
+                            {getCategoryName(lastSelectedId)}&quot;)
                           </span>
                         </SelectItem>
                         {children.map((category) => (

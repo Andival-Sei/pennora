@@ -1,2 +1,2 @@
 // TODO: Определить типы для валют
-export type Currency = {};
+export type Currency = Record<string, never>;

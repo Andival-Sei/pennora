@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Edit2, Trash2, MoreVertical } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 
 import {
   Table,
@@ -30,10 +31,44 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TransactionForm } from "./TransactionForm";
+import { formatCurrency } from "@/lib/currency/formatter";
 
-export function TransactionList() {
+// Маппинг иконок категорий (как в CategoryItem)
+const defaultIcons: Record<string, keyof typeof LucideIcons> = {
+  home: "Home",
+  shopping: "ShoppingCart",
+  car: "Car",
+  food: "UtensilsCrossed",
+  heart: "Heart",
+  gift: "Gift",
+  wallet: "Wallet",
+  coffee: "Coffee",
+  plane: "Plane",
+  gamepad: "Gamepad2",
+  book: "Book",
+  music: "Music",
+  film: "Film",
+  briefcase: "Briefcase",
+  dollar: "DollarSign",
+  trending: "TrendingUp",
+};
+
+// Функция для получения компонента иконки
+function getCategoryIcon(iconKey: string | null) {
+  if (!iconKey) return null;
+  const IconName = defaultIcons[iconKey] || iconKey;
+  const IconComponent = LucideIcons[
+    IconName as keyof typeof LucideIcons
+  ] as React.ComponentType<{ className?: string }>;
+  return IconComponent || null;
+}
+
+interface TransactionListProps {
+  monthFilter?: { month: number; year: number };
+}
+
+export function TransactionList({ monthFilter }: TransactionListProps) {
   const t = useTranslations("transactions");
-  const locale = useLocale();
   const { fetchTransactions, deleteTransaction } = useTransactions();
   const [transactions, setTransactions] = useState<TransactionWithCategory[]>(
     []
@@ -43,10 +78,14 @@ export function TransactionList() {
     useState<TransactionWithCategory | null>(null);
 
   const loadData = useCallback(async () => {
-    const data = await fetchTransactions();
+    const data = await fetchTransactions(
+      monthFilter
+        ? { month: monthFilter.month, year: monthFilter.year }
+        : undefined
+    );
     setTransactions(data);
     setLoading(false);
-  }, [fetchTransactions]);
+  }, [fetchTransactions, monthFilter]);
 
   useEffect(() => {
     (async () => {
@@ -78,7 +117,8 @@ export function TransactionList() {
 
   return (
     <>
-      <div className="rounded-md border">
+      {/* Десктопная версия - таблица */}
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -97,11 +137,14 @@ export function TransactionList() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {transaction.category?.icon && (
-                      <span className="text-lg">
-                        {transaction.category.icon}
-                      </span>
-                    )}
+                    {(() => {
+                      const IconComponent = transaction.category?.icon
+                        ? getCategoryIcon(transaction.category.icon)
+                        : null;
+                      return IconComponent ? (
+                        <IconComponent className="h-4 w-4 text-muted-foreground" />
+                      ) : null;
+                    })()}
                     <span>
                       {transaction.category?.name || t("uncategorized")}
                     </span>
@@ -119,10 +162,7 @@ export function TransactionList() {
                   )}
                 >
                   {transaction.type === "income" ? "+" : "-"}
-                  {new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US", {
-                    style: "currency",
-                    currency: transaction.currency,
-                  }).format(transaction.amount)}
+                  {formatCurrency(transaction.amount, transaction.currency)}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -152,6 +192,79 @@ export function TransactionList() {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Мобильная версия - карточки */}
+      <div className="md:hidden space-y-3">
+        {transactions.map((transaction) => {
+          const IconComponent = transaction.category?.icon
+            ? getCategoryIcon(transaction.category.icon)
+            : null;
+          return (
+            <div
+              key={transaction.id}
+              className="rounded-lg border bg-card p-4 space-y-3"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    {IconComponent && (
+                      <IconComponent className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="font-medium">
+                      {transaction.category?.name || t("uncategorized")}
+                    </span>
+                  </div>
+                  {transaction.description && (
+                    <p className="text-sm text-muted-foreground">
+                      {transaction.description}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(transaction.date), "dd.MM.yyyy")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "font-semibold text-lg",
+                      transaction.type === "income"
+                        ? "text-green-600"
+                        : transaction.type === "expense"
+                          ? "text-red-600"
+                          : "text-blue-600"
+                    )}
+                  >
+                    {transaction.type === "income" ? "+" : "-"}
+                    {formatCurrency(transaction.amount, transaction.currency)}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => setEditingTransaction(transaction)}
+                      >
+                        <Edit2 className="mr-2 h-4 w-4" />
+                        {t("actions.edit")}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={() => handleDelete(transaction.id)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        {t("actions.delete")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <Dialog

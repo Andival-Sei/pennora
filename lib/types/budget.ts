@@ -1,2 +1,2 @@
 // TODO: Определить типы для бюджетов
-export type Budget = {};
+export type Budget = Record<string, never>;
