@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeInitializer } from "@/components/settings/theme-initializer";
@@ -257,6 +258,7 @@ export default async function RootLayout({
           </NextIntlClientProvider>
         </ThemeProvider>
         <SpeedInsights />
+        <Analytics />
         <ServiceWorkerRegister />
       </body>
     </html>
