@@ -154,7 +154,13 @@
       "success": "Email changed successfully"
     },
     "account": {
-      "title": "Account Settings"
+      "title": "Account Settings",
+      "deleteAccount": {
+        "title": "Delete Account",
+        "description": "This action cannot be undone. All your data will be permanently deleted.",
+        "confirm": "Delete Account",
+        "button": "Delete Account"
+      }
     },
     "app": {
       "title": "App Settings",
@@ -323,6 +329,7 @@
       "emailConfirmation": {
         "title": "Check your email",
         "message": "We've sent a confirmation email to {email}. Please check your inbox and click the confirmation link to verify your email before signing in.",
+        "note": "Note: Currently, you can sign in without email confirmation. In the future, email confirmation will be required for security.",
         "resendButton": "Resend email",
         "resendSuccess": "Email sent again",
         "backToLogin": "Back to sign in"

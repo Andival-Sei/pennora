@@ -115,6 +115,9 @@ export default function RegisterPage() {
                   email: registeredEmail,
                 })}
               </CardDescription>
+              <div className="mt-3 p-3 text-xs text-muted-foreground bg-muted/50 rounded-md border border-border">
+                {t("register.emailConfirmation.note")}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <AnimatePresence mode="wait">
