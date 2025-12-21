@@ -29,6 +29,8 @@ import { fetchTransactions } from "@/lib/query/queries/transactions";
 import { fetchAccounts } from "@/lib/query/queries/accounts";
 import { TransactionWithCategory } from "@/lib/types/transaction";
 import { cn } from "@/lib/utils";
+import { LoadingState } from "@/components/ui/loading-state";
+import { ErrorState } from "@/components/ui/error-state";
 import {
   Dialog,
   DialogContent,
@@ -89,7 +91,12 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
     ? { month: monthFilter.month, year: monthFilter.year }
     : undefined;
 
-  const { data: transactions = [], isLoading: loading } = useQuery({
+  const {
+    data: transactions = [],
+    isLoading: loading,
+    error: transactionsError,
+    refetch: refetchTransactions,
+  } = useQuery({
     queryKey: queryKeys.transactions.list(filters),
     queryFn: () => fetchTransactions(filters),
     staleTime: 2 * 60 * 1000, // 2 минуты
@@ -123,7 +130,16 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
   };
 
   if (loading) {
-    return <div className="text-center py-4">{t("loading")}</div>;
+    return <LoadingState message={t("loading")} />;
+  }
+
+  if (transactionsError) {
+    return (
+      <ErrorState
+        error={transactionsError}
+        onRetry={() => refetchTransactions()}
+      />
+    );
   }
 
   if (transactions.length === 0) {

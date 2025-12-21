@@ -3,9 +3,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/db/supabase/client";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { queryKeys } from "../keys";
 import { queueManager } from "@/lib/sync/queueManager";
 import { isNetworkError } from "@/lib/utils/network";
+import { getErrorMessage } from "@/lib/utils/errorHandler";
 import type {
   Category,
   CategoryInsert,
@@ -117,6 +119,8 @@ async function deleteCategory(id: string): Promise<void> {
  */
 export function useCreateCategory() {
   const queryClient = useQueryClient();
+  const t = useTranslations();
+  const tSync = useTranslations("sync");
 
   return useMutation({
     mutationFn: createCategory,
@@ -153,9 +157,7 @@ export function useCreateCategory() {
       if (isNetworkError(err)) {
         try {
           await queueManager.enqueue("categories", "create", null, newCategory);
-          toast.success(
-            "Категория будет синхронизирована при восстановлении сети"
-          );
+          toast.success(tSync("willSyncWhenOnline"));
           return;
         } catch (queueError) {
           console.error("Error adding to sync queue:", queueError);
@@ -170,10 +172,11 @@ export function useCreateCategory() {
         );
       }
       console.error("Error creating category:", err);
-      toast.error("Не удалось создать категорию");
+      const errorMessage = getErrorMessage(err, (key) => t(key));
+      toast.error(errorMessage);
     },
     onSuccess: () => {
-      toast.success("Категория создана");
+      toast.success(t("categories.success.created"));
     },
     onSettled: () => {
       queryClient.invalidateQueries({
@@ -188,6 +191,8 @@ export function useCreateCategory() {
  */
 export function useUpdateCategory() {
   const queryClient = useQueryClient();
+  const t = useTranslations();
+  const tSync = useTranslations("sync");
 
   return useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: CategoryUpdate }) =>
@@ -226,7 +231,7 @@ export function useUpdateCategory() {
             variables.id,
             variables.updates
           );
-          toast.success("Changes will be synced when connection is restored");
+          toast.success(tSync("changesWillSync"));
           return;
         } catch (queueError) {
           console.error("Error adding to sync queue:", queueError);
@@ -241,10 +246,11 @@ export function useUpdateCategory() {
         );
       }
       console.error("Error updating category:", err);
-      toast.error("Не удалось обновить категорию");
+      const errorMessage = getErrorMessage(err, (key) => t(key));
+      toast.error(errorMessage);
     },
     onSuccess: () => {
-      toast.success("Категория обновлена");
+      toast.success(t("categories.success.updated"));
     },
     onSettled: () => {
       queryClient.invalidateQueries({
@@ -259,6 +265,8 @@ export function useUpdateCategory() {
  */
 export function useDeleteCategory() {
   const queryClient = useQueryClient();
+  const t = useTranslations();
+  const tSync = useTranslations("sync");
 
   return useMutation({
     mutationFn: deleteCategory,
@@ -287,7 +295,7 @@ export function useDeleteCategory() {
       if (isNetworkError(err)) {
         try {
           await queueManager.enqueue("categories", "delete", id, { id });
-          toast.success("Deletion will be synced when connection is restored");
+          toast.success(tSync("deleteWillSync"));
           return;
         } catch (queueError) {
           console.error("Error adding to sync queue:", queueError);
@@ -302,10 +310,11 @@ export function useDeleteCategory() {
         );
       }
       console.error("Error deleting category:", err);
-      toast.error("Не удалось удалить категорию");
+      const errorMessage = getErrorMessage(err, (key) => t(key));
+      toast.error(errorMessage);
     },
     onSuccess: () => {
-      toast.success("Категория удалена");
+      toast.success(t("categories.success.deleted"));
     },
     onSettled: () => {
       queryClient.invalidateQueries({

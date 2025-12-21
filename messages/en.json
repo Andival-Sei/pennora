@@ -11,7 +11,8 @@
     "settings": "Settings",
     "next": "Next",
     "skip": "Skip",
-    "back": "Back"
+    "back": "Back",
+    "retry": "Retry"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -173,7 +174,47 @@
     "unknown": "An error occurred. Please try again",
     "cannotUnlinkOnly": "Cannot unlink the only login method",
     "invalidCode": "Invalid verification code",
-    "sameEmail": "New email is the same as current email"
+    "sameEmail": "New email is the same as current email",
+    "validation": {
+      "transactions": {
+        "amountMin": "Amount must be greater than 0",
+        "accountRequired": "Please select an account",
+        "toAccountDifferent": "Destination account must differ from source"
+      },
+      "generic": {
+        "required": "This field is required",
+        "minLength": "Minimum length: {min}",
+        "maxLength": "Maximum length: {max}",
+        "invalid": "Invalid value"
+      }
+    },
+    "mutations": {
+      "transaction": {
+        "create": "Failed to create transaction",
+        "update": "Failed to update transaction",
+        "delete": "Failed to delete transaction"
+      },
+      "category": {
+        "create": "Failed to create category",
+        "update": "Failed to update category",
+        "delete": "Failed to delete category"
+      },
+      "account": {
+        "create": "Failed to create account",
+        "update": "Failed to update account",
+        "delete": "Failed to delete account"
+      },
+      "unauthorized": "You are not authorized",
+      "forbidden": "You don't have permission to perform this action",
+      "notFound": "Record not found",
+      "conflict": "Data conflict. The record may have been modified"
+    },
+    "network": {
+      "offline": "No internet connection",
+      "timeout": "Request timeout",
+      "failed": "Request failed",
+      "willSync": "Changes will be synced when connection is restored"
+    }
   },
   "auth": {
     "email": "Email",
@@ -306,6 +347,11 @@
       "edit": "Edit",
       "delete": "Delete"
     },
+    "success": {
+      "created": "Transaction created",
+      "updated": "Transaction updated",
+      "deleted": "Transaction deleted"
+    },
     "form": {
       "type": "Type",
       "types": {
@@ -356,7 +402,12 @@
     "empty": "No categories yet",
     "emptyDescription": "Create your first category to start organizing your finances",
     "addDescription": "Create a new category for your income or expenses",
-    "editDescription": "Update category information"
+    "editDescription": "Update category information",
+    "success": {
+      "created": "Category created",
+      "updated": "Category updated",
+      "deleted": "Category deleted"
+    }
   },
   "budgets": {
     "title": "Budgets",
