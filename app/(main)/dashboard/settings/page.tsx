@@ -21,8 +21,9 @@ import {
 } from "@/components/ui/card";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Trash2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { deleteAccount } from "../actions";
 
 // Схема для обновления профиля
 const profileSchema = z.object({
@@ -62,6 +63,7 @@ interface UserIdentity {
 export default function SettingsPage() {
   const t = useTranslations("settings");
   const tAuth = useTranslations("auth");
+  const tCommon = useTranslations("common");
   const tErrors = useTranslations();
 
   const [user, setUser] = useState<{
@@ -92,6 +94,11 @@ export default function SettingsPage() {
   const [emailChangeLoading, setEmailChangeLoading] = useState(false);
   const [emailChangeError, setEmailChangeError] = useState<string | null>(null);
   const [emailChangeSuccess, setEmailChangeSuccess] = useState(false);
+
+  // Account deletion
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -323,6 +330,25 @@ export default function SettingsPage() {
       }
       setEmailChangeLoading(false);
     }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteLoading(true);
+    setDeleteError(null);
+
+    const result = await deleteAccount();
+
+    // Если функция вернула результат, значит была ошибка
+    // (если редирект произошел успешно, функция не вернет значение из-за redirect())
+    if (result?.error) {
+      setDeleteError("errors.unknown");
+      setDeleteLoading(false);
+      return;
+    }
+
+    // Если ошибки нет, серверный redirect() должен сработать автоматически
+    // Закрываем модальное окно (редirect произойдет на сервере)
+    setShowDeleteConfirm(false);
   }
 
   const hasGoogleLinked = user?.identities.some((i) => i.provider === "google");
@@ -748,7 +774,118 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </FadeIn>
+
+        {/* Удаление аккаунта */}
+        <FadeIn delay={0.35}>
+          <Card className="border-destructive/20">
+            <CardHeader>
+              <CardTitle className="text-destructive">
+                {t("account.deleteAccount.title")}
+              </CardTitle>
+              <CardDescription>
+                {t("account.deleteAccount.description")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="w-full sm:w-auto"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {t("account.deleteAccount.button")}
+              </Button>
+            </CardContent>
+          </Card>
+        </FadeIn>
       </ResponsiveContainer>
+
+      {/* Модалка подтверждения удаления */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              onClick={() => !deleteLoading && setShowDeleteConfirm(false)}
+            />
+
+            {/* Modal */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-card border border-border rounded-lg shadow-lg p-6 max-w-md w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-destructive/10">
+                      <Trash2 className="h-5 w-5 text-destructive" />
+                    </div>
+                    <h3 className="text-lg font-semibold">
+                      {t("account.deleteAccount.title")}
+                    </h3>
+                  </div>
+                  {!deleteLoading && (
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+
+                <AnimatePresence mode="wait">
+                  {deleteError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md mb-4"
+                    >
+                      {tErrors(deleteError)}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <p className="text-muted-foreground mb-6">
+                  {t("account.deleteAccount.description")}
+                </p>
+
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={deleteLoading}
+                  >
+                    {tCommon("cancel")}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteAccount}
+                    disabled={deleteLoading}
+                  >
+                    {deleteLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {tCommon("loading")}
+                      </>
+                    ) : (
+                      t("account.deleteAccount.confirm")
+                    )}
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

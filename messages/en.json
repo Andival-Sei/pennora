@@ -11,7 +11,9 @@
     "settings": "Settings",
     "next": "Next",
     "skip": "Skip",
-    "back": "Back"
+    "back": "Back",
+    "retry": "Retry",
+    "backToHome": "Back to Home"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -28,7 +30,8 @@
     "backToApp": "Back to App",
     "cta": {
       "startFree": "Start Free",
-      "demo": "Demo"
+      "demo": "Demo",
+      "inDevelopment": "In Development"
     },
     "features": {
       "offline": "Works Offline",
@@ -40,10 +43,19 @@
       "shared": "Shared Budgets",
       "sharedDesc": "Manage budgets together with family and friends"
     },
-    "stats": {
-      "users": "users",
-      "countries": "countries",
-      "rating": "★ rating"
+    "benefits": {
+      "secure": {
+        "title": "Security",
+        "description": "Your data is protected with modern encryption methods"
+      },
+      "fast": {
+        "title": "Speed",
+        "description": "Instant synchronization and fast app performance"
+      },
+      "private": {
+        "title": "Privacy",
+        "description": "Your financial data stays only with you"
+      }
     },
     "howItWorks": {
       "title": "How It Works",
@@ -65,11 +77,31 @@
       "title": "Features",
       "subtitle": "Everything you need for budget management"
     },
+    "mockup": {
+      "title": "Dashboard",
+      "balance": {
+        "total": "Total",
+        "card": "Card",
+        "cash": "Cash"
+      },
+      "statistics": {
+        "income": "Income",
+        "expense": "Expenses"
+      },
+      "recentTransactions": "Recent Transactions"
+    },
     "footer": {
       "description": "Smart budget management for you and your family",
       "links": {
+        "title": "Links",
         "privacy": "Privacy Policy",
         "terms": "Terms of Service"
+      },
+      "contact": {
+        "title": "Contact",
+        "inDevelopment": "In Development",
+        "description": "Contact us with any questions",
+        "email": "support@pennora.app"
       },
       "copyright": "© 2025 Pennora. All rights reserved."
     }
@@ -122,7 +154,13 @@
       "success": "Email changed successfully"
     },
     "account": {
-      "title": "Account Settings"
+      "title": "Account Settings",
+      "deleteAccount": {
+        "title": "Delete Account",
+        "description": "This action cannot be undone. All your data will be permanently deleted.",
+        "confirm": "Delete Account",
+        "button": "Delete Account"
+      }
     },
     "app": {
       "title": "App Settings",
@@ -136,13 +174,14 @@
         "title": "Display Currency",
         "description": "Choose the currency for displaying balances"
       },
-      "success": "Settings saved successfully"
+      "success": "Settings saved successfully",
+      "logoutDescription": "Sign out of your account"
     }
   },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome! Your financial statistics will appear here soon.",
-    "backToLanding": "Back to Home",
+    "toLanding": "To Landing",
     "balance": {
       "total": "Total Balance",
       "card": "On Cards",
@@ -151,7 +190,21 @@
     "statistics": {
       "income": "Income",
       "expense": "Expenses",
-      "balance": "Balance"
+      "balance": "Balance",
+      "netResult": "Net Result",
+      "vsPreviousMonth": "vs previous month"
+    },
+    "recentTransactions": {
+      "title": "Recent Transactions",
+      "empty": "You don't have any transactions yet",
+      "addFirst": "Add your first transaction",
+      "viewAll": "View all"
+    },
+    "quickActions": {
+      "addTransaction": "Add Transaction",
+      "addAccount": "Add Account",
+      "addCategory": "Add Category",
+      "viewTransactions": "View Transactions"
     },
     "reset": {
       "button": "Start Over",
@@ -173,7 +226,47 @@
     "unknown": "An error occurred. Please try again",
     "cannotUnlinkOnly": "Cannot unlink the only login method",
     "invalidCode": "Invalid verification code",
-    "sameEmail": "New email is the same as current email"
+    "sameEmail": "New email is the same as current email",
+    "validation": {
+      "transactions": {
+        "amountMin": "Amount must be greater than 0",
+        "accountRequired": "Please select an account",
+        "toAccountDifferent": "Destination account must differ from source"
+      },
+      "generic": {
+        "required": "This field is required",
+        "minLength": "Minimum length: {min}",
+        "maxLength": "Maximum length: {max}",
+        "invalid": "Invalid value"
+      }
+    },
+    "mutations": {
+      "transaction": {
+        "create": "Failed to create transaction",
+        "update": "Failed to update transaction",
+        "delete": "Failed to delete transaction"
+      },
+      "category": {
+        "create": "Failed to create category",
+        "update": "Failed to update category",
+        "delete": "Failed to delete category"
+      },
+      "account": {
+        "create": "Failed to create account",
+        "update": "Failed to update account",
+        "delete": "Failed to delete account"
+      },
+      "unauthorized": "You are not authorized",
+      "forbidden": "You don't have permission to perform this action",
+      "notFound": "Record not found",
+      "conflict": "Data conflict. The record may have been modified"
+    },
+    "network": {
+      "offline": "No internet connection",
+      "timeout": "Request timeout",
+      "failed": "Request failed",
+      "willSync": "Changes will be synced when connection is restored"
+    }
   },
   "auth": {
     "email": "Email",
@@ -232,7 +325,15 @@
       "subtitle": "Create a new account",
       "submit": "Create Account",
       "hasAccount": "Already have an account?",
-      "loginLink": "Sign In"
+      "loginLink": "Sign In",
+      "emailConfirmation": {
+        "title": "Check your email",
+        "message": "We've sent a confirmation email to {email}. Please check your inbox and click the confirmation link to verify your email before signing in.",
+        "note": "Note: Currently, you can sign in without email confirmation. In the future, email confirmation will be required for security.",
+        "resendButton": "Resend email",
+        "resendSuccess": "Email sent again",
+        "backToLogin": "Back to sign in"
+      }
     },
     "logout": "Sign Out"
   },
@@ -306,6 +407,11 @@
       "edit": "Edit",
       "delete": "Delete"
     },
+    "success": {
+      "created": "Transaction created",
+      "updated": "Transaction updated",
+      "deleted": "Transaction deleted"
+    },
     "form": {
       "type": "Type",
       "types": {
@@ -337,6 +443,8 @@
     "addFirst": "Add Your First Category",
     "edit": "Edit Category",
     "delete": "Delete Category",
+    "deleteTitle": "Delete Category",
+    "deleteDescription": "Are you sure you want to delete category \"{name}\"? This action cannot be undone.",
     "deleteConfirm": "Are you sure you want to delete category \"{name}\"?",
     "archive": "Archive",
     "unarchive": "Unarchive",
@@ -356,7 +464,15 @@
     "empty": "No categories yet",
     "emptyDescription": "Create your first category to start organizing your finances",
     "addDescription": "Create a new category for your income or expenses",
-    "editDescription": "Update category information"
+    "editDescription": "Update category information",
+    "success": {
+      "created": "Category created",
+      "updated": "Category updated",
+      "deleted": "Category deleted"
+    },
+    "errors": {
+      "cannotDeleteSystem": "System categories cannot be deleted"
+    }
   },
   "budgets": {
     "title": "Budgets",
@@ -392,5 +508,92 @@
     "willSyncWhenOnline": "Transaction will be synced when connection is restored",
     "changesWillSync": "Changes will be synced when connection is restored",
     "deleteWillSync": "Deletion will be synced when connection is restored"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "description": "Pennora Privacy Policy",
+    "lastUpdated": "Last updated: January 15, 2025",
+    "sections": {
+      "overview": {
+        "title": "Overview",
+        "content": "Pennora values your privacy. This policy describes how we collect, use, and protect your personal information when using our application."
+      },
+      "dataCollection": {
+        "title": "Data Collection",
+        "content": "We collect the following types of data:",
+        "items": {
+          "email": "Email address for account creation",
+          "financial": "Financial data you enter (transactions, budgets, categories)",
+          "usage": "App usage data to improve the service"
+        }
+      },
+      "dataUsage": {
+        "title": "Data Usage",
+        "content": "Your data is used solely to provide and improve the service. We do not sell or share your data with third parties."
+      },
+      "dataSecurity": {
+        "title": "Data Security",
+        "content": "We use modern encryption methods to protect your data. All data is transmitted over secure connections and stored in encrypted form."
+      },
+      "userRights": {
+        "title": "User Rights",
+        "content": "You have the right to:",
+        "items": {
+          "access": "Access your data at any time",
+          "correction": "Correct inaccurate data",
+          "deletion": "Delete your account and all data",
+          "export": "Export your data"
+        }
+      },
+      "contact": {
+        "title": "Contact",
+        "content": "If you have questions about the privacy policy, please contact us:"
+      }
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "description": "Pennora Terms of Service",
+    "lastUpdated": "Last updated: January 15, 2025",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "content": "By using Pennora, you agree to these terms of service. If you do not agree with any of these terms, please do not use the service."
+      },
+      "serviceDescription": {
+        "title": "Service Description",
+        "content": "Pennora provides a platform for personal finance management, including transaction tracking, budget creation, and expense analysis."
+      },
+      "userAccount": {
+        "title": "User Account",
+        "content": "When creating an account, you agree to:",
+        "items": {
+          "responsibility": "Provide accurate and up-to-date information",
+          "security": "Maintain the security of your account and password",
+          "notification": "Immediately notify us of any unauthorized use"
+        }
+      },
+      "acceptableUse": {
+        "title": "Acceptable Use",
+        "content": "You agree not to use the service for:",
+        "items": {
+          "illegal": "Any illegal purposes",
+          "harm": "Harming other users",
+          "violation": "Violating intellectual property rights"
+        }
+      },
+      "liability": {
+        "title": "Limitation of Liability",
+        "content": "Pennora is provided 'as is'. We do not guarantee uninterrupted service and are not responsible for any financial decisions made based on app data."
+      },
+      "changes": {
+        "title": "Changes to Terms",
+        "content": "We reserve the right to change these terms at any time. Continued use of the service after changes constitutes your agreement to the new terms."
+      },
+      "contact": {
+        "title": "Contact",
+        "content": "If you have questions about the terms of service, please contact us:"
+      }
+    }
   }
 }

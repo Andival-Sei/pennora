@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useTheme } from "@/providers";
 import { createClient } from "@/lib/supabase/client";
 import { setLocale } from "@/i18n/actions";
+import { signOut } from "@/app/(auth)/actions";
 import { useUnsavedChanges } from "./handle-unsaved-changes";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
-import { Check, Loader2, Monitor, Moon, Sun } from "lucide-react";
+import { Check, Loader2, Monitor, Moon, Sun, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CurrencyCode } from "@/lib/currency/rates";
 import type { Locale } from "@/i18n/request";
@@ -38,6 +39,7 @@ export default function AppSettingsPage() {
   const tApp = useTranslations("settings.app");
   const tOnboarding = useTranslations("onboarding");
   const tCommon = useTranslations("common");
+  const tAuth = useTranslations("auth");
   const tErrors = useTranslations();
 
   const { theme: currentTheme, setTheme: setThemeProvider } = useTheme();
@@ -106,13 +108,14 @@ export default function AppSettingsPage() {
             : "RUB"
         ) as CurrencyCode;
 
-        // Устанавливаем исходные значения
+        // Устанавливаем исходные значения (из БД)
         setOriginalTheme(theme);
         setOriginalLocale(localeValue);
         setOriginalDisplayCurrency(currency);
 
-        // Устанавливаем текущие значения
-        setThemeProvider(theme);
+        // Устанавливаем текущие значения для локали и валюты
+        // Тему не трогаем - ThemeInitializer уже загрузил её из БД,
+        // а если пользователь изменил тему, мы не должны её перезаписывать
         setLocaleState(localeValue);
         setDisplayCurrency(currency);
       }
@@ -125,7 +128,7 @@ export default function AppSettingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [router, setThemeProvider]);
+  }, [router]);
 
   // Функция для сброса к исходным значениям
   const handleReset = useCallback(() => {
@@ -150,38 +153,6 @@ export default function AppSettingsPage() {
     currentDisplayCurrency: displayCurrency,
     onReset: handleReset,
   });
-
-  // При размонтировании компонента (выход без сохранения) возвращаем настройки к исходным
-  useEffect(() => {
-    return () => {
-      // Если есть несохранённые изменения, возвращаем к исходным значениям
-      if (hasChanges) {
-        setThemeProvider(originalTheme);
-        setLocaleState(originalLocale);
-        setDisplayCurrency(originalDisplayCurrency);
-
-        // Возвращаем язык к исходному
-        if (locale !== originalLocale) {
-          startTransition(() => {
-            setLocale(originalLocale);
-          });
-        }
-
-        // Возвращаем тему к исходной
-        if (typeof window !== "undefined") {
-          localStorage.setItem("pennora-theme", originalTheme);
-        }
-      }
-    };
-  }, [
-    hasChanges,
-    locale,
-    originalDisplayCurrency,
-    originalLocale,
-    originalTheme,
-    setThemeProvider,
-    startTransition,
-  ]); // Только при размонтировании
 
   async function handleSave() {
     setSaving(true);
@@ -278,9 +249,6 @@ export default function AppSettingsPage() {
                   variant={currentTheme === "light" ? "default" : "outline"}
                   onClick={() => {
                     setThemeProvider("light");
-                    if (typeof window !== "undefined") {
-                      localStorage.setItem("pennora-theme", "light");
-                    }
                   }}
                   className="flex items-center gap-2"
                 >
@@ -291,9 +259,6 @@ export default function AppSettingsPage() {
                   variant={currentTheme === "system" ? "default" : "outline"}
                   onClick={() => {
                     setThemeProvider("system");
-                    if (typeof window !== "undefined") {
-                      localStorage.setItem("pennora-theme", "system");
-                    }
                   }}
                   className="flex items-center gap-2"
                 >
@@ -304,9 +269,6 @@ export default function AppSettingsPage() {
                   variant={currentTheme === "dark" ? "default" : "outline"}
                   onClick={() => {
                     setThemeProvider("dark");
-                    if (typeof window !== "undefined") {
-                      localStorage.setItem("pennora-theme", "dark");
-                    }
                   }}
                   className="flex items-center gap-2"
                 >
@@ -381,6 +343,23 @@ export default function AppSettingsPage() {
         </FadeIn>
 
         <FadeIn delay={0.25}>
+          <Card>
+            <CardHeader>
+              <CardTitle>{tAuth("logout")}</CardTitle>
+              <CardDescription>{tApp("logoutDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form action={signOut}>
+                <Button variant="destructive" type="submit">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {tAuth("logout")}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </FadeIn>
+
+        <FadeIn delay={0.3}>
           <div className="flex items-center justify-end gap-4">
             <AnimatePresence mode="wait">
               {error && (

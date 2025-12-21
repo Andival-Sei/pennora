@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CategoryTree } from "./CategoryTree";
 import { CategoryForm } from "./CategoryForm";
 import { useCategories } from "@/lib/hooks/useCategories";
 import type { Category, CategoryWithChildren } from "@/lib/types/category";
 import { useTranslations } from "next-intl";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Тип данных формы категории (совместим с CategoryForm)
 interface CategoryFormData {
@@ -33,6 +34,9 @@ export function CategoryList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] =
     useState<CategoryWithChildren | null>(null);
+  const [deletingCategory, setDeletingCategory] =
+    useState<CategoryWithChildren | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const tree = buildTree();
 
@@ -66,11 +70,20 @@ export function CategoryList() {
     return null;
   };
 
-  const handleDelete = async (category: CategoryWithChildren) => {
-    if (
-      window.confirm(t("categories.deleteConfirm", { name: category.name }))
-    ) {
-      await deleteCategory(category.id);
+  const handleDeleteClick = (category: CategoryWithChildren) => {
+    setDeletingCategory(category);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingCategory) return;
+    setIsDeleting(true);
+    try {
+      await deleteCategory(deletingCategory.id);
+      setDeletingCategory(null);
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -117,7 +130,7 @@ export function CategoryList() {
         <CategoryTree
           tree={tree}
           onEdit={handleEditClick}
-          onDelete={handleDelete}
+          onDelete={handleDeleteClick}
         />
       ) : (
         <div className="rounded-lg border border-dashed p-12 text-center">
@@ -148,6 +161,82 @@ export function CategoryList() {
         parentCategories={categories}
         onSubmit={handleEdit}
       />
+
+      {/* Модалка удаления */}
+      <AnimatePresence>
+        {deletingCategory && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              onClick={() => !isDeleting && setDeletingCategory(null)}
+            />
+
+            {/* Modal */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-card border border-border rounded-lg shadow-lg p-6 max-w-md w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-destructive/10">
+                      <Trash2 className="h-5 w-5 text-destructive" />
+                    </div>
+                    <h3 className="text-lg font-semibold">
+                      {t("categories.deleteTitle")}
+                    </h3>
+                  </div>
+                  {!isDeleting && (
+                    <button
+                      onClick={() => setDeletingCategory(null)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+
+                <p className="text-muted-foreground mb-6">
+                  {t("categories.deleteDescription", {
+                    name: deletingCategory.name,
+                  })}
+                </p>
+
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeletingCategory(null)}
+                    disabled={isDeleting}
+                  >
+                    {t("common.cancel")}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteConfirm}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        {t("common.loading")}
+                      </>
+                    ) : (
+                      t("common.delete")
+                    )}
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

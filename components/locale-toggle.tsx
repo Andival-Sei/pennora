@@ -19,7 +19,7 @@ export function LocaleToggle() {
   return (
     <div
       className={cn(
-        "flex items-center rounded-full border bg-background p-1",
+        "flex items-center rounded-full border bg-background p-0.5 sm:p-1",
         isPending && "opacity-50"
       )}
     >
@@ -27,7 +27,7 @@ export function LocaleToggle() {
         onClick={() => handleLocaleChange("ru")}
         disabled={isPending}
         className={cn(
-          "rounded-full px-3 py-1.5 text-sm font-medium transition-all",
+          "rounded-full px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-all",
           locale === "ru"
             ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:text-foreground"
@@ -40,7 +40,7 @@ export function LocaleToggle() {
         onClick={() => handleLocaleChange("en")}
         disabled={isPending}
         className={cn(
-          "rounded-full px-3 py-1.5 text-sm font-medium transition-all",
+          "rounded-full px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-medium transition-all",
           locale === "en"
             ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:text-foreground"

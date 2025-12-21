@@ -46,35 +46,17 @@ import { queryKeys } from "@/lib/query/keys";
 import { fetchAccounts } from "@/lib/query/queries/accounts";
 import { CascadingCategorySelect } from "@/components/features/categories/CascadingCategorySelect";
 import { motion } from "framer-motion";
+import { getErrorMessage } from "@/lib/utils/errorHandler";
 
-const formSchema = z
-  .object({
-    amount: z.number().min(0.01, "Сумма должна быть больше 0"),
-    type: z.enum(["income", "expense", "transfer"]),
-    category_id: z.string().optional().or(z.literal("__none__")),
-    account_id: z.string().min(1, "Выберите счет"),
-    to_account_id: z.string().optional(),
-    date: z.date(),
-    description: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      if (data.type === "transfer") {
-        return (
-          data.to_account_id &&
-          data.to_account_id.length > 0 &&
-          data.to_account_id !== data.account_id
-        );
-      }
-      return true;
-    },
-    {
-      message: "Целевой счёт должен отличаться от исходного",
-      path: ["to_account_id"],
-    }
-  );
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = {
+  amount: number;
+  type: "income" | "expense" | "transfer";
+  category_id?: string | "__none__";
+  account_id: string;
+  to_account_id?: string;
+  date: Date;
+  description?: string;
+};
 
 interface TransactionFormProps {
   initialData?: Transaction;
@@ -86,10 +68,43 @@ export function TransactionForm({
   onSuccess,
 }: TransactionFormProps) {
   const t = useTranslations("transactions.form");
+  const tErrors = useTranslations("errors");
   const locale = useLocale();
   const { addTransaction, updateTransaction } = useTransactions();
   const { categories, loading: loadingCategories } = useCategories();
   const [calendarOpen, setCalendarOpen] = useState(false);
+
+  // Создаем схему валидации с переводами внутри компонента
+  const formSchema = z
+    .object({
+      amount: z
+        .number()
+        .min(0.01, tErrors("validation.transactions.amountMin")),
+      type: z.enum(["income", "expense", "transfer"]),
+      category_id: z.string().optional().or(z.literal("__none__")),
+      account_id: z
+        .string()
+        .min(1, tErrors("validation.transactions.accountRequired")),
+      to_account_id: z.string().optional(),
+      date: z.date(),
+      description: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        if (data.type === "transfer") {
+          return (
+            data.to_account_id &&
+            data.to_account_id.length > 0 &&
+            data.to_account_id !== data.account_id
+          );
+        }
+        return true;
+      },
+      {
+        message: tErrors("validation.transactions.toAccountDifferent"),
+        path: ["to_account_id"],
+      }
+    );
 
   // Локаль для date-fns и react-day-picker
   const dateFnsLocale = locale === "ru" ? dateFnsRu : dateFnsEn;
@@ -171,7 +186,11 @@ export function TransactionForm({
       } = await supabase.auth.getUser();
 
       if (!user) {
-        toast.error("Пользователь не авторизован");
+        toast.error(tErrors("mutations.unauthorized"));
+        form.setError("root", {
+          type: "manual",
+          message: tErrors("mutations.unauthorized"),
+        });
         return;
       }
 
@@ -231,6 +250,51 @@ export function TransactionForm({
       onSuccess?.();
     } catch (error) {
       console.error(error);
+
+      // Обрабатываем ошибки валидации с сервера
+      const errorMessage = getErrorMessage(error, tErrors);
+
+      // Пытаемся определить, какое поле вызвало ошибку
+      if (error instanceof Error) {
+        const errorLower = error.message.toLowerCase();
+
+        // Проверяем на специфичные ошибки полей
+        if (errorLower.includes("amount") || errorLower.includes("сумма")) {
+          form.setError("amount", {
+            type: "server",
+            message: errorMessage,
+          });
+        } else if (
+          errorLower.includes("account") ||
+          errorLower.includes("счет")
+        ) {
+          form.setError("account_id", {
+            type: "server",
+            message: errorMessage,
+          });
+        } else if (
+          errorLower.includes("to_account") ||
+          errorLower.includes("целевой")
+        ) {
+          form.setError("to_account_id", {
+            type: "server",
+            message: errorMessage,
+          });
+        } else {
+          // Общая ошибка
+          form.setError("root", {
+            type: "server",
+            message: errorMessage,
+          });
+          toast.error(errorMessage);
+        }
+      } else {
+        form.setError("root", {
+          type: "server",
+          message: errorMessage,
+        });
+        toast.error(errorMessage);
+      }
     }
   };
 
@@ -513,6 +577,12 @@ export function TransactionForm({
             </FormItem>
           )}
         />
+
+        {form.formState.errors.root && (
+          <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+            {form.formState.errors.root.message}
+          </div>
+        )}
 
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

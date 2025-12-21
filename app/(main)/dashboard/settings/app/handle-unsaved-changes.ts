@@ -53,11 +53,8 @@ export function useUnsavedChanges({
   useEffect(() => {
     // Если уходим со страницы настроек приложения и есть несохранённые изменения
     if (!pathname?.includes("/dashboard/settings/app") && hasChanges) {
-      // Возвращаем тему
+      // Возвращаем тему (setThemeProvider автоматически обновляет localStorage)
       setThemeProvider(originalTheme);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("pennora-theme", originalTheme);
-      }
 
       // Возвращаем язык
       if (currentLocale !== originalLocale) {

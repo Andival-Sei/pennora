@@ -133,9 +133,8 @@ pennora/
 │   └── seed.sql                 # Начальные данные (валюты)
 │
 ├── public/
-│   ├── icons/                   # PWA иконки
-│   ├── manifest.json            # PWA манифест
-│   └── sw.js                    # Service Worker (next-pwa)
+│   ├── icons/                   # PWA иконки (192x192, 512x512, apple-touch-icon)
+│   └── sw.js                    # Service Worker (Workbox CDN)
 │
 ├── messages/                    # Переводы (next-intl)
 │   ├── en.json
@@ -298,9 +297,17 @@ pennora/
 
 ### PWA
 
-- **Манифест**: `public/manifest.json`
-- **Service Worker**: `public/sw.js` (будет генерироваться next-pwa)
-- **Иконки**: `public/icons/`
+- **Манифест**: `app/manifest.ts` (встроенная поддержка Next.js 16)
+- **Service Worker**: `public/sw.js` (Workbox CDN, ручная реализация)
+- **Иконки**: `public/icons/` (192x192, 512x512, apple-touch-icon)
+- **Регистрация**: `app/components/service-worker-register.tsx`
+
+**Подход:**
+
+- Используется официальная документация Next.js 16
+- Workbox через CDN (не требует webpack)
+- Работает с Turbopack
+- Интегрировано с существующей оффлайн-синхронизацией через IndexedDB
 
 ### Capacitor
 
@@ -337,7 +344,7 @@ pennora/
 - [x] Реализация синхронизации данных
 - [ ] Ручное разрешение конфликтов через UI
 - [ ] Синхронизация через Supabase Realtime
-- [ ] Настройка PWA (next-pwa)
+- [x] Настройка PWA (официальный подход Next.js 16 с Workbox CDN)
 - [ ] Настройка Capacitor для мобильного приложения
 
 ## Зависимости

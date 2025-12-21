@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useLayoutEffect,
+  useCallback,
   type ReactNode,
 } from "react";
 
@@ -138,9 +139,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme, mounted]);
 
-  const handleSetTheme = (newTheme: Theme) => {
+  const handleSetTheme = useCallback((newTheme: Theme) => {
     setTheme(newTheme);
-  };
+  }, []);
 
   return (
     <ThemeContext.Provider

@@ -3,9 +3,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/db/supabase/client";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { queryKeys } from "../keys";
 import { queueManager } from "@/lib/sync/queueManager";
 import { isNetworkError } from "@/lib/utils/network";
+import { getErrorMessage } from "@/lib/utils/errorHandler";
 import type {
   TransactionInsert,
   TransactionUpdate,
@@ -84,6 +86,8 @@ async function deleteTransaction(id: string): Promise<void> {
  */
 export function useCreateTransaction() {
   const queryClient = useQueryClient();
+  const t = useTranslations();
+  const tSync = useTranslations("sync");
 
   return useMutation({
     mutationFn: createTransaction,
@@ -126,10 +130,7 @@ export function useCreateTransaction() {
             null,
             newTransaction
           );
-          // Сообщение будет переведено в компоненте, если нужно
-          toast.success(
-            "Transaction will be synced when connection is restored"
-          );
+          toast.success(tSync("willSyncWhenOnline"));
           // Не откатываем оптимистичное обновление - оставляем в UI
           return;
         } catch (queueError) {
@@ -144,10 +145,11 @@ export function useCreateTransaction() {
         });
       }
       console.error("Error creating transaction:", err);
-      toast.error("Не удалось добавить транзакцию");
+      const errorMessage = getErrorMessage(err, (key) => t(key));
+      toast.error(errorMessage);
     },
     onSuccess: () => {
-      toast.success("Транзакция добавлена");
+      toast.success(t("transactions.success.created"));
     },
     onSettled: (data, error, variables) => {
       // Инвалидируем все списки транзакций для обновления данных
@@ -177,6 +179,8 @@ export function useCreateTransaction() {
  */
 export function useUpdateTransaction() {
   const queryClient = useQueryClient();
+  const t = useTranslations();
+  const tSync = useTranslations("sync");
 
   return useMutation({
     mutationFn: ({
@@ -220,7 +224,7 @@ export function useUpdateTransaction() {
             variables.id,
             variables.transaction
           );
-          toast.success("Changes will be synced when connection is restored");
+          toast.success(tSync("changesWillSync"));
           return;
         } catch (queueError) {
           console.error("Error adding to sync queue:", queueError);
@@ -234,10 +238,11 @@ export function useUpdateTransaction() {
         });
       }
       console.error("Error updating transaction:", err);
-      toast.error("Не удалось обновить транзакцию");
+      const errorMessage = getErrorMessage(err, (key) => t(key));
+      toast.error(errorMessage);
     },
     onSuccess: () => {
-      toast.success("Транзакция обновлена");
+      toast.success(t("transactions.success.updated"));
     },
     onSettled: (data, error, variables) => {
       queryClient.invalidateQueries({
@@ -265,6 +270,8 @@ export function useUpdateTransaction() {
  */
 export function useDeleteTransaction() {
   const queryClient = useQueryClient();
+  const t = useTranslations();
+  const tSync = useTranslations("sync");
 
   return useMutation({
     mutationFn: deleteTransaction,
@@ -293,7 +300,7 @@ export function useDeleteTransaction() {
       if (isNetworkError(err)) {
         try {
           await queueManager.enqueue("transactions", "delete", id, { id });
-          toast.success("Deletion will be synced when connection is restored");
+          toast.success(tSync("deleteWillSync"));
           return;
         } catch (queueError) {
           console.error("Error adding to sync queue:", queueError);
@@ -307,10 +314,11 @@ export function useDeleteTransaction() {
         });
       }
       console.error("Error deleting transaction:", err);
-      toast.error("Не удалось удалить транзакцию");
+      const errorMessage = getErrorMessage(err, (key) => t(key));
+      toast.error(errorMessage);
     },
     onSuccess: () => {
-      toast.success("Транзакция удалена");
+      toast.success(t("transactions.success.deleted"));
     },
     onSettled: async (data, error, id) => {
       queryClient.invalidateQueries({

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { FadeIn } from "@/components/motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wallet, CreditCard, Banknote } from "lucide-react";
 import {
   convertMultipleCurrencies,
   formatCurrency,
@@ -123,9 +123,13 @@ export function BalanceCards({
   return (
     <div className="grid gap-4 md:grid-cols-3 mb-8">
       <FadeIn delay={0.2}>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground mb-1">{t.total}</div>
+        <Card className="relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16" />
+          <CardContent className="pt-6 relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-muted-foreground">{t.total}</div>
+              <Wallet className="h-5 w-5 text-primary" />
+            </div>
             <div className="text-3xl font-bold">
               {totalBalance !== null
                 ? formatCurrency(totalBalance, displayCurrency)
@@ -135,9 +139,13 @@ export function BalanceCards({
         </Card>
       </FadeIn>
       <FadeIn delay={0.25}>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground mb-1">{t.card}</div>
+        <Card className="relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16" />
+          <CardContent className="pt-6 relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-muted-foreground">{t.card}</div>
+              <CreditCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
             <div className="text-3xl font-bold">
               {cardBalance !== null
                 ? formatCurrency(cardBalance, displayCurrency)
@@ -147,9 +155,13 @@ export function BalanceCards({
         </Card>
       </FadeIn>
       <FadeIn delay={0.3}>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground mb-1">{t.cash}</div>
+        <Card className="relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-16 -mt-16" />
+          <CardContent className="pt-6 relative">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-muted-foreground">{t.cash}</div>
+              <Banknote className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
             <div className="text-3xl font-bold">
               {cashBalance !== null
                 ? formatCurrency(cashBalance, displayCurrency)
