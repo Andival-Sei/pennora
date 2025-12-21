@@ -30,7 +30,8 @@
     "backToApp": "Back to App",
     "cta": {
       "startFree": "Start Free",
-      "demo": "Demo"
+      "demo": "Demo",
+      "inDevelopment": "In Development"
     },
     "features": {
       "offline": "Works Offline",
@@ -75,6 +76,19 @@
     "featuresSection": {
       "title": "Features",
       "subtitle": "Everything you need for budget management"
+    },
+    "mockup": {
+      "title": "Dashboard",
+      "balance": {
+        "total": "Total",
+        "card": "Card",
+        "cash": "Cash"
+      },
+      "statistics": {
+        "income": "Income",
+        "expense": "Expenses"
+      },
+      "recentTransactions": "Recent Transactions"
     },
     "footer": {
       "description": "Smart budget management for you and your family",

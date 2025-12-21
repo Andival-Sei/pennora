@@ -38,6 +38,7 @@ const features = [
 ] as const;
 
 export function FeaturesSection() {
+  const t = useTranslations("home");
   const tFeatures = useTranslations("home.features");
   const tSection = useTranslations("home.featuresSection");
 
@@ -97,7 +98,7 @@ export function FeaturesSection() {
                       <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30">
                         <Construction className="w-4 h-4 text-amber-400" />
                         <span className="text-xs text-amber-400 font-medium">
-                          В разработке
+                          {t("cta.inDevelopment")}
                         </span>
                       </div>
                     )}

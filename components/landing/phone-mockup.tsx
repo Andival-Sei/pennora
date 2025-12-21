@@ -3,12 +3,15 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Wallet, TrendingUp, TrendingDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface PhoneMockupProps {
   className?: string;
 }
 
 export function PhoneMockup({ className }: PhoneMockupProps) {
+  const t = useTranslations("home.mockup");
+
   return (
     <motion.div
       className={cn("relative z-20", className)}
@@ -67,7 +70,9 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
 
               {/* Header */}
               <div className="mt-2">
-                <h2 className="text-lg font-bold text-foreground">Главная</h2>
+                <h2 className="text-lg font-bold text-foreground">
+                  {t("title")}
+                </h2>
               </div>
 
               {/* Balance Cards */}
@@ -76,7 +81,7 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
                 <div className="bg-card border border-border rounded-lg p-2 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-12 h-12 bg-primary/10 rounded-full -mr-6 -mt-6" />
                   <div className="text-[10px] text-muted-foreground mb-1">
-                    Всего
+                    {t("balance.total")}
                   </div>
                   <div className="text-sm font-bold">₽125,430</div>
                   <Wallet className="h-3 w-3 text-primary absolute top-2 right-2" />
@@ -86,7 +91,7 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
                 <div className="bg-card border border-border rounded-lg p-2 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-12 h-12 bg-blue-500/10 rounded-full -mr-6 -mt-6" />
                   <div className="text-[10px] text-muted-foreground mb-1">
-                    Карта
+                    {t("balance.card")}
                   </div>
                   <div className="text-sm font-bold">₽85,200</div>
                 </div>
@@ -95,7 +100,7 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
                 <div className="bg-card border border-border rounded-lg p-2 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-12 h-12 bg-amber-500/10 rounded-full -mr-6 -mt-6" />
                   <div className="text-[10px] text-muted-foreground mb-1">
-                    Нал
+                    {t("balance.cash")}
                   </div>
                   <div className="text-sm font-bold">₽40,230</div>
                 </div>
@@ -106,7 +111,7 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
                 {/* Income */}
                 <div className="bg-card border border-border rounded-lg p-2">
                   <div className="text-[10px] text-muted-foreground mb-1">
-                    Доходы
+                    {t("statistics.income")}
                   </div>
                   <div className="text-base font-bold text-emerald-600 dark:text-emerald-400">
                     ₽45,000
@@ -122,7 +127,7 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
                 {/* Expense */}
                 <div className="bg-card border border-border rounded-lg p-2">
                   <div className="text-[10px] text-muted-foreground mb-1">
-                    Расходы
+                    {t("statistics.expense")}
                   </div>
                   <div className="text-base font-bold text-red-600 dark:text-red-400">
                     ₽28,500
@@ -139,7 +144,7 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
               {/* Recent Transactions */}
               <div className="mt-1 space-y-1.5">
                 <div className="text-xs font-semibold text-foreground">
-                  Последние транзакции
+                  {t("recentTransactions")}
                 </div>
                 {[1, 2].map((i) => (
                   <div

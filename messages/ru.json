@@ -30,7 +30,8 @@
     "backToApp": "Вернуться в приложение",
     "cta": {
       "startFree": "Начать бесплатно",
-      "demo": "Демо"
+      "demo": "Демо",
+      "inDevelopment": "В разработке"
     },
     "features": {
       "offline": "Работает офлайн",
@@ -75,6 +76,19 @@
     "featuresSection": {
       "title": "Возможности",
       "subtitle": "Всё, что нужно для управления бюджетом"
+    },
+    "mockup": {
+      "title": "Главная",
+      "balance": {
+        "total": "Всего",
+        "card": "Карта",
+        "cash": "Нал"
+      },
+      "statistics": {
+        "income": "Доходы",
+        "expense": "Расходы"
+      },
+      "recentTransactions": "Последние транзакции"
     },
     "footer": {
       "description": "Умное управление бюджетом для вас и вашей семьи",

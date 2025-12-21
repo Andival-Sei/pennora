@@ -64,12 +64,12 @@ export function HeroSection({ user }: HeroSectionProps) {
                   <Link href="/register">
                     <Button
                       size="lg"
-                      className="bg-emerald-500 hover:bg-emerald-600 text-black text-lg px-8 py-6 shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white dark:text-black text-lg px-8 py-6 shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 transition-all duration-300"
                     >
                       {t("cta.startFree")}
                     </Button>
                   </Link>
-                  <div className="relative">
+                  <div className="relative w-fit self-center sm:self-auto">
                     <Link href="/demo">
                       <Button
                         size="lg"
@@ -79,8 +79,8 @@ export function HeroSection({ user }: HeroSectionProps) {
                         {t("cta.demo")}
                       </Button>
                     </Link>
-                    <span className="absolute -top-2 -right-2 bg-amber-500 text-amber-950 text-xs font-semibold px-2 py-0.5 rounded-full border border-amber-600">
-                      В разработке
+                    <span className="absolute -top-2 -right-3 bg-amber-500 text-amber-950 text-xs font-semibold px-2 py-0.5 rounded-full border border-amber-600 whitespace-nowrap pointer-events-none">
+                      {t("cta.inDevelopment")}
                     </span>
                   </div>
                 </>
