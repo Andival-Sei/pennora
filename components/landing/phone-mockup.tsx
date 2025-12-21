@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Wallet, TrendingUp, TrendingDown } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { formatCurrency } from "@/lib/currency/formatter";
 
 interface PhoneMockupProps {
   className?: string;
@@ -11,6 +12,28 @@ interface PhoneMockupProps {
 
 export function PhoneMockup({ className }: PhoneMockupProps) {
   const t = useTranslations("home.mockup");
+  const locale = useLocale();
+
+  // Выбираем валюту в зависимости от локали
+  const currency = locale === "ru" ? "RUB" : "USD";
+
+  // Суммы для моков (в рублях и долларах)
+  const amounts =
+    locale === "ru"
+      ? {
+          total: 125430,
+          card: 85200,
+          cash: 40230,
+          income: 45000,
+          expense: 28500,
+        }
+      : {
+          total: 1500,
+          card: 1000,
+          cash: 500,
+          income: 550,
+          expense: 350,
+        };
 
   return (
     <motion.div
@@ -83,7 +106,9 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
                   <div className="text-[10px] text-muted-foreground mb-1">
                     {t("balance.total")}
                   </div>
-                  <div className="text-sm font-bold">₽125,430</div>
+                  <div className="text-sm font-bold whitespace-nowrap">
+                    {formatCurrency(amounts.total, currency)}
+                  </div>
                   <Wallet className="h-3 w-3 text-primary absolute top-2 right-2" />
                 </div>
 
@@ -93,7 +118,9 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
                   <div className="text-[10px] text-muted-foreground mb-1">
                     {t("balance.card")}
                   </div>
-                  <div className="text-sm font-bold">₽85,200</div>
+                  <div className="text-sm font-bold whitespace-nowrap">
+                    {formatCurrency(amounts.card, currency)}
+                  </div>
                 </div>
 
                 {/* Cash Balance */}
@@ -102,7 +129,9 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
                   <div className="text-[10px] text-muted-foreground mb-1">
                     {t("balance.cash")}
                   </div>
-                  <div className="text-sm font-bold">₽40,230</div>
+                  <div className="text-sm font-bold whitespace-nowrap">
+                    {formatCurrency(amounts.cash, currency)}
+                  </div>
                 </div>
               </div>
 
@@ -113,8 +142,8 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
                   <div className="text-[10px] text-muted-foreground mb-1">
                     {t("statistics.income")}
                   </div>
-                  <div className="text-base font-bold text-emerald-600 dark:text-emerald-400">
-                    ₽45,000
+                  <div className="text-base font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                    {formatCurrency(amounts.income, currency)}
                   </div>
                   <div className="flex items-center gap-1 mt-1">
                     <TrendingUp className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" />
@@ -129,8 +158,8 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
                   <div className="text-[10px] text-muted-foreground mb-1">
                     {t("statistics.expense")}
                   </div>
-                  <div className="text-base font-bold text-red-600 dark:text-red-400">
-                    ₽28,500
+                  <div className="text-base font-bold text-red-600 dark:text-red-400 whitespace-nowrap">
+                    {formatCurrency(amounts.expense, currency)}
                   </div>
                   <div className="flex items-center gap-1 mt-1">
                     <TrendingDown className="h-2.5 w-2.5 text-red-600 dark:text-red-400" />
