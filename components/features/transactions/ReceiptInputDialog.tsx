@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Upload, Camera, Keyboard } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -95,121 +96,179 @@ export function ReceiptInputDialog({
     setPrefilledData(null);
   };
 
+  const handleDialogOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      // Сбрасываем состояние при закрытии диалога
+      setInputMethod(null);
+      setPrefilledData(null);
+    }
+    onOpenChange(isOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {inputMethod === null
-              ? t("dialog.title")
-              : inputMethod === "upload"
-                ? t("dialog.uploadTitle")
-                : inputMethod === "camera"
-                  ? t("dialog.cameraTitle")
-                  : t("dialog.manualTitle")}
-          </DialogTitle>
-          <DialogDescription>
-            {inputMethod === null
-              ? t("dialog.description")
-              : inputMethod === "upload"
-                ? t("dialog.uploadDescription")
-                : inputMethod === "camera"
-                  ? t("dialog.cameraDescription")
-                  : t("dialog.manualDescription")}
-          </DialogDescription>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={inputMethod || "null"}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DialogTitle>
+                {inputMethod === null
+                  ? t("dialog.title")
+                  : inputMethod === "upload"
+                    ? t("dialog.uploadTitle")
+                    : inputMethod === "camera"
+                      ? t("dialog.cameraTitle")
+                      : t("dialog.manualTitle")}
+              </DialogTitle>
+              <DialogDescription>
+                {inputMethod === null
+                  ? t("dialog.description")
+                  : inputMethod === "upload"
+                    ? t("dialog.uploadDescription")
+                    : inputMethod === "camera"
+                      ? t("dialog.cameraDescription")
+                      : t("dialog.manualDescription")}
+              </DialogDescription>
+            </motion.div>
+          </AnimatePresence>
         </DialogHeader>
 
         <div className="mt-4">
-          {inputMethod === null ? (
-            // Выбор метода ввода
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button
-                variant="outline"
-                className="h-auto flex-col gap-3 p-6"
-                onClick={() => handleMethodSelect("upload")}
+          <AnimatePresence mode="wait">
+            {inputMethod === null ? (
+              // Выбор метода ввода
+              <motion.div
+                key="method-selection"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="grid grid-cols-1 md:grid-cols-3 gap-4"
               >
-                <Upload className="h-8 w-8" />
-                <div className="text-center">
-                  <div className="font-medium">{t("methods.upload")}</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {t("methods.uploadDescription")}
+                <Button
+                  variant="outline"
+                  className="h-auto flex-col gap-3 p-6"
+                  onClick={() => handleMethodSelect("upload")}
+                >
+                  <Upload className="h-8 w-8" />
+                  <div className="text-center">
+                    <div className="font-medium">{t("methods.upload")}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {t("methods.uploadDescription")}
+                    </div>
                   </div>
-                </div>
-              </Button>
+                </Button>
 
-              <Button
-                variant="outline"
-                className="h-auto flex-col gap-3 p-6"
-                onClick={() => handleMethodSelect("camera")}
-              >
-                <Camera className="h-8 w-8" />
-                <div className="text-center">
-                  <div className="font-medium">{t("methods.camera")}</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {t("methods.cameraDescription")}
+                <Button
+                  variant="outline"
+                  className="h-auto flex-col gap-3 p-6"
+                  onClick={() => handleMethodSelect("camera")}
+                >
+                  <Camera className="h-8 w-8" />
+                  <div className="text-center">
+                    <div className="font-medium">{t("methods.camera")}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {t("methods.cameraDescription")}
+                    </div>
                   </div>
-                </div>
-              </Button>
+                </Button>
 
-              <Button
-                variant="outline"
-                className="h-auto flex-col gap-3 p-6"
-                onClick={() => handleMethodSelect("manual")}
-              >
-                <Keyboard className="h-8 w-8" />
-                <div className="text-center">
-                  <div className="font-medium">{t("methods.manual")}</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {t("methods.manualDescription")}
+                <Button
+                  variant="outline"
+                  className="h-auto flex-col gap-3 p-6"
+                  onClick={() => handleMethodSelect("manual")}
+                >
+                  <Keyboard className="h-8 w-8" />
+                  <div className="text-center">
+                    <div className="font-medium">{t("methods.manual")}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {t("methods.manualDescription")}
+                    </div>
                   </div>
-                </div>
-              </Button>
-            </div>
-          ) : inputMethod === "upload" ? (
-            // Загрузка чека
-            <div className="space-y-4">
-              <ReceiptUploader
-                onProcessed={handleReceiptProcessed}
-                onCancel={handleBack}
-              />
-            </div>
-          ) : inputMethod === "camera" ? (
-            // Фотографирование чека
-            <div className="space-y-4">
-              <ReceiptCamera
-                onProcessed={handleReceiptProcessed}
-                onCancel={handleBack}
-              />
-            </div>
-          ) : (
-            // Ручной ввод
-            <div className="space-y-4">
-              {prefilledData && (
-                <div className="p-3 bg-muted rounded-lg text-sm">
-                  <p className="font-medium mb-1">{t("prefilled.title")}</p>
-                  <p className="text-muted-foreground">
-                    {t("prefilled.description")}
-                  </p>
-                </div>
-              )}
-              <TransactionForm
-                initialData={
-                  prefilledData
-                    ? {
-                        amount: prefilledData.amount,
-                        date: prefilledData.date,
-                        description: prefilledData.description || undefined,
-                        category_id: prefilledData.categoryId || undefined,
-                      }
-                    : undefined
-                }
-                onSuccess={handleSuccess}
-              />
-              <Button variant="outline" onClick={handleBack} className="w-full">
-                {t("actions.back")}
-              </Button>
-            </div>
-          )}
+                </Button>
+              </motion.div>
+            ) : inputMethod === "upload" ? (
+              // Загрузка чека
+              <motion.div
+                key="upload"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="space-y-4"
+              >
+                <ReceiptUploader
+                  onProcessed={handleReceiptProcessed}
+                  onCancel={handleBack}
+                />
+              </motion.div>
+            ) : inputMethod === "camera" ? (
+              // Фотографирование чека
+              <motion.div
+                key="camera"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="space-y-4"
+              >
+                <ReceiptCamera
+                  onProcessed={handleReceiptProcessed}
+                  onCancel={handleBack}
+                />
+              </motion.div>
+            ) : (
+              // Ручной ввод
+              <motion.div
+                key="manual"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="space-y-4"
+              >
+                {prefilledData && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="p-3 bg-muted rounded-lg text-sm"
+                  >
+                    <p className="font-medium mb-1">{t("prefilled.title")}</p>
+                    <p className="text-muted-foreground">
+                      {t("prefilled.description")}
+                    </p>
+                  </motion.div>
+                )}
+                <TransactionForm
+                  initialData={
+                    prefilledData
+                      ? {
+                          amount: prefilledData.amount,
+                          date: prefilledData.date,
+                          description: prefilledData.description || undefined,
+                          category_id: prefilledData.categoryId || undefined,
+                        }
+                      : undefined
+                  }
+                  onSuccess={handleSuccess}
+                />
+                <Button
+                  variant="outline"
+                  onClick={handleBack}
+                  className="w-full"
+                >
+                  {t("actions.back")}
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </DialogContent>
     </Dialog>
