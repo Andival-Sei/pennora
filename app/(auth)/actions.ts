@@ -84,8 +84,26 @@ export async function signUp(formData: FormData) {
     redirect("/dashboard/onboarding");
   }
 
-  // Если требуется подтверждение email, возвращаем success
-  return { success: true, requiresConfirmation: true };
+  // Если требуется подтверждение email, возвращаем success и email
+  return { success: true, requiresConfirmation: true, email };
+}
+
+export async function resendConfirmationEmail(email: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/callback?next=/dashboard/onboarding`,
+    },
+  });
+
+  if (error) {
+    return { error: getAuthErrorKey(error.message) };
+  }
+
+  return { success: true };
 }
 
 export async function signOut() {

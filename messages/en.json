@@ -319,7 +319,14 @@
       "subtitle": "Create a new account",
       "submit": "Create Account",
       "hasAccount": "Already have an account?",
-      "loginLink": "Sign In"
+      "loginLink": "Sign In",
+      "emailConfirmation": {
+        "title": "Check your email",
+        "message": "We've sent a confirmation email to {email}. Please check your inbox and click the confirmation link to verify your email before signing in.",
+        "resendButton": "Resend email",
+        "resendSuccess": "Email sent again",
+        "backToLogin": "Back to sign in"
+      }
     },
     "logout": "Sign Out"
   },

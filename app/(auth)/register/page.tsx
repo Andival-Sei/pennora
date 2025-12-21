@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signUp } from "../actions";
+import { signUp, resendConfirmationEmail } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,12 +24,17 @@ import { LocaleToggle } from "@/components/locale-toggle";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleButton } from "@/components/ui/google-button";
+import { CheckCircle2, Mail } from "lucide-react";
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
   const tErrors = useTranslations();
   const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [requiresConfirmation, setRequiresConfirmation] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const {
     register,
@@ -47,6 +52,7 @@ export default function RegisterPage() {
   async function onSubmit(data: RegisterFormData) {
     setLoading(true);
     setServerError(null);
+    setResendSuccess(false);
 
     const formData = new FormData();
     formData.append("displayName", data.displayName);
@@ -57,17 +63,106 @@ export default function RegisterPage() {
     if (result?.error) {
       setServerError(result.error);
       setLoading(false);
-    } else if (result?.requiresConfirmation) {
+    } else if (result?.requiresConfirmation && result?.email) {
       // Показываем сообщение о необходимости подтверждения email
       setServerError(null);
-      // TODO: Показать сообщение об успешной регистрации и необходимости подтверждения email
-      // redirect произойдет автоматически после подтверждения
+      setRegisteredEmail(result.email);
+      setRequiresConfirmation(true);
+      setLoading(false);
     }
+  }
+
+  async function handleResendEmail() {
+    if (!registeredEmail) return;
+
+    setResendLoading(true);
+    setResendSuccess(false);
+    setServerError(null);
+
+    const result = await resendConfirmationEmail(registeredEmail);
+    if (result?.error) {
+      setServerError(result.error);
+    } else {
+      setResendSuccess(true);
+    }
+    setResendLoading(false);
   }
 
   // Показываем ошибку только если поле было затронуто
   const showError = (field: keyof RegisterFormData) =>
     touchedFields[field] && errors[field];
+
+  // Если требуется подтверждение email, показываем экран подтверждения
+  if (requiresConfirmation && registeredEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <FadeIn className="absolute right-4 top-4 flex items-center gap-2">
+          <LocaleToggle />
+          <ThemeToggle />
+        </FadeIn>
+
+        <FadeIn className="w-full max-w-md">
+          <Card className="border-border bg-card">
+            <CardHeader className="space-y-1 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <Mail className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl font-bold">
+                {t("register.emailConfirmation.title")}
+              </CardTitle>
+              <CardDescription className="text-center">
+                {t("register.emailConfirmation.message", {
+                  email: registeredEmail,
+                })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <AnimatePresence mode="wait">
+                {serverError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md"
+                  >
+                    {tErrors(serverError)}
+                  </motion.div>
+                )}
+                {resendSuccess && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="p-3 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-md flex items-center gap-2"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    {t("register.emailConfirmation.resendSuccess")}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4 pt-2">
+              <Button
+                onClick={handleResendEmail}
+                variant="outline"
+                className="w-full"
+                disabled={resendLoading}
+              >
+                {resendLoading
+                  ? t("loading")
+                  : t("register.emailConfirmation.resendButton")}
+              </Button>
+              <Link href="/login" className="w-full">
+                <Button variant="ghost" className="w-full">
+                  {t("register.emailConfirmation.backToLogin")}
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </FadeIn>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
