@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { getAuthErrorKey } from "@/lib/auth-errors";
+import { getAppUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -209,10 +210,14 @@ export default function SettingsPage() {
     setGoogleLoading(true);
     const supabase = createClient();
 
+    // Используем утилиту для получения правильного базового URL
+    const appUrl = getAppUrl();
+    const redirectTo = `${appUrl}/callback?next=/dashboard/settings`;
+
     await supabase.auth.linkIdentity({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/callback?next=/dashboard/settings`,
+        redirectTo,
       },
     });
   }
