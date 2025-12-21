@@ -106,13 +106,14 @@ export default function AppSettingsPage() {
             : "RUB"
         ) as CurrencyCode;
 
-        // Устанавливаем исходные значения
+        // Устанавливаем исходные значения (из БД)
         setOriginalTheme(theme);
         setOriginalLocale(localeValue);
         setOriginalDisplayCurrency(currency);
 
-        // Устанавливаем текущие значения
-        setThemeProvider(theme);
+        // Устанавливаем текущие значения для локали и валюты
+        // Тему не трогаем - ThemeInitializer уже загрузил её из БД,
+        // а если пользователь изменил тему, мы не должны её перезаписывать
         setLocaleState(localeValue);
         setDisplayCurrency(currency);
       }
@@ -125,7 +126,7 @@ export default function AppSettingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [router, setThemeProvider]);
+  }, [router]);
 
   // Функция для сброса к исходным значениям
   const handleReset = useCallback(() => {
@@ -150,38 +151,6 @@ export default function AppSettingsPage() {
     currentDisplayCurrency: displayCurrency,
     onReset: handleReset,
   });
-
-  // При размонтировании компонента (выход без сохранения) возвращаем настройки к исходным
-  useEffect(() => {
-    return () => {
-      // Если есть несохранённые изменения, возвращаем к исходным значениям
-      if (hasChanges) {
-        setThemeProvider(originalTheme);
-        setLocaleState(originalLocale);
-        setDisplayCurrency(originalDisplayCurrency);
-
-        // Возвращаем язык к исходному
-        if (locale !== originalLocale) {
-          startTransition(() => {
-            setLocale(originalLocale);
-          });
-        }
-
-        // Возвращаем тему к исходной
-        if (typeof window !== "undefined") {
-          localStorage.setItem("pennora-theme", originalTheme);
-        }
-      }
-    };
-  }, [
-    hasChanges,
-    locale,
-    originalDisplayCurrency,
-    originalLocale,
-    originalTheme,
-    setThemeProvider,
-    startTransition,
-  ]); // Только при размонтировании
 
   async function handleSave() {
     setSaving(true);
@@ -278,9 +247,6 @@ export default function AppSettingsPage() {
                   variant={currentTheme === "light" ? "default" : "outline"}
                   onClick={() => {
                     setThemeProvider("light");
-                    if (typeof window !== "undefined") {
-                      localStorage.setItem("pennora-theme", "light");
-                    }
                   }}
                   className="flex items-center gap-2"
                 >
@@ -291,9 +257,6 @@ export default function AppSettingsPage() {
                   variant={currentTheme === "system" ? "default" : "outline"}
                   onClick={() => {
                     setThemeProvider("system");
-                    if (typeof window !== "undefined") {
-                      localStorage.setItem("pennora-theme", "system");
-                    }
                   }}
                   className="flex items-center gap-2"
                 >
@@ -304,9 +267,6 @@ export default function AppSettingsPage() {
                   variant={currentTheme === "dark" ? "default" : "outline"}
                   onClick={() => {
                     setThemeProvider("dark");
-                    if (typeof window !== "undefined") {
-                      localStorage.setItem("pennora-theme", "dark");
-                    }
                   }}
                   className="flex items-center gap-2"
                 >

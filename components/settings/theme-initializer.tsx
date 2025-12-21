@@ -49,13 +49,29 @@ export function ThemeInitializer() {
       }
 
       // Загружаем тему из БД только один раз при первой загрузке
-      if (
-        !hasLoadedRef.current &&
-        profile?.theme &&
-        ["light", "dark", "system"].includes(profile.theme)
-      ) {
-        if (profile.theme !== theme) {
-          setTheme(profile.theme as "light" | "dark" | "system");
+      // НЕ перезаписываем тему, если пользователь уже выбрал другую
+      if (!hasLoadedRef.current) {
+        const storedTheme = localStorage.getItem("pennora-theme");
+        const dbTheme = profile?.theme;
+
+        // Если есть тема в БД и она валидна
+        if (dbTheme && ["light", "dark", "system"].includes(dbTheme)) {
+          // Применяем тему из БД только если:
+          // 1. Нет темы в localStorage (первый запуск), или
+          // 2. Тема в localStorage совпадает с темой в БД (синхронизация после сохранения)
+          // НЕ применяем, если тема в localStorage отличается от БД (пользователь изменил, но не сохранил)
+          if (!storedTheme || storedTheme === dbTheme) {
+            if (theme !== dbTheme) {
+              setTheme(dbTheme as "light" | "dark" | "system");
+            }
+          }
+          // Если тема в localStorage отличается от БД, значит пользователь изменил её
+          // и мы НЕ должны перезаписывать изменения пользователя
+        } else if (!storedTheme) {
+          // Если нет темы ни в БД, ни в localStorage, устанавливаем system
+          if (theme !== "system") {
+            setTheme("system");
+          }
         }
         hasLoadedRef.current = true;
       }
