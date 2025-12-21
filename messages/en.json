@@ -426,6 +426,7 @@
       "date": "Date",
       "datePlaceholder": "Pick a date",
       "description": "Description",
+      "descriptionPlaceholder": "Enter transaction description (optional)",
       "create": "Create",
       "update": "Update",
       "none": "None",

@@ -426,6 +426,7 @@
       "date": "Дата",
       "datePlaceholder": "Выберите дату",
       "description": "Описание",
+      "descriptionPlaceholder": "Введите описание транзакции (необязательно)",
       "create": "Создать",
       "update": "Обновить",
       "none": "Нет",

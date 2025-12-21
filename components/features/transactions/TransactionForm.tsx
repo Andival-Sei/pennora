@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -64,7 +65,8 @@ interface TransactionFormProps {
     | Partial<{
         amount: number;
         date: Date;
-        description: string;
+        description?: string;
+        category_id?: string;
       }>;
   onSuccess?: () => void;
 }
@@ -126,18 +128,11 @@ export function TransactionForm({
 
   // Создаем валидную дату по умолчанию (сегодняшняя дата, время установлено на начало дня)
   const getDefaultDate = () => {
-    if (initialData) {
-      // Если initialData - это Transaction, используем date из него
-      if ("date" in initialData && initialData.date) {
-        if (typeof initialData.date === "string") {
-          return new Date(initialData.date);
-        }
-        if (initialData.date instanceof Date) {
-          return initialData.date;
-        }
+    if (initialData && "date" in initialData && initialData.date) {
+      if (typeof initialData.date === "string") {
+        return new Date(initialData.date);
       }
-      // Если initialData - это частичные данные с date
-      if ("date" in initialData && initialData.date instanceof Date) {
+      if (initialData.date instanceof Date) {
         return initialData.date;
       }
     }
@@ -149,44 +144,46 @@ export function TransactionForm({
 
   // Определяем, является ли initialData полным Transaction или частичными данными
   const isFullTransaction = (data: typeof initialData): data is Transaction => {
-    return data !== undefined && "id" in data;
+    return data !== undefined && "id" in data && data.id !== undefined;
+  };
+
+  // Получаем начальные значения для формы
+  const getInitialFormValues = (): FormValues => {
+    const defaultDate = getDefaultDate();
+    const isFull = isFullTransaction(initialData);
+
+    return {
+      amount: (isFull ? initialData.amount : initialData?.amount) || 0,
+      type: (isFull ? initialData.type : undefined) || "expense",
+      category_id: isFull
+        ? initialData.category_id || "__none__"
+        : initialData?.category_id || "__none__",
+      account_id:
+        (isFull ? initialData.account_id : initialData?.account_id) || "",
+      to_account_id:
+        (isFull ? initialData.to_account_id : initialData?.to_account_id) || "",
+      date: defaultDate,
+      description:
+        (isFull ? initialData.description : initialData?.description) || "",
+    };
+  };
+
+  // Получаем пустые значения для сброса формы
+  const getEmptyFormValues = (): FormValues => {
+    return {
+      amount: 0,
+      type: "expense",
+      category_id: "__none__",
+      account_id: "",
+      to_account_id: "",
+      date: getDefaultDate(),
+      description: "",
+    };
   };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      amount:
-        initialData && "amount" in initialData
-          ? initialData.amount || 0
-          : isFullTransaction(initialData)
-            ? initialData?.amount || 0
-            : 0,
-      type: isFullTransaction(initialData)
-        ? initialData?.type || "expense"
-        : "expense",
-      category_id: isFullTransaction(initialData)
-        ? initialData?.category_id
-          ? initialData.category_id
-          : "__none__"
-        : initialData &&
-            "category_id" in initialData &&
-            typeof initialData.category_id === "string"
-          ? initialData.category_id
-          : "__none__",
-      account_id: isFullTransaction(initialData)
-        ? initialData?.account_id || ""
-        : "",
-      to_account_id: isFullTransaction(initialData)
-        ? initialData?.to_account_id || ""
-        : "",
-      date: getDefaultDate(),
-      description:
-        initialData && "description" in initialData
-          ? initialData.description || ""
-          : isFullTransaction(initialData)
-            ? initialData?.description || ""
-            : "",
-    },
+    defaultValues: getInitialFormValues(),
   });
 
   const isLoading = form.formState.isSubmitting;
@@ -225,28 +222,27 @@ export function TransactionForm({
 
   const onSubmit = async (values: FormValues) => {
     try {
+      // Получаем пользователя
       const supabase = createClient();
       const {
         data: { user },
+        error: userError,
       } = await supabase.auth.getUser();
 
-      if (!user) {
-        toast.error(tErrors("mutations.unauthorized"));
+      if (userError || !user) {
+        const errorMsg = tErrors("mutations.unauthorized");
+        toast.error(errorMsg);
         form.setError("root", {
           type: "manual",
-          message: tErrors("mutations.unauthorized"),
+          message: errorMsg,
         });
         return;
       }
 
-      // Убеждаемся, что дата валидна
-      const transactionDate =
-        values.date && values.date instanceof Date
-          ? values.date
-          : getDefaultDate();
-
       // Форматируем дату в формат YYYY-MM-DD (без времени, чтобы избежать проблем с часовыми поясами)
       // Используем локальную дату, а не UTC
+      const transactionDate =
+        values.date instanceof Date ? values.date : getDefaultDate();
       const year = transactionDate.getFullYear();
       const month = String(transactionDate.getMonth() + 1).padStart(2, "0");
       const day = String(transactionDate.getDate()).padStart(2, "0");
@@ -277,22 +273,14 @@ export function TransactionForm({
       };
 
       // Проверяем, есть ли id в initialData (только полные Transaction объекты имеют id)
-      if (initialData && "id" in initialData && initialData.id) {
+      if (isFullTransaction(initialData)) {
         await updateTransaction(initialData.id, transactionData);
       } else {
         await addTransaction(transactionData);
       }
 
-      // Сбрасываем форму с валидными значениями по умолчанию
-      form.reset({
-        amount: 0,
-        type: "expense",
-        category_id: "__none__",
-        account_id: "",
-        to_account_id: "",
-        date: getDefaultDate(),
-        description: "",
-      });
+      // Сбрасываем форму с пустыми значениями
+      form.reset(getEmptyFormValues());
       onSuccess?.();
     } catch (error) {
       console.error(error);
@@ -617,7 +605,12 @@ export function TransactionForm({
             <FormItem>
               <FormLabel>{t("description")}</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Textarea
+                  {...field}
+                  autoResize
+                  placeholder={t("descriptionPlaceholder")}
+                  rows={2}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
