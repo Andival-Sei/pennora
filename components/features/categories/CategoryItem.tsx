@@ -81,20 +81,42 @@ export function CategoryItem({
   const categoryColor =
     category.color || (category.type === "income" ? "#10b981" : "#ef4444");
 
+  // Обработчик клика на строку категории
+  const handleRowClick = (e: React.MouseEvent) => {
+    // Если клик был на кнопке действий (edit/delete) или на стрелке, не раскрываем
+    const target = e.target as HTMLElement;
+    if (
+      target.closest("button") ||
+      target.closest('[role="button"]') ||
+      target.closest(".flex.items-center.gap-1")
+    ) {
+      return;
+    }
+    // Раскрываем только если есть подкатегории
+    if (hasChildren) {
+      toggleExpand();
+    }
+  };
+
   return (
     <div className="group">
       <div
         className={cn(
           "flex items-center gap-2 rounded-lg px-3 py-2 transition-colors",
           "hover:bg-accent/50",
-          level > 0 && "ml-4"
+          level > 0 && "ml-4",
+          hasChildren && "cursor-pointer"
         )}
         style={{ paddingLeft: `${12 + indent}px` }}
+        onClick={handleRowClick}
       >
         {/* Кнопка раскрытия для категорий с детьми */}
         {hasChildren ? (
           <button
-            onClick={toggleExpand}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleExpand();
+            }}
             className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-accent"
           >
             <ChevronRight
@@ -125,7 +147,10 @@ export function CategoryItem({
         <span className="flex-1 text-sm font-medium">{category.name}</span>
 
         {/* Действия */}
-        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <div
+          className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+          onClick={(e) => e.stopPropagation()}
+        >
           {onEdit && (
             <Button
               variant="ghost"

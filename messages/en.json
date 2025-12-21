@@ -383,6 +383,8 @@
     "addFirst": "Add Your First Category",
     "edit": "Edit Category",
     "delete": "Delete Category",
+    "deleteTitle": "Delete Category",
+    "deleteDescription": "Are you sure you want to delete category \"{name}\"? This action cannot be undone.",
     "deleteConfirm": "Are you sure you want to delete category \"{name}\"?",
     "archive": "Archive",
     "unarchive": "Unarchive",
