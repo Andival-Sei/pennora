@@ -35,15 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
-import {
-  ArrowLeft,
-  CreditCard,
-  Plus,
-  Trash2,
-  Loader2,
-  Wallet,
-  X,
-} from "lucide-react";
+import { CreditCard, Plus, Trash2, Loader2, Wallet, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/lib/currency/converter";
 import type { CurrencyCode } from "@/lib/currency/rates";
@@ -325,17 +317,9 @@ export default function AccountsPage() {
       <FadeIn>
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <ResponsiveContainer className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/dashboard"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
-              <h1 className="text-xl font-bold text-foreground">
-                {tAccounts("title")}
-              </h1>
-            </div>
+            <h1 className="text-xl font-bold text-foreground">
+              {tAccounts("title")}
+            </h1>
           </ResponsiveContainer>
         </header>
       </FadeIn>
