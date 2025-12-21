@@ -18,50 +18,6 @@ export function HeroSection({ user }: HeroSectionProps) {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 overflow-hidden" style={{ zIndex: 0 }}>
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950"
-          animate={{
-            background: [
-              "linear-gradient(135deg, #0a0a0a 0%, #18181b 50%, #0a0a0a 100%)",
-              "linear-gradient(135deg, #18181b 0%, #0a0a0a 50%, #18181b 100%)",
-              "linear-gradient(135deg, #0a0a0a 0%, #18181b 50%, #0a0a0a 100%)",
-            ],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-
-        {/* Floating green spots */}
-        {[...Array(6)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-emerald-500/10 blur-3xl"
-            style={{
-              width: `${200 + i * 100}px`,
-              height: `${200 + i * 100}px`,
-              left: `${10 + i * 15}%`,
-              top: `${10 + i * 10}%`,
-            }}
-            animate={{
-              x: [0, 50, 0],
-              y: [0, -50, 0],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 10 + i * 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.5,
-            }}
-          />
-        ))}
-      </div>
-
       {/* Navigation */}
       {!user && (
         <FadeIn className="absolute top-6 right-6 z-50 flex items-center gap-3">
@@ -82,7 +38,7 @@ export function HeroSection({ user }: HeroSectionProps) {
       )}
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Text content */}
           <div className="text-center lg:text-left space-y-8">

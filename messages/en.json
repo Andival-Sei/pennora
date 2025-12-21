@@ -12,7 +12,8 @@
     "next": "Next",
     "skip": "Skip",
     "back": "Back",
-    "retry": "Retry"
+    "retry": "Retry",
+    "backToHome": "Back to Home"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -41,10 +42,19 @@
       "shared": "Shared Budgets",
       "sharedDesc": "Manage budgets together with family and friends"
     },
-    "stats": {
-      "users": "users",
-      "countries": "countries",
-      "rating": "★ rating"
+    "benefits": {
+      "secure": {
+        "title": "Security",
+        "description": "Your data is protected with modern encryption methods"
+      },
+      "fast": {
+        "title": "Speed",
+        "description": "Instant synchronization and fast app performance"
+      },
+      "private": {
+        "title": "Privacy",
+        "description": "Your financial data stays only with you"
+      }
     },
     "howItWorks": {
       "title": "How It Works",
@@ -69,8 +79,15 @@
     "footer": {
       "description": "Smart budget management for you and your family",
       "links": {
+        "title": "Links",
         "privacy": "Privacy Policy",
         "terms": "Terms of Service"
+      },
+      "contact": {
+        "title": "Contact",
+        "inDevelopment": "In Development",
+        "description": "Contact us with any questions",
+        "email": "support@pennora.app"
       },
       "copyright": "© 2025 Pennora. All rights reserved."
     }
@@ -463,5 +480,92 @@
     "willSyncWhenOnline": "Transaction will be synced when connection is restored",
     "changesWillSync": "Changes will be synced when connection is restored",
     "deleteWillSync": "Deletion will be synced when connection is restored"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "description": "Pennora Privacy Policy",
+    "lastUpdated": "Last updated: January 15, 2025",
+    "sections": {
+      "overview": {
+        "title": "Overview",
+        "content": "Pennora values your privacy. This policy describes how we collect, use, and protect your personal information when using our application."
+      },
+      "dataCollection": {
+        "title": "Data Collection",
+        "content": "We collect the following types of data:",
+        "items": {
+          "email": "Email address for account creation",
+          "financial": "Financial data you enter (transactions, budgets, categories)",
+          "usage": "App usage data to improve the service"
+        }
+      },
+      "dataUsage": {
+        "title": "Data Usage",
+        "content": "Your data is used solely to provide and improve the service. We do not sell or share your data with third parties."
+      },
+      "dataSecurity": {
+        "title": "Data Security",
+        "content": "We use modern encryption methods to protect your data. All data is transmitted over secure connections and stored in encrypted form."
+      },
+      "userRights": {
+        "title": "User Rights",
+        "content": "You have the right to:",
+        "items": {
+          "access": "Access your data at any time",
+          "correction": "Correct inaccurate data",
+          "deletion": "Delete your account and all data",
+          "export": "Export your data"
+        }
+      },
+      "contact": {
+        "title": "Contact",
+        "content": "If you have questions about the privacy policy, please contact us:"
+      }
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "description": "Pennora Terms of Service",
+    "lastUpdated": "Last updated: January 15, 2025",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "content": "By using Pennora, you agree to these terms of service. If you do not agree with any of these terms, please do not use the service."
+      },
+      "serviceDescription": {
+        "title": "Service Description",
+        "content": "Pennora provides a platform for personal finance management, including transaction tracking, budget creation, and expense analysis."
+      },
+      "userAccount": {
+        "title": "User Account",
+        "content": "When creating an account, you agree to:",
+        "items": {
+          "responsibility": "Provide accurate and up-to-date information",
+          "security": "Maintain the security of your account and password",
+          "notification": "Immediately notify us of any unauthorized use"
+        }
+      },
+      "acceptableUse": {
+        "title": "Acceptable Use",
+        "content": "You agree not to use the service for:",
+        "items": {
+          "illegal": "Any illegal purposes",
+          "harm": "Harming other users",
+          "violation": "Violating intellectual property rights"
+        }
+      },
+      "liability": {
+        "title": "Limitation of Liability",
+        "content": "Pennora is provided 'as is'. We do not guarantee uninterrupted service and are not responsible for any financial decisions made based on app data."
+      },
+      "changes": {
+        "title": "Changes to Terms",
+        "content": "We reserve the right to change these terms at any time. Continued use of the service after changes constitutes your agreement to the new terms."
+      },
+      "contact": {
+        "title": "Contact",
+        "content": "If you have questions about the terms of service, please contact us:"
+      }
+    }
   }
 }
