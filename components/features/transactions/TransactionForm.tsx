@@ -59,7 +59,13 @@ type FormValues = {
 };
 
 interface TransactionFormProps {
-  initialData?: Transaction;
+  initialData?:
+    | Transaction
+    | Partial<{
+        amount: number;
+        date: Date;
+        description: string;
+      }>;
   onSuccess?: () => void;
 }
 
@@ -120,8 +126,20 @@ export function TransactionForm({
 
   // Создаем валидную дату по умолчанию (сегодняшняя дата, время установлено на начало дня)
   const getDefaultDate = () => {
-    if (initialData?.date) {
-      return new Date(initialData.date);
+    if (initialData) {
+      // Если initialData - это Transaction, используем date из него
+      if ("date" in initialData && initialData.date) {
+        if (typeof initialData.date === "string") {
+          return new Date(initialData.date);
+        }
+        if (initialData.date instanceof Date) {
+          return initialData.date;
+        }
+      }
+      // Если initialData - это частичные данные с date
+      if ("date" in initialData && initialData.date instanceof Date) {
+        return initialData.date;
+      }
     }
     const today = new Date();
     // Устанавливаем время на начало дня для консистентности
@@ -129,18 +147,45 @@ export function TransactionForm({
     return today;
   };
 
+  // Определяем, является ли initialData полным Transaction или частичными данными
+  const isFullTransaction = (data: typeof initialData): data is Transaction => {
+    return data !== undefined && "id" in data;
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: initialData?.amount || 0,
-      type: initialData?.type || "expense",
-      category_id: initialData?.category_id
-        ? initialData.category_id
-        : "__none__",
-      account_id: initialData?.account_id || "",
-      to_account_id: initialData?.to_account_id || "",
+      amount:
+        initialData && "amount" in initialData
+          ? initialData.amount || 0
+          : isFullTransaction(initialData)
+            ? initialData?.amount || 0
+            : 0,
+      type: isFullTransaction(initialData)
+        ? initialData?.type || "expense"
+        : "expense",
+      category_id: isFullTransaction(initialData)
+        ? initialData?.category_id
+          ? initialData.category_id
+          : "__none__"
+        : initialData &&
+            "category_id" in initialData &&
+            typeof initialData.category_id === "string"
+          ? initialData.category_id
+          : "__none__",
+      account_id: isFullTransaction(initialData)
+        ? initialData?.account_id || ""
+        : "",
+      to_account_id: isFullTransaction(initialData)
+        ? initialData?.to_account_id || ""
+        : "",
       date: getDefaultDate(),
-      description: initialData?.description || "",
+      description:
+        initialData && "description" in initialData
+          ? initialData.description || ""
+          : isFullTransaction(initialData)
+            ? initialData?.description || ""
+            : "",
     },
   });
 
@@ -231,7 +276,8 @@ export function TransactionForm({
         user_id: user.id,
       };
 
-      if (initialData) {
+      // Проверяем, есть ли id в initialData (только полные Transaction объекты имеют id)
+      if (initialData && "id" in initialData && initialData.id) {
         await updateTransaction(initialData.id, transactionData);
       } else {
         await addTransaction(transactionData);
@@ -586,7 +632,7 @@ export function TransactionForm({
 
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {initialData ? t("update") : t("create")}
+          {initialData && "id" in initialData ? t("update") : t("create")}
         </Button>
       </form>
     </Form>

@@ -13,6 +13,7 @@ import type {
   TransactionUpdate,
   TransactionWithCategory,
 } from "@/lib/types/transaction";
+import type { Category } from "@/lib/types/category";
 
 /**
  * Создает новую транзакцию
@@ -102,6 +103,20 @@ export function useCreateTransaction() {
         queryKey: queryKeys.transactions.lists(),
       });
 
+      // Получаем категорию из кеша, если category_id указан
+      let category: Category | null = null;
+      if (newTransaction.category_id && newTransaction.type !== "transfer") {
+        const categoriesData = queryClient.getQueryData<Category[]>(
+          queryKeys.categories.list()
+        );
+        if (categoriesData) {
+          category =
+            categoriesData.find(
+              (cat) => cat.id === newTransaction.category_id
+            ) || null;
+        }
+      }
+
       // Оптимистично обновляем кеш для всех списков транзакций
       queryClient.setQueriesData<TransactionWithCategory[]>(
         { queryKey: queryKeys.transactions.lists() },
@@ -112,7 +127,7 @@ export function useCreateTransaction() {
             id: `temp-${Date.now()}`,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            category: null,
+            category,
           } as TransactionWithCategory;
           return [optimisticTransaction, ...old];
         }
@@ -145,13 +160,52 @@ export function useCreateTransaction() {
         });
       }
       console.error("Error creating transaction:", err);
-      const errorMessage = getErrorMessage(err, (key) => t(key));
+      console.error("Error details:", JSON.stringify(err, null, 2));
+
+      // Используем функцию перевода с namespace errors
+      const tErrors = (key: string) => {
+        try {
+          return t(`errors.${key}`);
+        } catch (e) {
+          console.error("Translation error:", e);
+          return key;
+        }
+      };
+
+      const errorMessage = getErrorMessage(err, tErrors);
       toast.error(errorMessage);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Обновляем оптимистичную транзакцию реальными данными из ответа сервера
+      queryClient.setQueriesData<TransactionWithCategory[]>(
+        { queryKey: queryKeys.transactions.lists() },
+        (old) => {
+          if (!old) return old;
+          // Находим временную транзакцию по совпадению ключевых полей и заменяем её на реальную
+          const tempIndex = old.findIndex(
+            (t) =>
+              t.id.startsWith("temp-") &&
+              t.account_id === data.account_id &&
+              t.amount === data.amount &&
+              t.type === data.type &&
+              Math.abs(
+                new Date(t.created_at).getTime() -
+                  new Date(data.created_at).getTime()
+              ) < 5000 // В пределах 5 секунд
+          );
+          if (tempIndex !== -1) {
+            const updated = [...old];
+            updated[tempIndex] = data;
+            return updated;
+          }
+          // Если не нашли временную, просто добавляем в начало
+          return [data, ...old];
+        }
+      );
+
       toast.success(t("transactions.success.created"));
     },
-    onSettled: (data, error, variables) => {
+    onSettled: () => {
       // Инвалидируем все списки транзакций для обновления данных
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.lists(),
@@ -164,12 +218,11 @@ export function useCreateTransaction() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.statistics.all,
       });
-      // Если это перевод, инвалидируем кеш счетов для обновления балансов
-      if (variables.type === "transfer") {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.accounts.list(),
-        });
-      }
+      // Инвалидируем кеш счетов для обновления балансов
+      // Все транзакции (доходы, расходы, переводы) влияют на баланс счетов
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.accounts.list(),
+      });
     },
   });
 }
@@ -199,6 +252,27 @@ export function useUpdateTransaction() {
         queryKey: queryKeys.transactions.lists(),
       });
 
+      // Получаем категорию из кеша, если category_id изменен
+      let category: Category | null | undefined = undefined;
+      if (
+        transaction.category_id !== undefined &&
+        transaction.type !== "transfer"
+      ) {
+        const categoriesData = queryClient.getQueryData<Category[]>(
+          queryKeys.categories.list()
+        );
+        if (categoriesData) {
+          if (transaction.category_id) {
+            category =
+              categoriesData.find(
+                (cat) => cat.id === transaction.category_id
+              ) || null;
+          } else {
+            category = null;
+          }
+        }
+      }
+
       // Оптимистично обновляем кеш
       queryClient.setQueriesData<TransactionWithCategory[]>(
         { queryKey: queryKeys.transactions.lists() },
@@ -206,7 +280,13 @@ export function useUpdateTransaction() {
           if (!old) return old;
           return old.map((t) =>
             t.id === id
-              ? { ...t, ...transaction, updated_at: new Date().toISOString() }
+              ? {
+                  ...t,
+                  ...transaction,
+                  updated_at: new Date().toISOString(),
+                  // Обновляем категорию только если она была изменена
+                  ...(category !== undefined && { category }),
+                }
               : t
           );
         }
@@ -238,13 +318,34 @@ export function useUpdateTransaction() {
         });
       }
       console.error("Error updating transaction:", err);
-      const errorMessage = getErrorMessage(err, (key) => t(key));
+      console.error("Error details:", JSON.stringify(err, null, 2));
+
+      // Используем функцию перевода с namespace errors
+      const tErrors = (key: string) => {
+        try {
+          return t(`errors.${key}`);
+        } catch (e) {
+          console.error("Translation error:", e);
+          return key;
+        }
+      };
+
+      const errorMessage = getErrorMessage(err, tErrors);
       toast.error(errorMessage);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Обновляем транзакцию в кеше реальными данными из ответа сервера
+      queryClient.setQueriesData<TransactionWithCategory[]>(
+        { queryKey: queryKeys.transactions.lists() },
+        (old) => {
+          if (!old) return old;
+          return old.map((t) => (t.id === data.id ? data : t));
+        }
+      );
+
       toast.success(t("transactions.success.updated"));
     },
-    onSettled: (data, error, variables) => {
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.lists(),
       });
@@ -252,15 +353,11 @@ export function useUpdateTransaction() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.statistics.all,
       });
-      // Если это перевод или изменен тип на перевод, инвалидируем кеш счетов
-      if (
-        variables.transaction.type === "transfer" ||
-        (data && data.type === "transfer")
-      ) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.accounts.list(),
-        });
-      }
+      // Инвалидируем кеш счетов для обновления балансов
+      // Все транзакции (доходы, расходы, переводы) влияют на баланс счетов
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.accounts.list(),
+      });
     },
   });
 }
@@ -314,13 +411,25 @@ export function useDeleteTransaction() {
         });
       }
       console.error("Error deleting transaction:", err);
-      const errorMessage = getErrorMessage(err, (key) => t(key));
+      console.error("Error details:", JSON.stringify(err, null, 2));
+
+      // Используем функцию перевода с namespace errors
+      const tErrors = (key: string) => {
+        try {
+          return t(`errors.${key}`);
+        } catch (e) {
+          console.error("Translation error:", e);
+          return key;
+        }
+      };
+
+      const errorMessage = getErrorMessage(err, tErrors);
       toast.error(errorMessage);
     },
     onSuccess: () => {
       toast.success(t("transactions.success.deleted"));
     },
-    onSettled: async (data, error, id) => {
+    onSettled: async () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.transactions.lists(),
       });
@@ -331,30 +440,11 @@ export function useDeleteTransaction() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.statistics.all,
       });
-      // Проверяем, была ли удаленная транзакция переводом
-      // Для этого нужно получить транзакцию из кеша перед удалением
-      const previousQueries = queryClient.getQueriesData<
-        TransactionWithCategory[]
-      >({
-        queryKey: queryKeys.transactions.lists(),
+      // Инвалидируем кеш счетов для обновления балансов
+      // Все транзакции (доходы, расходы, переводы) влияют на баланс счетов
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.accounts.list(),
       });
-      // Ищем удаленную транзакцию в кеше для проверки типа
-      let wasTransfer = false;
-      for (const [, transactions] of previousQueries) {
-        if (transactions) {
-          const deletedTransaction = transactions.find((t) => t.id === id);
-          if (deletedTransaction?.type === "transfer") {
-            wasTransfer = true;
-            break;
-          }
-        }
-      }
-      // Если это был перевод, инвалидируем кеш счетов
-      if (wasTransfer) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.accounts.list(),
-        });
-      }
     },
   });
 }

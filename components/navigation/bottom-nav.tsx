@@ -4,14 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import {
-  Home,
-  Receipt,
-  FolderTree,
-  Wallet,
-  Settings,
-  CreditCard,
-} from "lucide-react";
+import { Home, Receipt, FolderTree, Settings, CreditCard } from "lucide-react";
 
 const navItems = [
   {

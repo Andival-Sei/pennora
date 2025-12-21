@@ -509,6 +509,60 @@
     "changesWillSync": "Changes will be synced when connection is restored",
     "deleteWillSync": "Deletion will be synced when connection is restored"
   },
+  "receipt": {
+    "dialog": {
+      "title": "Add Transaction",
+      "description": "Choose how to add a transaction",
+      "uploadTitle": "Upload Receipt",
+      "uploadDescription": "Upload an image or PDF file of the receipt",
+      "cameraTitle": "Take Photo of Receipt",
+      "cameraDescription": "Take a photo of the receipt using your camera",
+      "manualTitle": "Enter Manually",
+      "manualDescription": "Fill in transaction data manually"
+    },
+    "methods": {
+      "upload": "Upload Receipt",
+      "uploadDescription": "PDF or image",
+      "camera": "Take Photo",
+      "cameraDescription": "Use camera",
+      "manual": "Manual",
+      "manualDescription": "Enter data"
+    },
+    "upload": {
+      "title": "Upload Receipt",
+      "description": "Supported formats: PDF, JPEG, PNG",
+      "emailFormats": "Also supported: email files with receipts (EML)",
+      "selectFile": "Select File"
+    },
+    "camera": {
+      "capture": "Capture",
+      "retake": "Retake",
+      "errors": {
+        "accessDenied": "Failed to access camera. Please check browser permissions.",
+        "notSupported": "Your browser does not support camera access.",
+        "permissionDenied": "Camera access denied. Please allow access in browser settings.",
+        "noCamera": "Camera not found. Make sure a camera is connected.",
+        "notReadable": "Could not start camera. It may be in use by another application."
+      }
+    },
+    "actions": {
+      "process": "Process",
+      "processing": "Processing...",
+      "cancel": "Cancel",
+      "back": "Back",
+      "retry": "Try Again"
+    },
+    "prefilled": {
+      "title": "Data from Receipt",
+      "description": "Data was automatically extracted from the receipt. Please review and edit if necessary before saving."
+    },
+    "errors": {
+      "invalidFileType": "Unsupported file type. Please use PDF, image (JPEG, PNG), or email file (EML).",
+      "processingFailed": "Failed to process receipt",
+      "fallbackToManual": "You can enter the data manually.",
+      "noReceiptsFound": "No receipt attachments found in the email"
+    }
+  },
   "privacy": {
     "title": "Privacy Policy",
     "description": "Pennora Privacy Policy",

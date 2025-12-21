@@ -20,7 +20,6 @@ const CURRENCY_CODES: CurrencyCode[] = ["RUB", "USD", "EUR"];
 type OnboardingStep = "currency" | "card" | "cash";
 
 export function DemoOnboarding() {
-  const t = useTranslations();
   const tOnboarding = useTranslations("onboarding");
   const {
     currency,
@@ -31,7 +30,7 @@ export function DemoOnboarding() {
     addTransaction,
   } = useDemo();
   const [step, setStep] = useState<OnboardingStep>("currency");
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [, setIsAnimating] = useState(false);
   const [hasRun, setHasRun] = useState(false);
 
   useEffect(() => {

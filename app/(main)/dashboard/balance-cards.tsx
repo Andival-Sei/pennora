@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { FadeIn } from "@/components/motion";
 import { Loader2, Wallet, CreditCard, Banknote } from "lucide-react";
@@ -9,15 +10,10 @@ import {
   formatCurrency,
 } from "@/lib/currency/converter";
 import type { CurrencyCode } from "@/lib/currency/rates";
-
-interface Account {
-  currency: CurrencyCode;
-  balance: number;
-  type: string;
-}
+import { queryKeys } from "@/lib/query/keys";
+import { fetchAccounts } from "@/lib/query/queries/accounts";
 
 interface BalanceCardsProps {
-  accounts: Account[];
   displayCurrency: CurrencyCode;
   t: {
     total: string;
@@ -26,39 +22,51 @@ interface BalanceCardsProps {
   };
 }
 
-export function BalanceCards({
-  accounts,
-  displayCurrency,
-  t,
-}: BalanceCardsProps) {
+export function BalanceCards({ displayCurrency, t }: BalanceCardsProps) {
+  // Загружаем счета через React Query для автоматического обновления
+  const { data: accounts = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.accounts.list(),
+    queryFn: fetchAccounts,
+    staleTime: 2 * 60 * 1000, // 2 минуты
+    gcTime: 10 * 60 * 1000, // 10 минут
+  });
+
   const [totalBalance, setTotalBalance] = useState<number | null>(null);
   const [cardBalance, setCardBalance] = useState<number | null>(null);
   const [cashBalance, setCashBalance] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [calculating, setCalculating] = useState(false);
 
+  // Вычисляем балансы при изменении счетов или валюты
   useEffect(() => {
     async function calculateBalances() {
-      setLoading(true);
+      if (accounts.length === 0) {
+        setTotalBalance(0);
+        setCardBalance(0);
+        setCashBalance(0);
+        return;
+      }
+
+      setCalculating(true);
 
       try {
         // Конвертируем все балансы в выбранную валюту
         const allAmounts = accounts.map((acc) => ({
           amount: Number(acc.balance),
-          currency: acc.currency,
+          currency: acc.currency as CurrencyCode,
         }));
 
         const cardAmounts = accounts
           .filter((acc) => acc.type === "card")
           .map((acc) => ({
             amount: Number(acc.balance),
-            currency: acc.currency,
+            currency: acc.currency as CurrencyCode,
           }));
 
         const cashAmounts = accounts
           .filter((acc) => acc.type === "cash")
           .map((acc) => ({
             amount: Number(acc.balance),
-            currency: acc.currency,
+            currency: acc.currency as CurrencyCode,
           }));
 
         const [total, card, cash] = await Promise.all([
@@ -95,14 +103,14 @@ export function BalanceCards({
         setCardBalance(card);
         setCashBalance(cash);
       } finally {
-        setLoading(false);
+        setCalculating(false);
       }
     }
 
     calculateBalances();
   }, [accounts, displayCurrency]);
 
-  if (loading) {
+  if (loading || calculating) {
     return (
       <div className="grid gap-4 md:grid-cols-3 mb-8">
         {[1, 2, 3].map((i) => (

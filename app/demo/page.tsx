@@ -6,7 +6,6 @@ import { DemoOnboarding } from "@/components/demo/demo-onboarding";
 import { DemoDashboard } from "@/components/demo/demo-dashboard";
 import { DemoModal } from "@/components/demo/demo-modal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2 } from "lucide-react";
 
 function DemoContent() {
   const { currentStep, isRunning, setIsRunning } = useDemo();

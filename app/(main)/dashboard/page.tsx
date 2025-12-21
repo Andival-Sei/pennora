@@ -23,23 +23,14 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Параллельная загрузка профиля и счетов для ускорения
-  const [profileResult, accountsResult] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("default_currency, display_currency")
-      .eq("id", user.id)
-      .single(),
-    supabase
-      .from("accounts")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_archived", false)
-      .order("created_at", { ascending: true }),
-  ]);
+  // Загрузка профиля пользователя
+  const profileResult = await supabase
+    .from("profiles")
+    .select("default_currency, display_currency")
+    .eq("id", user.id)
+    .single();
 
   const profile = profileResult.data;
-  const accounts = accountsResult.data;
 
   // Используем display_currency если есть, иначе default_currency
   const displayCurrency = (profile?.display_currency ||
@@ -65,13 +56,6 @@ export default async function DashboardPage() {
 
         {/* Карточки балансов с конвертацией валют */}
         <BalanceCards
-          accounts={
-            accounts?.map((acc) => ({
-              currency: acc.currency as CurrencyCode,
-              balance: Number(acc.balance),
-              type: acc.type,
-            })) || []
-          }
           displayCurrency={displayCurrency}
           t={{
             total: t("balance.total"),
