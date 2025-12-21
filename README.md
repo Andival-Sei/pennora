@@ -1,6 +1,6 @@
 # Pennora
 
-Приложение для учёта личного и семейного бюджета.
+Приложение для учёта личного и семейного бюджета с поддержкой офлайн-режима и синхронизации данных.
 
 ## Возможности
 
@@ -24,56 +24,126 @@
 
 ## Технологии
 
-- **Next.js 16** — React фреймворк
+### Основной стек
+
+- **Next.js 16** — React фреймворк с App Router
 - **TypeScript** — типизация
+- **React 19** — UI библиотека
 - **Tailwind CSS 4** — стилизация
-- **Prettier + ESLint** — форматирование и линтинг
+
+### База данных и состояние
+
+- **Supabase** — PostgreSQL база данных и аутентификация
+- **IndexedDB (Dexie)** — локальное хранилище для офлайн-режима
+- **TanStack Query** — кеширование и синхронизация данных
+- **Zustand** — управление состоянием приложения
+
+### UI и формы
+
+- **shadcn/ui** — компоненты интерфейса
+- **Radix UI** — примитивы для доступности
+- **React Hook Form + Zod** — формы и валидация
+- **Framer Motion** — анимации
+
+### Инструменты разработки
+
+- **Vitest** — тестирование
+- **ESLint + Prettier** — форматирование и линтинг
+- **Husky + lint-staged** — pre-commit hooks
+- **next-intl** — интернационализация
+
+## Требования
+
+- **Node.js** 18+ (рекомендуется 20+)
+- **pnpm** 8+ (менеджер пакетов)
 
 ## Установка
 
 ```bash
+# Клонировать репозиторий
+git clone <repository-url>
+cd pennora
+
+# Установить зависимости
 pnpm install
+
+# Настроить переменные окружения (создать файл .env.local)
 ```
+
+### Переменные окружения
+
+Создайте файл `.env.local` со следующими переменными:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Next.js
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+Подробнее о настройке базы данных: **[DATABASE.md](./docs/DATABASE.md)**
 
 ## Разработка
 
 ```bash
+# Запуск dev-сервера
 pnpm dev
+
+# Запуск с Turbopack (быстрее)
+pnpm dev:turbo
 ```
 
 Открыть [http://localhost:3000](http://localhost:3000) в браузере.
 
 ## Скрипты
 
-| Команда             | Описание                      |
-| ------------------- | ----------------------------- |
-| `pnpm dev`          | Запуск dev-сервера            |
-| `pnpm build`        | Сборка для production         |
-| `pnpm start`        | Запуск production сервера     |
-| `pnpm lint`         | Проверка кода ESLint          |
-| `pnpm lint:fix`     | Автоисправление ESLint ошибок |
-| `pnpm format`       | Форматирование кода Prettier  |
-| `pnpm format:check` | Проверка форматирования       |
+| Команда             | Описание                       |
+| ------------------- | ------------------------------ |
+| `pnpm dev`          | Запуск dev-сервера             |
+| `pnpm dev:turbo`    | Запуск dev-сервера с Turbopack |
+| `pnpm build`        | Сборка для production          |
+| `pnpm start`        | Запуск production сервера      |
+| `pnpm lint`         | Проверка кода ESLint           |
+| `pnpm lint:fix`     | Автоисправление ESLint ошибок  |
+| `pnpm format`       | Форматирование кода Prettier   |
+| `pnpm format:check` | Проверка форматирования        |
+| `pnpm test`         | Запуск тестов (Vitest)         |
+| `pnpm test:ui`      | Запуск тестов с UI интерфейсом |
+| `pnpm test:bench`   | Запуск бенчмарк тестов         |
 
 ## Структура проекта
 
 ```
 pennora/
-├── app/              # Next.js App Router (страницы и layouts)
-├── components/       # React компоненты
-├── lib/              # Утилиты и логика
-│   ├── db/          # Базы данных (Supabase, IndexedDB)
-│   ├── query/       # TanStack Query (кеширование)
-│   ├── sync/        # Синхронизация данных
-│   └── ...
-├── docs/            # Документация проекта
-│   ├── ARCHITECTURE.md    # Архитектура проекта
-│   ├── CACHING.md         # Кеширование данных
-│   ├── OFFLINE_SYNC.md    # Офлайн-режим и синхронизация
-│   └── ...
-├── messages/        # Переводы (next-intl)
-└── ...
+├── app/                    # Next.js App Router
+│   ├── (auth)/            # Route Group: аутентификация
+│   ├── (main)/            # Route Group: основное приложение
+│   ├── api/               # API routes
+│   └── components/        # Компоненты страниц
+├── components/            # React компоненты
+│   ├── ui/               # shadcn/ui компоненты
+│   ├── features/         # Функциональные компоненты
+│   ├── layouts/          # Layout компоненты
+│   └── navigation/       # Навигация
+├── lib/                   # Утилиты и логика
+│   ├── db/              # Базы данных (Supabase, IndexedDB)
+│   ├── query/           # TanStack Query (кеширование)
+│   ├── sync/            # Синхронизация данных
+│   ├── hooks/           # React хуки
+│   ├── stores/          # Zustand stores
+│   └── utils/           # Утилиты
+├── docs/                 # Документация проекта
+├── messages/             # Переводы (next-intl)
+├── providers/            # React провайдеры
+├── supabase/            # Supabase конфигурация
+│   ├── migrations/      # SQL миграции
+│   └── functions/       # Edge Functions
+└── __tests__/           # Тесты
 ```
+
+Подробнее о структуре: **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)**
 
 ## Git Workflow
 
@@ -101,12 +171,21 @@ git checkout -b feature/my-feature
 
 Подробная документация доступна в папке [`docs/`](./docs/):
 
-- **[GIT_WORKFLOW.md](./docs/GIT_WORKFLOW.md)** — Git workflow и процесс разработки
-- **[COMMIT_CONVENTION.md](./docs/COMMIT_CONVENTION.md)** — соглашение о коммитах
+### Основная документация
+
 - **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — общая архитектура проекта
+- **[DATABASE.md](./docs/DATABASE.md)** — структура базы данных и миграции
 - **[CACHING.md](./docs/CACHING.md)** — система кеширования через TanStack Query
 - **[OFFLINE_SYNC.md](./docs/OFFLINE_SYNC.md)** — офлайн-режим и синхронизация данных
 - **[RECEIPTS.md](./docs/RECEIPTS.md)** — обработка чеков (OCR, PDF, EML)
+- **[CATEGORIES.md](./docs/CATEGORIES.md)** — система категорий
+- **[DEFAULT_CATEGORIES.md](./docs/DEFAULT_CATEGORIES.md)** — категории по умолчанию
+
+### Процессы разработки
+
+- **[GIT_WORKFLOW.md](./docs/GIT_WORKFLOW.md)** — Git workflow и процесс разработки
+- **[COMMIT_CONVENTION.md](./docs/COMMIT_CONVENTION.md)** — соглашение о коммитах
+- **[MVP_CHECKLIST.md](./docs/MVP_CHECKLIST.md)** — чеклист для MVP
 - **[AGENTS.md](./docs/AGENTS.md)** — контекст для AI-ассистентов
 
 ## Лицензия
