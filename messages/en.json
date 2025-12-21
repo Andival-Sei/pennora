@@ -483,10 +483,24 @@
     "title": "Accounts",
     "description": "Manage your cards and accounts",
     "addCard": "Add Card",
+    "addSource": "Add source",
     "add": "Add",
+    "edit": "Edit",
+    "editTitle": "Edit account",
+    "editDescription": "Update account information",
+    "update": "Update",
     "currency": "Currency",
     "noAccounts": "You don't have any accounts yet",
-    "deleteConfirm": "Are you sure you want to delete this account?"
+    "deleteConfirm": "Are you sure you want to delete this account?",
+    "sourceType": "Source type",
+    "sourceTypePlaceholder": "Select source type",
+    "sourceTypeCard": "Card",
+    "sourceTypeCash": "Cash",
+    "deleteTitle": "Delete source",
+    "deleteDescription": "Are you sure you want to delete this source? This action cannot be undone.",
+    "success": {
+      "updated": "Account updated successfully"
+    }
   },
   "notFound": {
     "title": "Page Not Found",
