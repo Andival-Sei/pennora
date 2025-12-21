@@ -69,15 +69,20 @@ export function HeroSection({ user }: HeroSectionProps) {
                       {t("cta.startFree")}
                     </Button>
                   </Link>
-                  <Link href="#demo">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="border-2 border-emerald-500/50 dark:border-emerald-500/50 text-zinc-700 dark:text-white hover:bg-emerald-500/10 dark:hover:bg-emerald-500/10 text-lg px-8 py-6 backdrop-blur-sm bg-white/50 dark:bg-zinc-900/50"
-                    >
-                      {t("cta.demo")}
-                    </Button>
-                  </Link>
+                  <div className="relative">
+                    <Link href="/demo">
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="border-2 border-emerald-500/50 dark:border-emerald-500/50 text-zinc-700 dark:text-white hover:bg-emerald-500/10 dark:hover:bg-emerald-500/10 text-lg px-8 py-6 backdrop-blur-sm bg-white/50 dark:bg-zinc-900/50"
+                      >
+                        {t("cta.demo")}
+                      </Button>
+                    </Link>
+                    <span className="absolute -top-2 -right-2 bg-amber-500 text-amber-950 text-xs font-semibold px-2 py-0.5 rounded-full border border-amber-600">
+                      В разработке
+                    </span>
+                  </div>
                 </>
               )}
             </motion.div>
