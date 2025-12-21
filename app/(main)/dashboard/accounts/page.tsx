@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
@@ -314,27 +313,17 @@ export default function AccountsPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <FadeIn>
-        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-          <ResponsiveContainer className="flex items-center justify-between py-4">
-            <h1 className="text-xl font-bold text-foreground">
-              {tAccounts("title")}
-            </h1>
-          </ResponsiveContainer>
-        </header>
-      </FadeIn>
-
       <ResponsiveContainer className="py-8">
         <FadeIn delay={0.1}>
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                {tAccounts("title")}
-              </h2>
-              <p className="text-muted-foreground">
-                {tAccounts("description")}
-              </p>
-            </div>
+          <div className="flex items-center gap-3 mb-6">
+            <Wallet className="h-8 w-8 text-primary" />
+            <h2 className="text-2xl sm:text-3xl font-bold">
+              {tAccounts("title")}
+            </h2>
+          </div>
+        </FadeIn>
+        <FadeIn delay={0.15}>
+          <div className="flex items-center justify-end mb-6">
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
