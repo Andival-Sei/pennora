@@ -51,7 +51,7 @@ const getMetadataBase = (): URL => {
   return new URL(
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000"
-      : "https://pennora.app" // Fallback для продакшена (замените на ваш домен)
+      : "https://pennora.vercel.app" // Fallback для продакшена
   );
 };
 

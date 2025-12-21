@@ -10,7 +10,7 @@ const getBaseUrl = (): string => {
   }
   return process.env.NODE_ENV === "development"
     ? "http://localhost:3000"
-    : "https://pennora.app";
+    : "https://pennora.vercel.app";
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {
