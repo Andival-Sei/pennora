@@ -64,7 +64,7 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
       >
         {/* Phone frame - адаптирован под темы */}
         <div
-          className="relative w-[280px] h-[560px] mx-auto rounded-[3rem] p-2 shadow-2xl"
+          className="relative w-[280px] h-[560px] mx-auto rounded-[3rem] p-2 shadow-2xl overflow-hidden"
           style={{
             boxShadow:
               "0 20px 60px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1)",
@@ -199,18 +199,20 @@ export function PhoneMockup({ className }: PhoneMockupProps) {
         </div>
 
         {/* Shadow with smooth fade - исправлена обрывающаяся тень */}
+        {/* Dark theme shadow */}
         <div
-          className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-64 h-32 pointer-events-none"
+          className="hidden dark:block absolute -bottom-20 left-1/2 -translate-x-1/2 w-64 h-32 pointer-events-none z-0"
           style={{
             background:
               "radial-gradient(ellipse at center, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.2) 30%, rgba(0, 0, 0, 0.1) 50%, transparent 70%)",
           }}
         />
+        {/* Light theme shadow - более светлая и только снаружи */}
         <div
-          className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-64 h-32 pointer-events-none dark:hidden"
+          className="dark:hidden absolute -bottom-20 left-1/2 -translate-x-1/2 w-64 h-32 pointer-events-none z-0"
           style={{
             background:
-              "radial-gradient(ellipse at center, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.1) 30%, rgba(0, 0, 0, 0.05) 50%, transparent 70%)",
+              "radial-gradient(ellipse at center, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.05) 30%, rgba(0, 0, 0, 0.02) 50%, transparent 70%)",
           }}
         />
       </motion.div>
