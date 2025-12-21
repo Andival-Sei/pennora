@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,6 @@ import { motion, AnimatePresence } from "framer-motion";
 export function ResetButton() {
   const t = useTranslations("dashboard");
   const tCommon = useTranslations("common");
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);

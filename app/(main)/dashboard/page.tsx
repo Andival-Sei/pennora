@@ -9,7 +9,9 @@ import { ResponsiveContainer } from "@/components/layout";
 import { Home } from "lucide-react";
 import { ResetButton } from "./reset-button";
 import { BalanceCards } from "./balance-cards";
-import { StatisticsCards } from "./statistics-cards";
+import { EnhancedStatisticsCards } from "./enhanced-statistics-cards";
+import { RecentTransactions } from "./recent-transactions";
+import { QuickActions } from "./quick-actions";
 import type { CurrencyCode } from "@/lib/currency/rates";
 
 export default async function DashboardPage() {
@@ -104,18 +106,25 @@ export default async function DashboardPage() {
           }}
         />
 
-        {/* Карточки статистики за текущий месяц */}
-        <StatisticsCards
+        {/* Карточки статистики за текущий месяц с сравнением */}
+        <EnhancedStatisticsCards
           displayCurrency={displayCurrency}
           t={{
             income: t("statistics.income"),
             expense: t("statistics.expense"),
+            netResult: t("statistics.netResult"),
+            vsPreviousMonth: t("statistics.vsPreviousMonth"),
           }}
         />
 
-        <FadeIn delay={0.35}>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <p className="text-muted-foreground">{t("welcome")}</p>
+        {/* Быстрые действия */}
+        <QuickActions />
+
+        {/* Последние транзакции */}
+        <RecentTransactions />
+
+        <FadeIn delay={0.5}>
+          <div className="flex justify-end mt-8">
             <ResetButton />
           </div>
         </FadeIn>

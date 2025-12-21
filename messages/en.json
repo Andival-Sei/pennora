@@ -152,7 +152,21 @@
     "statistics": {
       "income": "Income",
       "expense": "Expenses",
-      "balance": "Balance"
+      "balance": "Balance",
+      "netResult": "Net Result",
+      "vsPreviousMonth": "vs previous month"
+    },
+    "recentTransactions": {
+      "title": "Recent Transactions",
+      "empty": "You don't have any transactions yet",
+      "addFirst": "Add your first transaction",
+      "viewAll": "View all"
+    },
+    "quickActions": {
+      "addTransaction": "Add Transaction",
+      "addAccount": "Add Account",
+      "addCategory": "Add Category",
+      "viewTransactions": "View Transactions"
     },
     "reset": {
       "button": "Start Over",

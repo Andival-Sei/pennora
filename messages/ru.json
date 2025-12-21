@@ -152,7 +152,21 @@
     "statistics": {
       "income": "Доходы",
       "expense": "Расходы",
-      "balance": "Баланс"
+      "balance": "Баланс",
+      "netResult": "Результат месяца",
+      "vsPreviousMonth": "к прошлому месяцу"
+    },
+    "recentTransactions": {
+      "title": "Последние транзакции",
+      "empty": "У вас пока нет транзакций",
+      "addFirst": "Добавить первую транзакцию",
+      "viewAll": "Все транзакции"
+    },
+    "quickActions": {
+      "addTransaction": "Добавить транзакцию",
+      "addAccount": "Добавить счёт",
+      "addCategory": "Добавить категорию",
+      "viewTransactions": "Все транзакции"
     },
     "reset": {
       "button": "Начать заново",
