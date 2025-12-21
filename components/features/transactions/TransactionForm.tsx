@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -59,7 +60,16 @@ type FormValues = {
 };
 
 interface TransactionFormProps {
-  initialData?: Transaction;
+  initialData?:
+    | Transaction
+    | Partial<{
+        amount: number;
+        date: Date;
+        description?: string;
+        category_id?: string;
+        account_id?: string;
+        to_account_id?: string;
+      }>;
   onSuccess?: () => void;
 }
 
@@ -120,8 +130,13 @@ export function TransactionForm({
 
   // Создаем валидную дату по умолчанию (сегодняшняя дата, время установлено на начало дня)
   const getDefaultDate = () => {
-    if (initialData?.date) {
-      return new Date(initialData.date);
+    if (initialData && "date" in initialData && initialData.date) {
+      if (typeof initialData.date === "string") {
+        return new Date(initialData.date);
+      }
+      if (initialData.date instanceof Date) {
+        return initialData.date;
+      }
     }
     const today = new Date();
     // Устанавливаем время на начало дня для консистентности
@@ -129,19 +144,48 @@ export function TransactionForm({
     return today;
   };
 
+  // Определяем, является ли initialData полным Transaction или частичными данными
+  const isFullTransaction = (data: typeof initialData): data is Transaction => {
+    return data !== undefined && "id" in data && data.id !== undefined;
+  };
+
+  // Получаем начальные значения для формы
+  const getInitialFormValues = (): FormValues => {
+    const defaultDate = getDefaultDate();
+    const isFull = isFullTransaction(initialData);
+
+    return {
+      amount: (isFull ? initialData.amount : initialData?.amount) || 0,
+      type: (isFull ? initialData.type : undefined) || "expense",
+      category_id: isFull
+        ? initialData.category_id || "__none__"
+        : initialData?.category_id || "__none__",
+      account_id:
+        (isFull ? initialData.account_id : initialData?.account_id) || "",
+      to_account_id:
+        (isFull ? initialData.to_account_id : initialData?.to_account_id) || "",
+      date: defaultDate,
+      description:
+        (isFull ? initialData.description : initialData?.description) || "",
+    };
+  };
+
+  // Получаем пустые значения для сброса формы
+  const getEmptyFormValues = (): FormValues => {
+    return {
+      amount: 0,
+      type: "expense",
+      category_id: "__none__",
+      account_id: "",
+      to_account_id: "",
+      date: getDefaultDate(),
+      description: "",
+    };
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      amount: initialData?.amount || 0,
-      type: initialData?.type || "expense",
-      category_id: initialData?.category_id
-        ? initialData.category_id
-        : "__none__",
-      account_id: initialData?.account_id || "",
-      to_account_id: initialData?.to_account_id || "",
-      date: getDefaultDate(),
-      description: initialData?.description || "",
-    },
+    defaultValues: getInitialFormValues(),
   });
 
   const isLoading = form.formState.isSubmitting;
@@ -180,28 +224,27 @@ export function TransactionForm({
 
   const onSubmit = async (values: FormValues) => {
     try {
+      // Получаем пользователя
       const supabase = createClient();
       const {
         data: { user },
+        error: userError,
       } = await supabase.auth.getUser();
 
-      if (!user) {
-        toast.error(tErrors("mutations.unauthorized"));
+      if (userError || !user) {
+        const errorMsg = tErrors("mutations.unauthorized");
+        toast.error(errorMsg);
         form.setError("root", {
           type: "manual",
-          message: tErrors("mutations.unauthorized"),
+          message: errorMsg,
         });
         return;
       }
 
-      // Убеждаемся, что дата валидна
-      const transactionDate =
-        values.date && values.date instanceof Date
-          ? values.date
-          : getDefaultDate();
-
       // Форматируем дату в формат YYYY-MM-DD (без времени, чтобы избежать проблем с часовыми поясами)
       // Используем локальную дату, а не UTC
+      const transactionDate =
+        values.date instanceof Date ? values.date : getDefaultDate();
       const year = transactionDate.getFullYear();
       const month = String(transactionDate.getMonth() + 1).padStart(2, "0");
       const day = String(transactionDate.getDate()).padStart(2, "0");
@@ -231,22 +274,15 @@ export function TransactionForm({
         user_id: user.id,
       };
 
-      if (initialData) {
+      // Проверяем, есть ли id в initialData (только полные Transaction объекты имеют id)
+      if (isFullTransaction(initialData)) {
         await updateTransaction(initialData.id, transactionData);
       } else {
         await addTransaction(transactionData);
       }
 
-      // Сбрасываем форму с валидными значениями по умолчанию
-      form.reset({
-        amount: 0,
-        type: "expense",
-        category_id: "__none__",
-        account_id: "",
-        to_account_id: "",
-        date: getDefaultDate(),
-        description: "",
-      });
+      // Сбрасываем форму с пустыми значениями
+      form.reset(getEmptyFormValues());
       onSuccess?.();
     } catch (error) {
       console.error(error);
@@ -571,7 +607,12 @@ export function TransactionForm({
             <FormItem>
               <FormLabel>{t("description")}</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Textarea
+                  {...field}
+                  autoResize
+                  placeholder={t("descriptionPlaceholder")}
+                  rows={2}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -586,7 +627,7 @@ export function TransactionForm({
 
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {initialData ? t("update") : t("create")}
+          {initialData && "id" in initialData ? t("update") : t("create")}
         </Button>
       </form>
     </Form>

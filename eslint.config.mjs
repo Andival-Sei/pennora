@@ -24,6 +24,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "scripts/**", // Игнорируем скрипты Node.js
+    "node_modules/**", // Игнорируем node_modules
+    "public/**/*.min.*", // Игнорируем минифицированные файлы
   ]),
 ]);
 

@@ -1,6 +1,10 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { createClient } from "@/lib/db/supabase/client";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -13,6 +17,114 @@ import type {
   TransactionUpdate,
   TransactionWithCategory,
 } from "@/lib/types/transaction";
+import type { Category } from "@/lib/types/category";
+
+type TranslationFn = (key: string) => string;
+
+/**
+ * Создает функцию перевода ошибок
+ */
+function createErrorTranslator(t: TranslationFn): TranslationFn {
+  return (key: string) => {
+    try {
+      return t(`errors.${key}`);
+    } catch (e) {
+      console.error("Translation error:", e);
+      return key;
+    }
+  };
+}
+
+/**
+ * Обрабатывает ошибку мутации транзакции
+ * @param err - Ошибка
+ * @param context - Контекст мутации с предыдущими запросами
+ * @param queryClient - QueryClient для отката изменений
+ * @param t - Функция перевода
+ * @param tSync - Функция перевода для синхронизации
+ * @param enqueueFn - Функция для добавления в очередь синхронизации
+ * @param operationName - Название операции для логирования
+ */
+async function handleTransactionMutationError(
+  err: unknown,
+  context:
+    | { previousQueries?: Array<[readonly unknown[], unknown]> }
+    | undefined,
+  queryClient: QueryClient,
+  t: TranslationFn,
+  tSync: TranslationFn,
+  enqueueFn: (() => Promise<void>) | null,
+  operationName: string
+) {
+  // Если это сетевая ошибка - добавляем в очередь
+  if (isNetworkError(err)) {
+    if (enqueueFn) {
+      try {
+        await enqueueFn();
+        toast.success(tSync("willSyncWhenOnline"));
+        return;
+      } catch (queueError) {
+        console.error("Error adding to sync queue:", queueError);
+      }
+    }
+  }
+
+  // Для других ошибок откатываем изменения
+  if (context?.previousQueries) {
+    context.previousQueries.forEach(([queryKey, data]) => {
+      queryClient.setQueryData(queryKey, data);
+    });
+  }
+
+  console.error(`Error ${operationName} transaction:`, err);
+  console.error("Error details:", JSON.stringify(err, null, 2));
+
+  const tErrors = createErrorTranslator(t);
+  const errorMessage = getErrorMessage(err, tErrors);
+  toast.error(errorMessage);
+}
+
+/**
+ * Находит временную транзакцию в списке по ключевым полям
+ */
+function findTempTransaction(
+  transactions: TransactionWithCategory[],
+  realTransaction: TransactionWithCategory
+): number {
+  return transactions.findIndex(
+    (t) =>
+      t.id.startsWith("temp-") &&
+      t.account_id === realTransaction.account_id &&
+      t.amount === realTransaction.amount &&
+      t.type === realTransaction.type &&
+      Math.abs(
+        new Date(t.created_at).getTime() -
+          new Date(realTransaction.created_at).getTime()
+      ) < 5000 // В пределах 5 секунд
+  );
+}
+
+/**
+ * Инвалидирует все связанные запросы после изменения транзакции
+ */
+function invalidateTransactionQueries(queryClient: QueryClient) {
+  // Инвалидируем все списки транзакций
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.transactions.lists(),
+  });
+  // Инвалидируем доступные месяцы/годы
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.transactions.availableMonths(),
+  });
+  // Инвалидируем статистику
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.statistics.all,
+  });
+  // Инвалидируем кеш счетов для обновления балансов
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.accounts.list(),
+  });
+}
 
 /**
  * Создает новую транзакцию
@@ -102,6 +214,20 @@ export function useCreateTransaction() {
         queryKey: queryKeys.transactions.lists(),
       });
 
+      // Получаем категорию из кеша, если category_id указан
+      let category: Category | null = null;
+      if (newTransaction.category_id && newTransaction.type !== "transfer") {
+        const categoriesData = queryClient.getQueryData<Category[]>(
+          queryKeys.categories.list()
+        );
+        if (categoriesData) {
+          category =
+            categoriesData.find(
+              (cat) => cat.id === newTransaction.category_id
+            ) || null;
+        }
+      }
+
       // Оптимистично обновляем кеш для всех списков транзакций
       queryClient.setQueriesData<TransactionWithCategory[]>(
         { queryKey: queryKeys.transactions.lists() },
@@ -112,7 +238,7 @@ export function useCreateTransaction() {
             id: `temp-${Date.now()}`,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            category: null,
+            category,
           } as TransactionWithCategory;
           return [optimisticTransaction, ...old];
         }
@@ -121,55 +247,45 @@ export function useCreateTransaction() {
       return { previousQueries };
     },
     onError: async (err, newTransaction, context) => {
-      // Если это сетевая ошибка - добавляем в очередь и не откатываем оптимистичное обновление
-      if (isNetworkError(err)) {
-        try {
+      await handleTransactionMutationError(
+        err,
+        context,
+        queryClient,
+        t,
+        tSync,
+        async () => {
           await queueManager.enqueue(
             "transactions",
             "create",
             null,
             newTransaction
           );
-          toast.success(tSync("willSyncWhenOnline"));
-          // Не откатываем оптимистичное обновление - оставляем в UI
-          return;
-        } catch (queueError) {
-          console.error("Error adding to sync queue:", queueError);
-        }
-      }
-
-      // Для других ошибок откатываем изменения
-      if (context?.previousQueries) {
-        context.previousQueries.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
-      }
-      console.error("Error creating transaction:", err);
-      const errorMessage = getErrorMessage(err, (key) => t(key));
-      toast.error(errorMessage);
+        },
+        "creating"
+      );
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Обновляем оптимистичную транзакцию реальными данными из ответа сервера
+      queryClient.setQueriesData<TransactionWithCategory[]>(
+        { queryKey: queryKeys.transactions.lists() },
+        (old) => {
+          if (!old) return old;
+          // Находим временную транзакцию по совпадению ключевых полей и заменяем её на реальную
+          const tempIndex = findTempTransaction(old, data);
+          if (tempIndex !== -1) {
+            const updated = [...old];
+            updated[tempIndex] = data;
+            return updated;
+          }
+          // Если не нашли временную, просто добавляем в начало
+          return [data, ...old];
+        }
+      );
+
       toast.success(t("transactions.success.created"));
     },
-    onSettled: (data, error, variables) => {
-      // Инвалидируем все списки транзакций для обновления данных
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.transactions.lists(),
-      });
-      // Также инвалидируем доступные месяцы/годы
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.transactions.availableMonths(),
-      });
-      // Инвалидируем статистику
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.statistics.all,
-      });
-      // Если это перевод, инвалидируем кеш счетов для обновления балансов
-      if (variables.type === "transfer") {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.accounts.list(),
-        });
-      }
+    onSettled: () => {
+      invalidateTransactionQueries(queryClient);
     },
   });
 }
@@ -199,6 +315,27 @@ export function useUpdateTransaction() {
         queryKey: queryKeys.transactions.lists(),
       });
 
+      // Получаем категорию из кеша, если category_id изменен
+      let category: Category | null | undefined = undefined;
+      if (
+        transaction.category_id !== undefined &&
+        transaction.type !== "transfer"
+      ) {
+        const categoriesData = queryClient.getQueryData<Category[]>(
+          queryKeys.categories.list()
+        );
+        if (categoriesData) {
+          if (transaction.category_id) {
+            category =
+              categoriesData.find(
+                (cat) => cat.id === transaction.category_id
+              ) || null;
+          } else {
+            category = null;
+          }
+        }
+      }
+
       // Оптимистично обновляем кеш
       queryClient.setQueriesData<TransactionWithCategory[]>(
         { queryKey: queryKeys.transactions.lists() },
@@ -206,7 +343,13 @@ export function useUpdateTransaction() {
           if (!old) return old;
           return old.map((t) =>
             t.id === id
-              ? { ...t, ...transaction, updated_at: new Date().toISOString() }
+              ? {
+                  ...t,
+                  ...transaction,
+                  updated_at: new Date().toISOString(),
+                  // Обновляем категорию только если она была изменена
+                  ...(category !== undefined && { category }),
+                }
               : t
           );
         }
@@ -215,52 +358,37 @@ export function useUpdateTransaction() {
       return { previousQueries };
     },
     onError: async (err, variables, context) => {
-      // Если это сетевая ошибка - добавляем в очередь
-      if (isNetworkError(err)) {
-        try {
+      await handleTransactionMutationError(
+        err,
+        context,
+        queryClient,
+        t,
+        tSync,
+        async () => {
           await queueManager.enqueue(
             "transactions",
             "update",
             variables.id,
             variables.transaction
           );
-          toast.success(tSync("changesWillSync"));
-          return;
-        } catch (queueError) {
-          console.error("Error adding to sync queue:", queueError);
-        }
-      }
-
-      // Для других ошибок откатываем изменения
-      if (context?.previousQueries) {
-        context.previousQueries.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
-      }
-      console.error("Error updating transaction:", err);
-      const errorMessage = getErrorMessage(err, (key) => t(key));
-      toast.error(errorMessage);
+        },
+        "updating"
+      );
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Обновляем транзакцию в кеше реальными данными из ответа сервера
+      queryClient.setQueriesData<TransactionWithCategory[]>(
+        { queryKey: queryKeys.transactions.lists() },
+        (old) => {
+          if (!old) return old;
+          return old.map((t) => (t.id === data.id ? data : t));
+        }
+      );
+
       toast.success(t("transactions.success.updated"));
     },
-    onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.transactions.lists(),
-      });
-      // Инвалидируем статистику
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.statistics.all,
-      });
-      // Если это перевод или изменен тип на перевод, инвалидируем кеш счетов
-      if (
-        variables.transaction.type === "transfer" ||
-        (data && data.type === "transfer")
-      ) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.accounts.list(),
-        });
-      }
+    onSettled: () => {
+      invalidateTransactionQueries(queryClient);
     },
   });
 }
@@ -296,65 +424,23 @@ export function useDeleteTransaction() {
       return { previousQueries };
     },
     onError: async (err, id, context) => {
-      // Если это сетевая ошибка - добавляем в очередь
-      if (isNetworkError(err)) {
-        try {
+      await handleTransactionMutationError(
+        err,
+        context,
+        queryClient,
+        t,
+        tSync,
+        async () => {
           await queueManager.enqueue("transactions", "delete", id, { id });
-          toast.success(tSync("deleteWillSync"));
-          return;
-        } catch (queueError) {
-          console.error("Error adding to sync queue:", queueError);
-        }
-      }
-
-      // Для других ошибок откатываем изменения
-      if (context?.previousQueries) {
-        context.previousQueries.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
-      }
-      console.error("Error deleting transaction:", err);
-      const errorMessage = getErrorMessage(err, (key) => t(key));
-      toast.error(errorMessage);
+        },
+        "deleting"
+      );
     },
     onSuccess: () => {
       toast.success(t("transactions.success.deleted"));
     },
-    onSettled: async (data, error, id) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.transactions.lists(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.transactions.availableMonths(),
-      });
-      // Инвалидируем статистику
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.statistics.all,
-      });
-      // Проверяем, была ли удаленная транзакция переводом
-      // Для этого нужно получить транзакцию из кеша перед удалением
-      const previousQueries = queryClient.getQueriesData<
-        TransactionWithCategory[]
-      >({
-        queryKey: queryKeys.transactions.lists(),
-      });
-      // Ищем удаленную транзакцию в кеше для проверки типа
-      let wasTransfer = false;
-      for (const [, transactions] of previousQueries) {
-        if (transactions) {
-          const deletedTransaction = transactions.find((t) => t.id === id);
-          if (deletedTransaction?.type === "transfer") {
-            wasTransfer = true;
-            break;
-          }
-        }
-      }
-      // Если это был перевод, инвалидируем кеш счетов
-      if (wasTransfer) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.accounts.list(),
-        });
-      }
+    onSettled: async () => {
+      invalidateTransactionQueries(queryClient);
     },
   });
 }

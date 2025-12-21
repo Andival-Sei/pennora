@@ -53,7 +53,10 @@ pennora/
 │   │   ├── transactions/
 │   │   │   ├── TransactionList.tsx
 │   │   │   ├── TransactionForm.tsx
-│   │   │   └── TransactionFilters.tsx
+│   │   │   ├── TransactionFilters.tsx
+│   │   │   ├── ReceiptInputDialog.tsx  # Диалог выбора метода ввода чека
+│   │   │   ├── ReceiptUploader.tsx     # Компонент загрузки файлов
+│   │   │   └── ReceiptCamera.tsx       # Компонент камеры
 │   │   ├── categories/
 │   │   ├── currency/
 │   │   │   ├── CurrencySelector.tsx
@@ -79,6 +82,14 @@ pennora/
 │   │   │   ├── database.ts      # База данных для очереди синхронизации
 │   │   │   └── models.ts        # Типы для очереди операций
 │   │   └── rxdb/                # RxDB (TODO, если понадобится)
+│   ├── receipt/                 # Обработка чеков
+│   │   ├── processor.ts         # Главный процессор чеков
+│   │   ├── ocr.ts               # OCR обработка (Tesseract.js, pdfjs-dist)
+│   │   ├── qr-reader.ts         # Чтение QR-кодов
+│   │   ├── parser.ts            # Парсинг текста чеков
+│   │   ├── email-parser.ts      # Обработка EML файлов
+│   │   ├── category-matcher.ts  # Сопоставление категорий
+│   │   └── types.ts             # Типы для чеков
 │   ├── query/                    # TanStack Query (кеширование)
 │   │   ├── client.ts            # Конфигурация QueryClient
 │   │   ├── provider.tsx         # QueryClientProvider
@@ -359,10 +370,35 @@ pennora/
 - **shadcn/ui** — UI компоненты
 - **Tailwind CSS** — Стилизация
 - **Framer Motion** — Анимации
+- **Tesseract.js** — OCR для распознавания текста из изображений
+- **pdfjs-dist** — Обработка PDF файлов
+- **jsQR** — Чтение QR-кодов
+
+## Обработка чеков
+
+- **Модуль**: `lib/receipt/` — обработка чеков с OCR и парсингом
+- **Компоненты**: `components/features/transactions/Receipt*.tsx` — UI компоненты для работы с чеками
+- **API**: `app/api/receipts/parse-email/` — серверный API для парсинга EML файлов
+- **Документация**: [`docs/RECEIPTS.md`](./RECEIPTS.md) — подробное описание функционала обработки чеков
+
+**Поддерживаемые форматы:**
+
+- Изображения (фото с камеры или файлы) — OCR через Tesseract.js
+- PDF файлы — извлечение текста через pdfjs-dist
+- EML файлы (email) — парсинг вложений и текста письма
+- QR-коды ФНС — чтение данных из QR-кодов российских чеков
+
+**Основные возможности:**
+
+- Автоматическое распознавание текста из чеков
+- Извлечение даты, суммы, описания, способа оплаты
+- Автоматическое заполнение формы транзакции
+- Предложение категории на основе описания
 
 ## Документация
 
 - **Архитектура**: [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) (этот файл)
 - **Кеширование**: [`docs/CACHING.md`](./CACHING.md) — подробное описание системы кеширования через TanStack Query
 - **Офлайн и синхронизация**: [`docs/OFFLINE_SYNC.md`](./OFFLINE_SYNC.md) — подробное описание офлайн-режима и синхронизации данных
+- **Обработка чеков**: [`docs/RECEIPTS.md`](./RECEIPTS.md) — подробное описание функционала обработки чеков
 - **Для AI-агентов**: [`docs/AGENTS.md`](./AGENTS.md) — контекст для AI-ассистентов

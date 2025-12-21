@@ -34,10 +34,25 @@ import {
 } from "@/components/ui/dialog";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
-import { CreditCard, Plus, Trash2, Loader2, Wallet, X } from "lucide-react";
+import {
+  CreditCard,
+  Plus,
+  Trash2,
+  Loader2,
+  Wallet,
+  X,
+  Pencil,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/lib/currency/converter";
 import type { CurrencyCode } from "@/lib/currency/rates";
+import { useUpdateAccount } from "@/lib/query/mutations/accounts";
+import {
+  parseCardAccountName,
+  parseCashAccountName,
+  formatCardAccountName,
+  formatCashAccountName,
+} from "@/lib/utils/accountParser";
 
 // Схемы валидации
 const cardAccountSchema = z.object({
@@ -101,6 +116,10 @@ export default function AccountsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
     null
   );
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const updateAccountMutation = useUpdateAccount();
 
   const cardForm = useForm<CardFormData>({
     resolver: zodResolver(cardAccountSchema),
@@ -150,6 +169,35 @@ export default function AccountsPage() {
       cashForm.reset();
     }
   }, [isDialogOpen, hasAllCashCurrencies, cardForm, cashForm]);
+
+  // Предзаполнение формы при открытии диалога редактирования
+  useEffect(() => {
+    if (editingAccount && isEditDialogOpen) {
+      if (editingAccount.type === "card") {
+        const { cardName, bank } = parseCardAccountName(editingAccount.name);
+        cardForm.reset({
+          name: cardName,
+          bank: bank,
+          currency: editingAccount.currency,
+          balance: editingAccount.balance.toString(),
+        });
+        setSourceType("card");
+      } else if (editingAccount.type === "cash") {
+        const { currency } = parseCashAccountName(editingAccount.name);
+        cashForm.reset({
+          currency: (currency || editingAccount.currency) as CurrencyCode,
+          balance: editingAccount.balance.toString(),
+        });
+        setSourceType("cash");
+      }
+    } else if (!isEditDialogOpen) {
+      // При закрытии диалога редактирования сбрасываем формы
+      cardForm.reset();
+      cashForm.reset();
+      setSourceType(null);
+      setEditingAccount(null);
+    }
+  }, [editingAccount, isEditDialogOpen, cardForm, cashForm]);
 
   useEffect(() => {
     loadAccounts();
@@ -301,6 +349,78 @@ export default function AccountsPage() {
     await loadAccounts();
     setDeletingId(null);
     setShowDeleteConfirm(null);
+  }
+
+  async function handleCardEdit(data: CardFormData) {
+    if (!editingAccount) return;
+
+    setError(null);
+
+    const balance = parseFloat(data.balance.replace(",", "."));
+
+    // Формируем название счета: "Название карты (Банк)"
+    const accountName = formatCardAccountName(data.name, data.bank, (key) =>
+      tOnboarding(key)
+    );
+
+    updateAccountMutation.mutate(
+      {
+        id: editingAccount.id,
+        updates: {
+          name: accountName,
+          currency: data.currency,
+          balance: balance,
+        },
+      },
+      {
+        onSuccess: () => {
+          setIsEditDialogOpen(false);
+          setEditingAccount(null);
+          loadAccounts();
+        },
+        onError: (err) => {
+          console.error("Error updating account:", err);
+          setError("errors.databaseError");
+        },
+      }
+    );
+  }
+
+  async function handleCashEdit(data: CashFormData) {
+    if (!editingAccount) return;
+
+    setError(null);
+
+    const balance = parseFloat(data.balance.replace(",", "."));
+
+    // Формируем название: "Наличные (Валюта)"
+    const accountName = formatCashAccountName(
+      data.currency,
+      (key) => tOnboarding(key),
+      (key) => tOnboarding(key)
+    );
+
+    updateAccountMutation.mutate(
+      {
+        id: editingAccount.id,
+        updates: {
+          name: accountName,
+          currency: data.currency,
+          balance: balance,
+        },
+      },
+      {
+        onSuccess: () => {
+          setIsEditDialogOpen(false);
+          setEditingAccount(null);
+          loadAccounts();
+        },
+        onError: (err) => {
+          console.error("Error updating account:", err);
+          setError("errors.databaseError");
+        },
+      }
+    );
   }
 
   if (loading) {
@@ -644,19 +764,32 @@ export default function AccountsPage() {
                               {account.name}
                             </CardTitle>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setShowDeleteConfirm(account.id)}
-                            disabled={deletingId === account.id}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            {deletingId === account.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setEditingAccount(account);
+                                setIsEditDialogOpen(true);
+                              }}
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setShowDeleteConfirm(account.id)}
+                              disabled={deletingId === account.id}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              {deletingId === account.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
                         </div>
                         <CardDescription>
                           {tOnboarding(
@@ -751,6 +884,242 @@ export default function AccountsPage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Диалог редактирования */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{tAccounts("editTitle")}</DialogTitle>
+            <DialogDescription>
+              {tAccounts("editDescription")}
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={
+              editingAccount?.type === "card"
+                ? cardForm.handleSubmit(handleCardEdit)
+                : editingAccount?.type === "cash"
+                  ? cashForm.handleSubmit(handleCashEdit)
+                  : (e) => e.preventDefault()
+            }
+            className="space-y-4"
+          >
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md"
+                >
+                  {t(error)}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Форма карты */}
+            {editingAccount?.type === "card" && (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key="card-form-edit"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-bank">
+                      {tOnboarding("card.bankLabel")}
+                    </Label>
+                    <Select
+                      value={cardForm.watch("bank")}
+                      onValueChange={(value) =>
+                        cardForm.setValue("bank", value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={tOnboarding("card.bankPlaceholder")}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BANKS.map((bank) => (
+                          <SelectItem key={bank} value={bank}>
+                            {tOnboarding(`card.banks.${bank}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {cardForm.formState.errors.bank && (
+                      <p className="text-xs text-destructive">
+                        {tOnboarding(
+                          cardForm.formState.errors.bank.message as string
+                        )}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-name">
+                      {tOnboarding("card.nameLabel")}
+                    </Label>
+                    <Input
+                      id="edit-name"
+                      {...cardForm.register("name")}
+                      placeholder={tOnboarding("card.namePlaceholder")}
+                      aria-invalid={!!cardForm.formState.errors.name}
+                    />
+                    {cardForm.formState.errors.name && (
+                      <p className="text-xs text-destructive">
+                        {tOnboarding(
+                          cardForm.formState.errors.name.message as string
+                        )}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-currency">
+                      {tAccounts("currency")}
+                    </Label>
+                    <Select
+                      value={cardForm.watch("currency")}
+                      onValueChange={(value) =>
+                        cardForm.setValue("currency", value as CurrencyCode)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CURRENCIES.map((currency) => (
+                          <SelectItem key={currency} value={currency}>
+                            {tOnboarding(`currency.options.${currency}.name`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-balance">
+                      {tOnboarding("card.balanceLabel")}
+                    </Label>
+                    <Input
+                      id="edit-balance"
+                      type="text"
+                      inputMode="decimal"
+                      {...cardForm.register("balance")}
+                      placeholder="0.00"
+                      aria-invalid={!!cardForm.formState.errors.balance}
+                    />
+                    {cardForm.formState.errors.balance && (
+                      <p className="text-xs text-destructive">
+                        {tOnboarding(
+                          cardForm.formState.errors.balance.message as string
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            )}
+
+            {/* Форма наличных */}
+            {editingAccount?.type === "cash" && (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key="cash-form-edit"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-cash-currency">
+                      {tAccounts("currency")}
+                    </Label>
+                    <Select
+                      value={cashForm.watch("currency")}
+                      onValueChange={(value) =>
+                        cashForm.setValue("currency", value as CurrencyCode)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CURRENCIES.map((currency) => (
+                          <SelectItem key={currency} value={currency}>
+                            {tOnboarding(`currency.options.${currency}.name`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-cash-balance">
+                      {tOnboarding("cash.balanceLabel")}
+                    </Label>
+                    <Input
+                      id="edit-cash-balance"
+                      type="text"
+                      inputMode="decimal"
+                      {...cashForm.register("balance")}
+                      placeholder="0.00"
+                      aria-invalid={!!cashForm.formState.errors.balance}
+                    />
+                    {cashForm.formState.errors.balance && (
+                      <p className="text-xs text-destructive">
+                        {tOnboarding(
+                          cashForm.formState.errors.balance.message as string
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            )}
+
+            {/* Кнопки действий */}
+            {editingAccount && (
+              <div className="flex gap-2 justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditDialogOpen(false);
+                    setEditingAccount(null);
+                    cardForm.reset();
+                    cashForm.reset();
+                  }}
+                >
+                  {tCommon("cancel")}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    updateAccountMutation.isPending ||
+                    (editingAccount.type === "card"
+                      ? !cardForm.formState.isValid
+                      : !cashForm.formState.isValid)
+                  }
+                >
+                  {updateAccountMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {tCommon("loading")}
+                    </>
+                  ) : (
+                    tAccounts("update")
+                  )}
+                </Button>
+              </div>
+            )}
+          </form>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

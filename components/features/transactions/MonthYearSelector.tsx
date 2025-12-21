@@ -32,10 +32,13 @@ export function MonthYearSelector({
     return null;
   }
 
-  // Получаем уникальные годы из доступных месяцев
-  const uniqueYears = Array.from(
-    new Set(availableMonths.map((m) => m.year))
-  ).sort((a, b) => b - a);
+  // Получаем уникальные годы из доступных месяцев или используем переданные
+  const uniqueYears =
+    availableYears.length > 0
+      ? availableYears
+      : Array.from(new Set(availableMonths.map((m) => m.year))).sort(
+          (a, b) => b - a
+        );
 
   // Получаем месяцы для выбранного года
   const monthsForSelectedYear = availableMonths

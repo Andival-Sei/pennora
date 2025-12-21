@@ -63,9 +63,9 @@ function getErrorTranslationKey(error: unknown): string {
   // Проверяем сетевые ошибки
   if (isNetworkError(error)) {
     if (typeof navigator !== "undefined" && !navigator.onLine) {
-      return "errors.network.offline";
+      return "network.offline";
     }
-    return "errors.network.failed";
+    return "network.failed";
   }
 
   // Проверяем ошибки Supabase
@@ -77,25 +77,25 @@ function getErrorTranslationKey(error: unknown): string {
     // Проверяем сообщение на наличие ключевых слов
     const message = getSupabaseErrorMessage(error).toLowerCase();
     if (message.includes("network") || message.includes("connection")) {
-      return "errors.network.failed";
+      return "network.failed";
     }
     if (message.includes("timeout")) {
-      return "errors.network.timeout";
+      return "network.timeout";
     }
     if (
       message.includes("unauthorized") ||
       message.includes("not authenticated")
     ) {
-      return "errors.mutations.unauthorized";
+      return "mutations.unauthorized";
     }
     if (message.includes("forbidden") || message.includes("permission")) {
-      return "errors.mutations.forbidden";
+      return "mutations.forbidden";
     }
     if (message.includes("not found") || message.includes("does not exist")) {
-      return "errors.mutations.notFound";
+      return "mutations.notFound";
     }
     if (message.includes("conflict") || message.includes("duplicate")) {
-      return "errors.mutations.conflict";
+      return "mutations.conflict";
     }
   }
 
@@ -103,17 +103,17 @@ function getErrorTranslationKey(error: unknown): string {
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
     if (message.includes("network") || message.includes("fetch")) {
-      return "errors.network.failed";
+      return "network.failed";
     }
     if (message.includes("timeout")) {
-      return "errors.network.timeout";
+      return "network.timeout";
     }
     if (message.includes("unauthorized")) {
-      return "errors.mutations.unauthorized";
+      return "mutations.unauthorized";
     }
   }
 
-  return "errors.unknown";
+  return "unknown";
 }
 
 /**
@@ -127,8 +127,39 @@ export function getErrorMessage(
   error: unknown,
   t: (key: string) => string
 ): string {
+  // Логируем ошибку для отладки
+  if (process.env.NODE_ENV === "development") {
+    console.log("getErrorMessage called with:", error);
+  }
+
   const translationKey = getErrorTranslationKey(error);
-  return t(translationKey);
+
+  try {
+    const message = t(translationKey);
+    // Если сообщение совпадает с ключом, значит перевод не найден
+    if (message === translationKey) {
+      console.warn(`Translation key not found: ${translationKey}`);
+      // Пытаемся получить оригинальное сообщение об ошибке
+      if (error instanceof Error) {
+        return error.message || "Произошла неизвестная ошибка";
+      }
+      if (isSupabaseError(error)) {
+        return getSupabaseErrorMessage(error) || "Произошла неизвестная ошибка";
+      }
+      return "Произошла неизвестная ошибка";
+    }
+    return message;
+  } catch (e) {
+    console.error("Error translating error message:", e);
+    // Fallback на оригинальное сообщение
+    if (error instanceof Error) {
+      return error.message || "Произошла неизвестная ошибка";
+    }
+    if (isSupabaseError(error)) {
+      return getSupabaseErrorMessage(error) || "Произошла неизвестная ошибка";
+    }
+    return "Произошла неизвестная ошибка";
+  }
 }
 
 /**
@@ -142,7 +173,7 @@ export function getDetailedErrorMessage(
 
   // Если это известная ошибка с переводом, возвращаем только перевод
   const translationKey = getErrorTranslationKey(error);
-  if (translationKey !== "errors.unknown") {
+  if (translationKey !== "unknown") {
     return baseMessage;
   }
 

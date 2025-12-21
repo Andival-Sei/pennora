@@ -60,7 +60,6 @@ function AnimatedNumber({
 }
 
 export function DemoDashboard() {
-  const t = useTranslations();
   const tDashboard = useTranslations("dashboard");
   const { accounts, transactions, categories, currency, setCurrentStep } =
     useDemo();
@@ -464,7 +463,7 @@ export function DemoDashboard() {
                               </div>
                             </div>
                             <div
-                              className={`text-lg font-bold ${
+                              className={`text-lg font-bold whitespace-nowrap ${
                                 isIncome
                                   ? "text-green-600 dark:text-green-400"
                                   : "text-red-600 dark:text-red-400"

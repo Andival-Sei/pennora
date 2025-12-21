@@ -3,7 +3,6 @@
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { queryClient } from "./client";
-import { queryKeys } from "./keys";
 import { indexedDBStorage } from "@/lib/db/indexeddb/persister";
 
 /**

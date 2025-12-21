@@ -6,16 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { FadeIn } from "@/components/motion";
 import { TransactionList } from "./TransactionList";
-import { TransactionForm } from "./TransactionForm";
+import { ReceiptInputDialog } from "./ReceiptInputDialog";
 import { MonthYearSelector } from "./MonthYearSelector";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchAvailableMonthsAndYears } from "@/lib/query/queries/transactions";
@@ -82,26 +75,21 @@ export function TransactionPageContent() {
             availableYears={availableYears}
           />
           {mounted ? (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="ml-auto">
-                  <Plus className="mr-2 h-4 w-4" />
-                  {t("add")}
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{t("createTitle")}</DialogTitle>
-                </DialogHeader>
-                <TransactionForm
-                  onSuccess={() => {
-                    setOpen(false);
-                    // React Query автоматически обновит доступные месяцы/годы и список транзакций
-                    // после успешной мутации через инвалидацию кеша
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
+            <>
+              <Button className="ml-auto" onClick={() => setOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                {t("add")}
+              </Button>
+              <ReceiptInputDialog
+                open={open}
+                onOpenChange={setOpen}
+                onSuccess={() => {
+                  setOpen(false);
+                  // React Query автоматически обновит доступные месяцы/годы и список транзакций
+                  // после успешной мутации через инвалидацию кеша
+                }}
+              />
+            </>
           ) : (
             <Button disabled className="ml-auto">
               <Plus className="mr-2 h-4 w-4" />

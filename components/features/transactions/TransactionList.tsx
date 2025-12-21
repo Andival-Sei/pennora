@@ -203,7 +203,7 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
                 </TableCell>
                 <TableCell
                   className={cn(
-                    "text-right font-medium",
+                    "text-right font-medium whitespace-nowrap",
                     transaction.type === "income"
                       ? "text-green-600"
                       : transaction.type === "expense"
@@ -294,7 +294,7 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
                 <div className="flex items-center gap-2">
                   <span
                     className={cn(
-                      "font-semibold text-lg",
+                      "font-semibold text-lg whitespace-nowrap",
                       transaction.type === "income"
                         ? "text-green-600"
                         : transaction.type === "expense"

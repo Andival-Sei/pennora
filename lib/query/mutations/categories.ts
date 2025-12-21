@@ -189,7 +189,7 @@ export function useCreateCategory() {
         );
       }
       console.error("Error creating category:", err);
-      const errorMessage = getErrorMessage(err, (key) => t(key));
+      const errorMessage = getErrorMessage(err, (key) => t(`errors.${key}`));
       toast.error(errorMessage);
     },
     onSuccess: () => {
@@ -263,7 +263,7 @@ export function useUpdateCategory() {
         );
       }
       console.error("Error updating category:", err);
-      const errorMessage = getErrorMessage(err, (key) => t(key));
+      const errorMessage = getErrorMessage(err, (key) => t(`errors.${key}`));
       toast.error(errorMessage);
     },
     onSuccess: () => {
@@ -337,7 +337,7 @@ export function useDeleteCategory() {
         return;
       }
 
-      const errorMessage = getErrorMessage(err, (key) => t(key));
+      const errorMessage = getErrorMessage(err, (key) => t(`errors.${key}`));
       toast.error(errorMessage);
     },
     onSuccess: () => {

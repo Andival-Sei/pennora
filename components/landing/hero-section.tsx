@@ -4,7 +4,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { PhoneMockup } from "./phone-mockup";
-import { FadeIn } from "@/components/motion";
 import { useTranslations } from "next-intl";
 import type { User } from "@supabase/supabase-js";
 
@@ -14,7 +13,6 @@ interface HeroSectionProps {
 
 export function HeroSection({ user }: HeroSectionProps) {
   const t = useTranslations("home");
-  const tAuth = useTranslations("auth");
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 sm:pt-20">

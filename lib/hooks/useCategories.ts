@@ -16,7 +16,6 @@ import type {
   Category,
   CategoryInsert,
   CategoryUpdate,
-  CategoryTree,
 } from "@/lib/types/category";
 
 /**
@@ -56,7 +55,7 @@ export function useCategories() {
     try {
       const result = await createMutation.mutateAsync(category);
       return result || null;
-    } catch (err) {
+    } catch {
       return null;
     }
   };
@@ -68,7 +67,7 @@ export function useCategories() {
     try {
       const result = await updateMutation.mutateAsync({ id, updates });
       return result || null;
-    } catch (err) {
+    } catch {
       return null;
     }
   };
@@ -77,7 +76,7 @@ export function useCategories() {
     try {
       await deleteMutation.mutateAsync(id);
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   };

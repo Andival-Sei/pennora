@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
@@ -110,7 +110,10 @@ export default function SettingsPage() {
     mode: "onTouched",
   });
 
-  const newPasswordValue = passwordForm.watch("newPassword");
+  const newPasswordValue = useWatch({
+    control: passwordForm.control,
+    name: "newPassword",
+  });
 
   useEffect(() => {
     async function loadUser() {

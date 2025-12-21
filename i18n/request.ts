@@ -29,7 +29,7 @@ async function getLocale(): Promise<Locale> {
     if (settings.locale && locales.includes(settings.locale)) {
       return settings.locale;
     }
-  } catch (error) {
+  } catch {
     // Игнорируем ошибки при загрузке настроек (пользователь может быть не залогинен)
   }
 

@@ -1,46 +1,30 @@
-# Иконки PWA
+# Иконки приложения
 
-Для PWA требуются PNG иконки следующих размеров:
+Все иконки генерируются автоматически из файла `icon.svg` с помощью скрипта `scripts/generate-icons.js`.
 
-- `icon-192x192.png` - 192x192 пикселей
-- `icon-512x512.png` - 512x512 пикселей
-- `apple-touch-icon.png` - 180x180 пикселей (для iOS)
+## Текущие иконки
 
-## Создание иконок
+- `favicon.ico` - основная иконка для браузера (32x32)
+- `favicon-16x16.png` - иконка 16x16 для вкладок браузера
+- `favicon-32x32.png` - иконка 32x32 для вкладок браузера
+- `icon-192x192.png` - иконка 192x192 для PWA
+- `icon-512x512.png` - иконка 512x512 для PWA
+- `apple-touch-icon.png` - иконка 180x180 для iOS
 
-### Вариант 1: Использовать онлайн-генератор
+## Дизайн иконки
 
-1. Перейдите на [realfavicongenerator.net](https://realfavicongenerator.net/)
-2. Загрузите исходное изображение (минимум 512x512)
-3. Сгенерируйте все необходимые размеры
-4. Скачайте и поместите файлы в эту папку
+Иконка представляет собой стилизованную букву "P" на градиентном фоне (от синего к зелёному), что символизирует финансовый рост и современный подход к учёту бюджета.
 
-### Вариант 2: Конвертировать из SVG
+## Регенерация иконок
 
-Если у вас есть SVG файл (`icon.svg`), используйте ImageMagick:
-
-```bash
-# Установить ImageMagick (если не установлен)
-# Windows: choco install imagemagick
-# macOS: brew install imagemagick
-# Linux: sudo apt-get install imagemagick
-
-# Конвертировать в PNG
-convert -background none -resize 192x192 public/icons/icon.svg public/icons/icon-192x192.png
-convert -background none -resize 512x512 public/icons/icon.svg public/icons/icon-512x512.png
-convert -background none -resize 180x180 public/icons/icon.svg public/icons/apple-touch-icon.png
-```
-
-### Вариант 3: Использовать Node.js скрипт
+Если вы изменили `icon.svg`, запустите:
 
 ```bash
-# Установить sharp
-pnpm add -D sharp
-
-# Запустить скрипт генерации
 node scripts/generate-icons.js
 ```
 
-## Текущее состояние
+Скрипт автоматически создаст все необходимые размеры PNG иконок и favicon.ico.
 
-Временно создан базовый SVG файл (`icon.svg`). Необходимо создать PNG версии для полноценной работы PWA.
+## Редактирование дизайна
+
+Отредактируйте файл `icon.svg` в любом векторном редакторе (Inkscape, Figma, Adobe Illustrator) и запустите скрипт генерации заново.
