@@ -31,6 +31,9 @@ export function ResetButton() {
     queryClient.removeQueries({
       queryKey: queryKeys.accounts.all,
     });
+    queryClient.removeQueries({
+      queryKey: queryKeys.categories.all,
+    });
 
     const result = await resetAccounts();
 

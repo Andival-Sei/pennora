@@ -91,6 +91,7 @@ async function updateCategory(
 
 /**
  * Удаляет категорию (архивирует)
+ * Запрещает удаление системных категорий
  */
 async function deleteCategory(id: string): Promise<void> {
   const supabase = createClient();
@@ -101,6 +102,22 @@ async function deleteCategory(id: string): Promise<void> {
 
   if (!user) {
     throw new Error("User not authenticated");
+  }
+
+  // Проверяем, является ли категория системной
+  const { data: category, error: fetchError } = await supabase
+    .from("categories")
+    .select("is_system")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (fetchError) {
+    throw fetchError;
+  }
+
+  if (category?.is_system) {
+    throw new Error("Cannot delete system category");
   }
 
   const { error } = await supabase
@@ -310,6 +327,16 @@ export function useDeleteCategory() {
         );
       }
       console.error("Error deleting category:", err);
+
+      // Специальная обработка для системных категорий
+      if (
+        err instanceof Error &&
+        err.message === "Cannot delete system category"
+      ) {
+        toast.error(t("categories.errors.cannotDeleteSystem"));
+        return;
+      }
+
       const errorMessage = getErrorMessage(err, (key) => t(key));
       toast.error(errorMessage);
     },

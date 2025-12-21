@@ -161,7 +161,7 @@ export function CategoryItem({
               <Edit className="h-3.5 w-3.5" />
             </Button>
           )}
-          {onDelete && (
+          {onDelete && !category.is_system && (
             <Button
               variant="ghost"
               size="icon-sm"

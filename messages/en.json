@@ -409,6 +409,9 @@
       "created": "Category created",
       "updated": "Category updated",
       "deleted": "Category deleted"
+    },
+    "errors": {
+      "cannotDeleteSystem": "System categories cannot be deleted"
     }
   },
   "budgets": {
