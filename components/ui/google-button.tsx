@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { getAppUrl } from "@/lib/utils";
 import { useState } from "react";
 
 interface GoogleButtonProps {
@@ -16,10 +17,14 @@ export function GoogleButton({ children, className }: GoogleButtonProps) {
     setLoading(true);
     const supabase = createClient();
 
+    // Используем утилиту для получения правильного базового URL
+    const appUrl = getAppUrl();
+    const redirectTo = `${appUrl}/callback`;
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/callback`,
+        redirectTo,
       },
     });
 

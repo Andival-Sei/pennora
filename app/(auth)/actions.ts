@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthErrorKey } from "@/lib/auth-errors";
 import { saveInitialSettings } from "@/lib/settings/save-initial-settings";
+import { getAppUrl } from "@/lib/utils";
 
 export async function signIn(formData: FormData) {
   const supabase = await createClient();
@@ -62,6 +63,10 @@ export async function signUp(formData: FormData) {
   const password = formData.get("password") as string;
   const displayName = formData.get("displayName") as string;
 
+  // Используем утилиту для получения правильного базового URL
+  const appUrl = getAppUrl();
+  const emailRedirectTo = `${appUrl}/callback?next=/dashboard/onboarding`;
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -69,7 +74,7 @@ export async function signUp(formData: FormData) {
       data: {
         display_name: displayName,
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/callback?next=/dashboard/onboarding`,
+      emailRedirectTo,
     },
   });
 
@@ -91,11 +96,15 @@ export async function signUp(formData: FormData) {
 export async function resendConfirmationEmail(email: string) {
   const supabase = await createClient();
 
+  // Используем утилиту для получения правильного базового URL
+  const appUrl = getAppUrl();
+  const emailRedirectTo = `${appUrl}/callback?next=/dashboard/onboarding`;
+
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/callback?next=/dashboard/onboarding`,
+      emailRedirectTo,
     },
   });
 
