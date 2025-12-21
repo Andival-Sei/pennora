@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useTheme } from "@/providers";
 import { createClient } from "@/lib/supabase/client";
 import { setLocale } from "@/i18n/actions";
+import { signOut } from "@/app/(auth)/actions";
 import { useUnsavedChanges } from "./handle-unsaved-changes";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
-import { Check, Loader2, Monitor, Moon, Sun } from "lucide-react";
+import { Check, Loader2, Monitor, Moon, Sun, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CurrencyCode } from "@/lib/currency/rates";
 import type { Locale } from "@/i18n/request";
@@ -38,6 +39,7 @@ export default function AppSettingsPage() {
   const tApp = useTranslations("settings.app");
   const tOnboarding = useTranslations("onboarding");
   const tCommon = useTranslations("common");
+  const tAuth = useTranslations("auth");
   const tErrors = useTranslations();
 
   const { theme: currentTheme, setTheme: setThemeProvider } = useTheme();
@@ -341,6 +343,23 @@ export default function AppSettingsPage() {
         </FadeIn>
 
         <FadeIn delay={0.25}>
+          <Card>
+            <CardHeader>
+              <CardTitle>{tAuth("logout")}</CardTitle>
+              <CardDescription>{tApp("logoutDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form action={signOut}>
+                <Button variant="destructive" type="submit">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {tAuth("logout")}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </FadeIn>
+
+        <FadeIn delay={0.3}>
           <div className="flex items-center justify-end gap-4">
             <AnimatePresence mode="wait">
               {error && (

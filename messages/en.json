@@ -137,13 +137,14 @@
         "title": "Display Currency",
         "description": "Choose the currency for displaying balances"
       },
-      "success": "Settings saved successfully"
+      "success": "Settings saved successfully",
+      "logoutDescription": "Sign out of your account"
     }
   },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome! Your financial statistics will appear here soon.",
-    "backToLanding": "Back to Home",
+    "toLanding": "To Landing",
     "balance": {
       "total": "Total Balance",
       "card": "On Cards",
