@@ -47,7 +47,9 @@ function createErrorTranslator(t: TranslationFn): TranslationFn {
  */
 async function handleTransactionMutationError(
   err: unknown,
-  context: { previousQueries?: Array<[unknown, unknown]> } | undefined,
+  context:
+    | { previousQueries?: Array<[readonly unknown[], unknown]> }
+    | undefined,
   queryClient: QueryClient,
   t: TranslationFn,
   tSync: TranslationFn,

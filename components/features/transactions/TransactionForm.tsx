@@ -67,6 +67,8 @@ interface TransactionFormProps {
         date: Date;
         description?: string;
         category_id?: string;
+        account_id?: string;
+        to_account_id?: string;
       }>;
   onSuccess?: () => void;
 }
