@@ -16,7 +16,7 @@ export default async function TermsPage() {
   const tCommon = await getTranslations("common");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-emerald-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-4xl">
         <Link href="/">
           <Button variant="ghost" className="mb-8">
@@ -25,13 +25,17 @@ export default async function TermsPage() {
           </Button>
         </Link>
 
-        <div className="prose prose-invert max-w-none">
-          <h1 className="text-4xl font-bold text-white mb-4">{t("title")}</h1>
-          <p className="text-zinc-400 mb-8">{t("lastUpdated")}</p>
+        <div className="prose prose-zinc dark:prose-invert max-w-none">
+          <h1 className="text-4xl font-bold text-zinc-900 dark:text-white mb-4">
+            {t("title")}
+          </h1>
+          <p className="text-zinc-600 dark:text-zinc-400 mb-8">
+            {t("lastUpdated")}
+          </p>
 
-          <div className="space-y-8 text-zinc-300">
+          <div className="space-y-8 text-zinc-700 dark:text-zinc-300">
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white mb-4">
                 {t("sections.acceptance.title")}
               </h2>
               <p className="leading-relaxed">
@@ -40,7 +44,7 @@ export default async function TermsPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white mb-4">
                 {t("sections.serviceDescription.title")}
               </h2>
               <p className="leading-relaxed">
@@ -49,7 +53,7 @@ export default async function TermsPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white mb-4">
                 {t("sections.userAccount.title")}
               </h2>
               <p className="leading-relaxed mb-4">
@@ -63,7 +67,7 @@ export default async function TermsPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white mb-4">
                 {t("sections.acceptableUse.title")}
               </h2>
               <p className="leading-relaxed mb-4">
@@ -77,7 +81,7 @@ export default async function TermsPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white mb-4">
                 {t("sections.liability.title")}
               </h2>
               <p className="leading-relaxed">
@@ -86,22 +90,24 @@ export default async function TermsPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white mb-4">
                 {t("sections.changes.title")}
               </h2>
               <p className="leading-relaxed">{t("sections.changes.content")}</p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-4">
+              <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white mb-4">
                 {t("sections.contact.title")}
               </h2>
               <p className="leading-relaxed">{t("sections.contact.content")}</p>
               <p className="mt-4">
-                <strong className="text-white">Email:</strong>{" "}
+                <strong className="text-zinc-900 dark:text-white">
+                  Email:
+                </strong>{" "}
                 <a
                   href="mailto:support@pennora.app"
-                  className="text-emerald-400 hover:text-emerald-300"
+                  className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300"
                 >
                   support@pennora.app
                 </a>

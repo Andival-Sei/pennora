@@ -12,42 +12,42 @@ export function ThemeToggle() {
   }
 
   return (
-    <div className="flex items-center rounded-full border bg-background p-1">
+    <div className="flex items-center rounded-full border bg-background p-0.5 sm:p-1">
       <button
         onClick={() => setTheme("light")}
         className={cn(
-          "rounded-full p-2 transition-all",
+          "rounded-full p-1.5 sm:p-2 transition-all",
           theme === "light"
             ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-label="Светлая тема"
       >
-        <Sun className="h-4 w-4" />
+        <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       </button>
       <button
         onClick={() => setTheme("system")}
         className={cn(
-          "rounded-full p-2 transition-all",
+          "rounded-full p-1.5 sm:p-2 transition-all hidden sm:block",
           theme === "system"
             ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-label="Системная тема"
       >
-        <Monitor className="h-4 w-4" />
+        <Monitor className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       </button>
       <button
         onClick={() => setTheme("dark")}
         className={cn(
-          "rounded-full p-2 transition-all",
+          "rounded-full p-1.5 sm:p-2 transition-all",
           theme === "dark"
             ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:text-foreground"
         )}
         aria-label="Тёмная тема"
       >
-        <Moon className="h-4 w-4" />
+        <Moon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
       </button>
     </div>
   );

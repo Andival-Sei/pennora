@@ -35,17 +35,17 @@ export function StatsSection() {
               <ScrollFadeIn key={benefit.key} delay={index * 0.1}>
                 <div className="text-center space-y-4">
                   <div className="relative inline-flex items-center justify-center">
-                    <div className="absolute inset-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-800/50 to-zinc-900/50 border border-white/10 backdrop-blur-sm" />
+                    <div className="absolute inset-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-100/50 to-zinc-200/50 dark:from-zinc-800/50 dark:to-zinc-900/50 border border-zinc-300/50 dark:border-white/10 backdrop-blur-sm" />
                     <div
                       className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${benefit.gradient} flex items-center justify-center shadow-lg`}
                     >
                       <Icon className="w-8 h-8 text-white" />
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold text-white">
+                  <h3 className="text-xl font-bold text-zinc-900 dark:text-white">
                     {t(`${benefit.key}.title`)}
                   </h3>
-                  <p className="text-zinc-400">
+                  <p className="text-zinc-600 dark:text-zinc-400">
                     {t(`${benefit.key}.description`)}
                   </p>
                 </div>

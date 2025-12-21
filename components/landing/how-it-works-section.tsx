@@ -34,10 +34,10 @@ export function HowItWorksSection() {
     <section className="relative py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollFadeIn className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+          <h2 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-white mb-4">
             {t("title")}
           </h2>
-          <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+          <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
             {t("subtitle")}
           </p>
         </ScrollFadeIn>
@@ -53,7 +53,8 @@ export function HowItWorksSection() {
                       "relative group p-8 rounded-2xl border backdrop-blur-xl",
                       "bg-gradient-to-br",
                       step.bgGradient,
-                      "border-white/10 hover:border-white/30",
+                      "border-zinc-200/50 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/30",
+                      "bg-white/50 dark:bg-zinc-900/30",
                       "transition-all duration-300"
                     )}
                     whileHover={{ y: -8, scale: 1.02 }}
@@ -79,10 +80,10 @@ export function HowItWorksSection() {
 
                     {/* Content */}
                     <div className="space-y-3">
-                      <h3 className="text-2xl font-bold text-white">
+                      <h3 className="text-2xl font-bold text-zinc-900 dark:text-white">
                         {t(`${step.key}.title`)}
                       </h3>
-                      <p className="text-zinc-400 leading-relaxed">
+                      <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
                         {t(`${step.key}.description`)}
                       </p>
                     </div>
@@ -99,8 +100,8 @@ export function HowItWorksSection() {
                     {/* Connector arrow (hidden on mobile) */}
                     {index < steps.length - 1 && (
                       <div className="hidden md:block absolute top-1/2 -right-4 z-20">
-                        <div className="w-8 h-8 rounded-full bg-zinc-800/50 border border-white/10 backdrop-blur-sm flex items-center justify-center">
-                          <ArrowRight className="w-4 h-4 text-emerald-400" />
+                        <div className="w-8 h-8 rounded-full bg-zinc-100/50 dark:bg-zinc-800/50 border border-zinc-300/50 dark:border-white/10 backdrop-blur-sm flex items-center justify-center">
+                          <ArrowRight className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                         </div>
                       </div>
                     )}

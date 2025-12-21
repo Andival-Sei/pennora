@@ -17,26 +17,7 @@ export function HeroSection({ user }: HeroSectionProps) {
   const tAuth = useTranslations("auth");
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Navigation */}
-      {!user && (
-        <FadeIn className="absolute top-6 right-6 z-50 flex items-center gap-3">
-          <Link href="/login">
-            <Button variant="ghost" size="sm">
-              {tAuth("login.title")}
-            </Button>
-          </Link>
-          <Link href="/register">
-            <Button
-              size="sm"
-              className="bg-emerald-500 hover:bg-emerald-600 text-black"
-            >
-              {tAuth("register.title")}
-            </Button>
-          </Link>
-        </FadeIn>
-      )}
-
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 sm:pt-20">
       {/* Content */}
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -54,7 +35,7 @@ export function HeroSection({ user }: HeroSectionProps) {
             </motion.h1>
 
             <motion.p
-              className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto lg:mx-0"
+              className="text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto lg:mx-0"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
@@ -92,7 +73,7 @@ export function HeroSection({ user }: HeroSectionProps) {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="border-2 border-emerald-500/50 text-white hover:bg-emerald-500/10 text-lg px-8 py-6 backdrop-blur-sm"
+                      className="border-2 border-emerald-500/50 dark:border-emerald-500/50 text-zinc-700 dark:text-white hover:bg-emerald-500/10 dark:hover:bg-emerald-500/10 text-lg px-8 py-6 backdrop-blur-sm bg-white/50 dark:bg-zinc-900/50"
                     >
                       {t("cta.demo")}
                     </Button>

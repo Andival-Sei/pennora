@@ -45,10 +45,10 @@ export function FeaturesSection() {
     <section className="relative py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollFadeIn className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+          <h2 className="text-4xl sm:text-5xl font-bold text-zinc-900 dark:text-white mb-4">
             {tSection("title")}
           </h2>
-          <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+          <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
             {tSection("subtitle")}
           </p>
         </ScrollFadeIn>
@@ -63,7 +63,8 @@ export function FeaturesSection() {
                     "relative group p-8 rounded-2xl border backdrop-blur-xl",
                     "bg-gradient-to-br",
                     feature.bgGradient,
-                    "border-white/10 hover:border-white/30",
+                    "border-zinc-200/50 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/30",
+                    "bg-white/50 dark:bg-zinc-900/30",
                     "transition-all duration-300",
                     "h-full flex flex-col"
                   )}
@@ -104,10 +105,10 @@ export function FeaturesSection() {
 
                   {/* Content */}
                   <div className="flex-1 flex flex-col">
-                    <h3 className="text-2xl font-bold text-white mb-3">
+                    <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">
                       {tFeatures(feature.key)}
                     </h3>
-                    <p className="text-zinc-400 leading-relaxed flex-1">
+                    <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed flex-1">
                       {tFeatures(`${feature.key}Desc`)}
                     </p>
                   </div>
