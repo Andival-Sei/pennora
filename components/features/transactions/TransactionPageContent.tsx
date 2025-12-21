@@ -71,7 +71,7 @@ export function TransactionPageContent() {
   return (
     <div className="space-y-6">
       <FadeIn delay={0.1}>
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center flex-wrap gap-4">
           <MonthYearSelector
             value={monthFilter}
             onChange={(value) => {
@@ -84,7 +84,7 @@ export function TransactionPageContent() {
           {mounted ? (
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="ml-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   {t("add")}
                 </Button>
@@ -103,7 +103,7 @@ export function TransactionPageContent() {
               </DialogContent>
             </Dialog>
           ) : (
-            <Button disabled>
+            <Button disabled className="ml-auto">
               <Plus className="mr-2 h-4 w-4" />
               {t("add")}
             </Button>
