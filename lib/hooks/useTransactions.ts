@@ -16,6 +16,7 @@ import type {
   TransactionUpdate,
   TransactionWithCategory,
 } from "@/lib/types/transaction";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 
 /**
  * Хук для работы с транзакциями
@@ -49,8 +50,8 @@ export function useTransactions() {
     const data = await queryClient.fetchQuery({
       queryKey,
       queryFn: () => fetchTransactions(filters),
-      staleTime: 2 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
+      staleTime: QUERY_STALE_TIME.TRANSACTIONS,
+      gcTime: QUERY_GC_TIME.TRANSACTIONS,
     });
 
     return data;
@@ -71,8 +72,8 @@ export function useTransactions() {
     const data = await queryClient.fetchQuery({
       queryKey,
       queryFn: fetchAvailableMonthsAndYears,
-      staleTime: 5 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
+      staleTime: QUERY_STALE_TIME.AVAILABLE_MONTHS,
+      gcTime: QUERY_GC_TIME.AVAILABLE_MONTHS,
     });
 
     return data;

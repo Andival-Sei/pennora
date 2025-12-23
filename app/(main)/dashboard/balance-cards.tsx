@@ -12,6 +12,7 @@ import {
 import type { CurrencyCode } from "@/lib/currency/rates";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchAccounts } from "@/lib/query/queries/accounts";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 
 interface BalanceCardsProps {
   displayCurrency: CurrencyCode;
@@ -27,8 +28,8 @@ export function BalanceCards({ displayCurrency, t }: BalanceCardsProps) {
   const { data: accounts = [], isLoading: loading } = useQuery({
     queryKey: queryKeys.accounts.list(),
     queryFn: fetchAccounts,
-    staleTime: 2 * 60 * 1000, // 2 минуты
-    gcTime: 10 * 60 * 1000, // 10 минут
+    staleTime: QUERY_STALE_TIME.ACCOUNTS,
+    gcTime: QUERY_GC_TIME.ACCOUNTS,
   });
 
   const [totalBalance, setTotalBalance] = useState<number | null>(null);

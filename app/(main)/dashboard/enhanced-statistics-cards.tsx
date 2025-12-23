@@ -23,6 +23,7 @@ import {
 } from "@/lib/query/queries/transactions";
 import type { CurrencyCode } from "@/lib/currency/rates";
 import { cn } from "@/lib/utils";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 
 interface EnhancedStatisticsCardsProps {
   displayCurrency: CurrencyCode;
@@ -53,8 +54,8 @@ export function EnhancedStatisticsCards({
       queryKey: queryKeys.statistics.monthly(currentMonth, currentYear),
       queryFn: () =>
         fetchMonthlyStatistics({ month: currentMonth, year: currentYear }),
-      staleTime: 2 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
+      staleTime: QUERY_STALE_TIME.TRANSACTIONS,
+      gcTime: QUERY_GC_TIME.TRANSACTIONS,
       refetchOnWindowFocus: true,
     });
 
@@ -64,8 +65,8 @@ export function EnhancedStatisticsCards({
       queryKey: queryKeys.statistics.monthly(previousMonth, previousYear),
       queryFn: () =>
         fetchMonthlyStatistics({ month: previousMonth, year: previousYear }),
-      staleTime: 2 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
+      staleTime: QUERY_STALE_TIME.TRANSACTIONS,
+      gcTime: QUERY_GC_TIME.TRANSACTIONS,
       refetchOnWindowFocus: true,
     });
 

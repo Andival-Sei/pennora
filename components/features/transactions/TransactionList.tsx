@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
@@ -28,6 +28,7 @@ import { queryKeys } from "@/lib/query/keys";
 import { fetchTransactions } from "@/lib/query/queries/transactions";
 import { fetchAccounts } from "@/lib/query/queries/accounts";
 import { TransactionWithCategory } from "@/lib/types/transaction";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 import { cn } from "@/lib/utils";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
@@ -99,35 +100,41 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
   } = useQuery({
     queryKey: queryKeys.transactions.list(filters),
     queryFn: () => fetchTransactions(filters),
-    staleTime: 2 * 60 * 1000, // 2 минуты
-    gcTime: 15 * 60 * 1000, // 15 минут
+    staleTime: QUERY_STALE_TIME.TRANSACTIONS,
+    gcTime: QUERY_GC_TIME.TRANSACTIONS,
   });
 
   // Загружаем счета для отображения названий в переводах
   const { data: accounts = [] } = useQuery({
     queryKey: queryKeys.accounts.list(),
     queryFn: fetchAccounts,
-    staleTime: 10 * 60 * 1000, // 10 минут
-    gcTime: 30 * 60 * 1000, // 30 минут
+    staleTime: QUERY_STALE_TIME.ACCOUNTS,
+    gcTime: QUERY_GC_TIME.ACCOUNTS,
   });
 
-  // Функция для получения названия счета по ID
-  const getAccountName = (accountId: string | null) => {
-    if (!accountId) return "";
-    const account = accounts.find((acc) => acc.id === accountId);
-    return account?.name || "";
-  };
+  // Функция для получения названия счета по ID (мемоизируем)
+  const getAccountName = useCallback(
+    (accountId: string | null) => {
+      if (!accountId) return "";
+      const account = accounts.find((acc) => acc.id === accountId);
+      return account?.name || "";
+    },
+    [accounts]
+  );
 
-  const handleDelete = async (id: string) => {
-    setIsDeleting(true);
-    try {
-      await deleteTransaction(id);
-      setDeletingTransactionId(null);
-      // React Query автоматически обновит данные после мутации
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  const handleDelete = useCallback(
+    async (id: string) => {
+      setIsDeleting(true);
+      try {
+        await deleteTransaction(id);
+        setDeletingTransactionId(null);
+        // React Query автоматически обновит данные после мутации
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+    [deleteTransaction]
+  );
 
   if (loading) {
     return <LoadingState message={t("loading")} />;

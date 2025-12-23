@@ -12,6 +12,7 @@ import { ReceiptInputDialog } from "./ReceiptInputDialog";
 import { MonthYearSelector } from "./MonthYearSelector";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchAvailableMonthsAndYears } from "@/lib/query/queries/transactions";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 
 export function TransactionPageContent() {
   const t = useTranslations("transactions");
@@ -29,8 +30,8 @@ export function TransactionPageContent() {
   const { data: availableData } = useQuery({
     queryKey: queryKeys.transactions.availableMonths(),
     queryFn: fetchAvailableMonthsAndYears,
-    staleTime: 5 * 60 * 1000, // 5 минут
-    gcTime: 30 * 60 * 1000, // 30 минут
+    staleTime: QUERY_STALE_TIME.AVAILABLE_MONTHS,
+    gcTime: QUERY_GC_TIME.AVAILABLE_MONTHS,
   });
 
   const availableMonths = useMemo(

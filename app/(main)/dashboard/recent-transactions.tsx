@@ -15,6 +15,7 @@ import { fetchTransactions } from "@/lib/query/queries/transactions";
 import { fetchAccounts } from "@/lib/query/queries/accounts";
 import { formatCurrency } from "@/lib/currency/formatter";
 import { cn } from "@/lib/utils";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 
 // Маппинг иконок категорий
 const defaultIcons: Record<string, keyof typeof LucideIcons> = {
@@ -52,8 +53,8 @@ export function RecentTransactions() {
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: queryKeys.transactions.list(),
     queryFn: () => fetchTransactions(),
-    staleTime: 2 * 60 * 1000,
-    gcTime: 15 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME.TRANSACTIONS,
+    gcTime: QUERY_GC_TIME.TRANSACTIONS,
     select: (data) => data.slice(0, 5), // Берем только первые 5
   });
 
@@ -61,8 +62,8 @@ export function RecentTransactions() {
   const { data: accounts = [] } = useQuery({
     queryKey: queryKeys.accounts.list(),
     queryFn: fetchAccounts,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME.ACCOUNTS,
+    gcTime: QUERY_GC_TIME.ACCOUNTS,
   });
 
   const getAccountName = (accountId: string | null) => {

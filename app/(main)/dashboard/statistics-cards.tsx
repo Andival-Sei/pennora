@@ -15,6 +15,7 @@ import {
   type MonthlyStatistics,
 } from "@/lib/query/queries/transactions";
 import type { CurrencyCode } from "@/lib/currency/rates";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 
 interface StatisticsCardsProps {
   displayCurrency: CurrencyCode;
@@ -35,8 +36,8 @@ export function StatisticsCards({ displayCurrency, t }: StatisticsCardsProps) {
     queryKey: queryKeys.statistics.monthly(currentMonth, currentYear),
     queryFn: () =>
       fetchMonthlyStatistics({ month: currentMonth, year: currentYear }),
-    staleTime: 2 * 60 * 1000, // 2 минуты
-    gcTime: 15 * 60 * 1000, // 15 минут
+    staleTime: QUERY_STALE_TIME.TRANSACTIONS,
+    gcTime: QUERY_GC_TIME.TRANSACTIONS,
     refetchOnWindowFocus: true,
   });
 

@@ -243,6 +243,7 @@ pennora/
 
 - **Документация**: [`docs/CACHING.md`](./CACHING.md) — подробное описание системы кеширования
 - **Конфигурация**: `lib/query/client.ts` — настройки QueryClient
+- **Константы**: `lib/constants/query.ts` — централизованные константы для staleTime, gcTime, retry
 - **Провайдер**: `lib/query/provider.tsx` — QueryClientProvider для всего приложения
 - **Query функции**: `lib/query/queries/` — функции для загрузки данных
 - **Mutation функции**: `lib/query/mutations/` — функции для изменения данных с оптимистичными обновлениями
