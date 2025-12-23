@@ -94,7 +94,8 @@ import * as authActions from "@/app/(auth)/actions";
 import { useSearchParams } from "next/navigation";
 
 describe("LoginPageClient", () => {
-  const mockSignIn = vi.mocked(authActions.signIn);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mockSignIn = vi.mocked(authActions.signIn) as any;
   const mockUseSearchParams = vi.mocked(useSearchParams);
 
   beforeEach(() => {
@@ -102,7 +103,7 @@ describe("LoginPageClient", () => {
     // Сбрасываем searchParams на дефолтное значение
     mockUseSearchParams.mockReturnValue({
       get: vi.fn((key: string) => (key === "redirect" ? null : null)),
-    } as ReturnType<typeof useSearchParams>);
+    } as unknown as ReturnType<typeof useSearchParams>);
   });
 
   describe("рендеринг", () => {
@@ -225,7 +226,7 @@ describe("LoginPageClient", () => {
         get: vi.fn((key: string) =>
           key === "redirect" ? "/dashboard/transactions" : null
         ),
-      } as ReturnType<typeof useSearchParams>);
+      } as unknown as ReturnType<typeof useSearchParams>);
 
       const user = userEvent.setup();
       renderWithProviders(<LoginPageClient />);
@@ -255,7 +256,7 @@ describe("LoginPageClient", () => {
     it("должен показывать состояние загрузки при отправке формы", async () => {
       mockSignIn.mockImplementation(
         () =>
-          new Promise((resolve) => {
+          new Promise<{ error: string } | undefined>((resolve) => {
             setTimeout(() => {
               resolve(undefined);
             }, 100);

@@ -398,6 +398,9 @@ describe("OnboardingPage", () => {
       const bankSelect =
         document.querySelector('select[id="bank"]') ||
         document.querySelector('button[id="bank"]');
+      if (!bankSelect) {
+        throw new Error("Bank select not found");
+      }
       await user.click(bankSelect);
 
       const balanceInput = document.querySelector(
