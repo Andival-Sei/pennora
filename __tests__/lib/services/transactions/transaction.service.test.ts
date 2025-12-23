@@ -1,9 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { TransactionService } from "@/lib/services/transactions/transaction.service";
-import type {
-  Transaction,
-  TransactionFormValues,
-} from "@/lib/validations/transactions";
+import type { TransactionFormValues } from "@/lib/validations/transactions";
+import type { Transaction } from "@/lib/types/transaction";
 import type { Database } from "@/lib/db/supabase/types";
 
 type Account = Database["public"]["Tables"]["accounts"]["Row"];
@@ -247,6 +245,7 @@ describe("TransactionService", () => {
         to_account_id: null,
         description: null,
         currency: "RUB",
+        exchange_rate: null,
       };
 
       expect(TransactionService.isFullTransaction(transaction)).toBe(true);
@@ -281,6 +280,7 @@ describe("TransactionService", () => {
         to_account_id: null,
         description: "Initial description",
         currency: "RUB",
+        exchange_rate: null,
       };
 
       const result = TransactionService.getInitialFormValues(transaction);
