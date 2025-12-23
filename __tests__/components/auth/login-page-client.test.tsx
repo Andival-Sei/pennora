@@ -55,12 +55,14 @@ vi.mock("@/components/ui/password-input", () => ({
       requirementLabels?: Record<string, string>;
     }
   >(function PasswordInputMock(props, ref) {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const {
       showStrengthIndicator,
       strengthLabels,
       requirementLabels,
       ...inputProps
     } = props;
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     return (
       <input
         {...inputProps}
