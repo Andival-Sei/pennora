@@ -3,7 +3,6 @@
  */
 
 import { createWorker } from "tesseract.js";
-import * as pdfjsLib from "pdfjs-dist";
 
 /**
  * Извлекает текст из изображения с помощью OCR
@@ -43,13 +42,18 @@ export async function extractTextFromImage(
  * @returns извлеченный текст
  */
 export async function extractTextFromPDF(file: File): Promise<string> {
+  // Динамический импорт pdfjs-dist только в браузере, чтобы избежать SSR ошибок
+  if (typeof window === "undefined") {
+    throw new Error("Извлечение текста из PDF доступно только в браузере");
+  }
+
   try {
+    // Динамический импорт pdfjs-dist для избежания SSR проблем
+    const pdfjsLib = await import("pdfjs-dist");
+
     // Настраиваем worker для pdfjs-dist
     // Используем локальный worker из public папки (Next.js автоматически обслуживает файлы из public)
-    if (
-      typeof window !== "undefined" &&
-      !pdfjsLib.GlobalWorkerOptions.workerSrc
-    ) {
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
     }
 

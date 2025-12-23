@@ -19,7 +19,12 @@ export interface SupabaseError {
  */
 export function isSupabaseError(error: unknown): error is SupabaseError {
   if (!error || typeof error !== "object") return false;
-  return "code" in error || "message" in error;
+  return (
+    "code" in error ||
+    "message" in error ||
+    "details" in error ||
+    "hint" in error
+  );
 }
 
 /**
@@ -57,15 +62,112 @@ function getSupabaseErrorTranslationKey(error: unknown): string | null {
 }
 
 /**
- * Определяет тип ошибки и возвращает ключ перевода
+ * Маппинг ошибок Supabase Auth на ключи локализации
  */
-function getErrorTranslationKey(error: unknown): string {
-  // Проверяем сетевые ошибки
+const authErrorMap: Record<string, string> = {
+  // Вход
+  "Invalid login credentials": "errors.invalidCredentials",
+  "Email not confirmed": "errors.emailNotConfirmed",
+  "Invalid email or password": "errors.invalidCredentials",
+
+  // Регистрация
+  "User already registered": "errors.userAlreadyExists",
+  "Password should be at least 6 characters": "errors.passwordTooShort",
+  "Unable to validate email address: invalid format": "errors.invalidEmail",
+  "Signup requires a valid password": "errors.passwordRequired",
+
+  // Общие
+  "Email rate limit exceeded": "errors.rateLimitExceeded",
+  "For security purposes, you can only request this once every 60 seconds":
+    "errors.rateLimitExceeded",
+  "Database error saving new user": "errors.databaseError",
+
+  // Сеть
+  "fetch failed": "errors.networkError",
+  "Failed to fetch": "errors.networkError",
+};
+
+/**
+ * Получает сообщение об ошибке из различных типов ошибок
+ */
+function getErrorMessageString(error: unknown): string {
+  if (isSupabaseError(error)) {
+    return getSupabaseErrorMessage(error);
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return "";
+}
+
+/**
+ * Проверяет, является ли ошибка ошибкой аутентификации
+ */
+function isAuthError(error: unknown): boolean {
+  const message = getErrorMessageString(error);
+  if (!message) return false;
+
+  // Проверяем точное совпадение
+  if (authErrorMap[message]) {
+    return true;
+  }
+
+  // Проверяем частичное совпадение
+  const lowerMessage = message.toLowerCase();
+  for (const [key] of Object.entries(authErrorMap)) {
+    if (lowerMessage.includes(key.toLowerCase())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Преобразует ошибку аутентификации в ключ перевода
+ */
+function getAuthErrorTranslationKey(error: unknown): string | null {
+  if (!isAuthError(error)) return null;
+
+  const message = getErrorMessageString(error);
+  if (!message) return null;
+
+  // Точное совпадение
+  if (authErrorMap[message]) {
+    return authErrorMap[message];
+  }
+
+  // Частичное совпадение
+  const lowerMessage = message.toLowerCase();
+  for (const [key, value] of Object.entries(authErrorMap)) {
+    if (lowerMessage.includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Определяет тип ошибки и возвращает ключ перевода
+ * Приоритет: сетевые ошибки > ошибки аутентификации > общие ошибки Supabase > стандартные ошибки
+ */
+export function getErrorTranslationKey(error: unknown): string {
+  // Проверяем сетевые ошибки (высший приоритет)
   if (isNetworkError(error)) {
     if (typeof navigator !== "undefined" && !navigator.onLine) {
       return "network.offline";
     }
     return "network.failed";
+  }
+
+  // Проверяем ошибки аутентификации (перед общими ошибками Supabase)
+  const authKey = getAuthErrorTranslationKey(error);
+  if (authKey) {
+    return authKey;
   }
 
   // Проверяем ошибки Supabase
@@ -113,7 +215,7 @@ function getErrorTranslationKey(error: unknown): string {
     }
   }
 
-  return "unknown";
+  return "errors.unknown";
 }
 
 /**

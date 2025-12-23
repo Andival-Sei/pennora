@@ -11,6 +11,15 @@ const nextConfig: NextConfig = {
     // Используем оптимизированный SWC минификатор
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
   },
+  // Конфигурация webpack для исключения pdfjs-dist из серверного бандла
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Исключаем pdfjs-dist из серверного бандла, так как он использует браузерные API
+      config.externals = config.externals || [];
+      config.externals.push("pdfjs-dist");
+    }
+    return config;
+  },
   // Оптимизация изображений для Vercel
   images: {
     // Форматы изображений для оптимизации

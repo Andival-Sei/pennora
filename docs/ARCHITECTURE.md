@@ -129,10 +129,10 @@ pennora/
 │   │   ├── date.ts
 │   │   ├── validation.ts
 │   │   ├── network.ts            # Утилиты для работы с сетью
+│   │   ├── errorHandler.ts       # Унифицированная обработка ошибок (Supabase, Auth, сетевые)
 │   │   └── index.ts              # Общие утилиты (cn, etc.)
 │   ├── validations/              # Схемы валидации
 │   │   └── auth.ts
-│   ├── auth-errors.ts            # Обработка ошибок аутентификации
 │   └── supabase/                 # Реэкспорты для обратной совместимости
 │       ├── client.ts
 │       ├── server.ts

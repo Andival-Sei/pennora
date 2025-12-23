@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getAuthErrorKey } from "@/lib/auth-errors";
+import { getErrorTranslationKey } from "@/lib/utils/errorHandler";
 import { saveInitialSettings } from "@/lib/settings/save-initial-settings";
 import { getAppUrl } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ export async function signIn(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
-    return { error: getAuthErrorKey(error.message) };
+    return { error: getErrorTranslationKey(error) };
   }
 
   // Проверяем, прошел ли пользователь онбординг
@@ -79,7 +79,7 @@ export async function signUp(formData: FormData) {
   });
 
   if (error) {
-    return { error: getAuthErrorKey(error.message) };
+    return { error: getErrorTranslationKey(error) };
   }
 
   // Если есть сессия (пользователь сразу авторизован), редирект на онбординг
@@ -109,7 +109,7 @@ export async function resendConfirmationEmail(email: string) {
   });
 
   if (error) {
-    return { error: getAuthErrorKey(error.message) };
+    return { error: getErrorTranslationKey(error) };
   }
 
   return { success: true };

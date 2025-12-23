@@ -7,7 +7,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
-import { getAuthErrorKey } from "@/lib/auth-errors";
+import { getErrorTranslationKey } from "@/lib/utils/errorHandler";
 import { getAppUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -285,7 +285,7 @@ export default function SettingsPage() {
     });
 
     if (error) {
-      setEmailChangeError(getAuthErrorKey(error.message));
+      setEmailChangeError(getErrorTranslationKey(error));
       setEmailChangeLoading(false);
     } else {
       setShowVerificationCode(true);
@@ -313,7 +313,7 @@ export default function SettingsPage() {
     });
 
     if (error) {
-      setEmailChangeError(getAuthErrorKey(error.message));
+      setEmailChangeError(getErrorTranslationKey(error));
       setEmailChangeLoading(false);
     } else {
       // Email успешно изменён, перезагружаем данные пользователя
