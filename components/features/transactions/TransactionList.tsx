@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
@@ -62,21 +62,227 @@ const defaultIcons: Record<string, keyof typeof LucideIcons> = {
   trending: "TrendingUp",
 };
 
-// Функция для получения компонента иконки
-function getCategoryIcon(iconKey: string | null) {
+// Компонент для рендеринга иконки категории - объявлен вне render-функций
+const CategoryIcon = memo(function CategoryIcon({
+  iconKey,
+  className,
+}: {
+  iconKey: string | null;
+  className?: string;
+}) {
   if (!iconKey) return null;
   const IconName = defaultIcons[iconKey] || iconKey;
-  const IconComponent = LucideIcons[
-    IconName as keyof typeof LucideIcons
-  ] as React.ComponentType<{ className?: string }>;
-  return IconComponent || null;
-}
+  const IconComponent = LucideIcons[IconName as keyof typeof LucideIcons] as
+    | React.ComponentType<{ className?: string }>
+    | undefined;
+  if (!IconComponent) return null;
+  return <IconComponent className={className} />;
+});
 
 interface TransactionListProps {
   monthFilter?: { month: number; year: number };
 }
 
-export function TransactionList({ monthFilter }: TransactionListProps) {
+// Мемоизированный компонент для строки таблицы (десктоп)
+interface TransactionRowProps {
+  transaction: TransactionWithCategory;
+  getAccountName: (accountId: string | null) => string;
+  onEdit: (transaction: TransactionWithCategory) => void;
+  onDelete: (id: string) => void;
+  t: (key: string) => string;
+}
+
+const TransactionRow = memo(function TransactionRow({
+  transaction,
+  getAccountName,
+  onEdit,
+  onDelete,
+  t,
+}: TransactionRowProps) {
+  const iconKey = transaction.category?.icon ?? null;
+
+  const handleEdit = useCallback(() => {
+    onEdit(transaction);
+  }, [onEdit, transaction]);
+
+  const handleDelete = useCallback(() => {
+    onDelete(transaction.id);
+  }, [onDelete, transaction.id]);
+
+  return (
+    <TableRow>
+      <TableCell>{format(new Date(transaction.date), "dd.MM.yyyy")}</TableCell>
+      <TableCell>
+        {transaction.type === "transfer" ? (
+          <div className="flex items-center gap-2 text-blue-600">
+            <ArrowRight className="h-4 w-4" />
+            <span className="text-sm">
+              {t("list.transferFrom")} {getAccountName(transaction.account_id)}{" "}
+              → {t("list.transferTo")}{" "}
+              {getAccountName(transaction.to_account_id)}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <CategoryIcon
+              iconKey={iconKey}
+              className="h-4 w-4 text-muted-foreground"
+            />
+            <span>{transaction.category?.name || t("uncategorized")}</span>
+          </div>
+        )}
+      </TableCell>
+      <TableCell>
+        {transaction.description ||
+          (transaction.type === "transfer" ? "" : null)}
+      </TableCell>
+      <TableCell
+        className={cn(
+          "text-right font-medium whitespace-nowrap",
+          transaction.type === "income"
+            ? "text-green-600"
+            : transaction.type === "expense"
+              ? "text-red-600"
+              : "text-blue-600"
+        )}
+      >
+        {transaction.type === "transfer"
+          ? ""
+          : transaction.type === "income"
+            ? "+"
+            : "-"}
+        {formatCurrency(transaction.amount, transaction.currency)}
+      </TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleEdit}>
+              <Edit2 className="mr-2 h-4 w-4" />
+              {t("actions.edit")}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600" onClick={handleDelete}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t("actions.delete")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+});
+
+// Мемоизированный компонент для карточки (мобильная версия)
+interface TransactionCardProps {
+  transaction: TransactionWithCategory;
+  getAccountName: (accountId: string | null) => string;
+  onEdit: (transaction: TransactionWithCategory) => void;
+  onDelete: (id: string) => void;
+  t: (key: string) => string;
+}
+
+const TransactionCard = memo(function TransactionCard({
+  transaction,
+  getAccountName,
+  onEdit,
+  onDelete,
+  t,
+}: TransactionCardProps) {
+  const iconKey = transaction.category?.icon ?? null;
+
+  const handleEdit = useCallback(() => {
+    onEdit(transaction);
+  }, [onEdit, transaction]);
+
+  const handleDelete = useCallback(() => {
+    onDelete(transaction.id);
+  }, [onDelete, transaction.id]);
+
+  return (
+    <div
+      key={transaction.id}
+      className="rounded-lg border bg-card p-4 space-y-3"
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1 space-y-2">
+          {transaction.type === "transfer" ? (
+            <div className="flex items-center gap-2 text-blue-600">
+              <ArrowRight className="h-4 w-4" />
+              <span className="font-medium text-sm">
+                {t("list.transferFrom")}{" "}
+                {getAccountName(transaction.account_id)} →{" "}
+                {t("list.transferTo")}{" "}
+                {getAccountName(transaction.to_account_id)}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <CategoryIcon
+                iconKey={iconKey}
+                className="h-4 w-4 text-muted-foreground"
+              />
+              <span className="font-medium">
+                {transaction.category?.name || t("uncategorized")}
+              </span>
+            </div>
+          )}
+          {transaction.description && transaction.type !== "transfer" && (
+            <p className="text-sm text-muted-foreground">
+              {transaction.description}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            {format(new Date(transaction.date), "dd.MM.yyyy")}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "font-semibold text-lg whitespace-nowrap",
+              transaction.type === "income"
+                ? "text-green-600"
+                : transaction.type === "expense"
+                  ? "text-red-600"
+                  : "text-blue-600"
+            )}
+          >
+            {transaction.type === "transfer"
+              ? ""
+              : transaction.type === "income"
+                ? "+"
+                : "-"}
+            {formatCurrency(transaction.amount, transaction.currency)}
+          </span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleEdit}>
+                <Edit2 className="mr-2 h-4 w-4" />
+                {t("actions.edit")}
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600" onClick={handleDelete}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t("actions.delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+export const TransactionList = memo(function TransactionList({
+  monthFilter,
+}: TransactionListProps) {
   const t = useTranslations("transactions");
   const tCommon = useTranslations("common");
   const { deleteTransaction } = useTransactions();
@@ -136,6 +342,18 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
     [deleteTransaction]
   );
 
+  // Мемоизируем обработчики для редактирования и удаления
+  const handleEditTransaction = useCallback(
+    (transaction: TransactionWithCategory) => {
+      setEditingTransaction(transaction);
+    },
+    []
+  );
+
+  const handleDeleteTransaction = useCallback((id: string) => {
+    setDeletingTransactionId(id);
+  }, []);
+
   if (loading) {
     return <LoadingState message={t("loading")} />;
   }
@@ -173,83 +391,14 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
           </TableHeader>
           <TableBody>
             {transactions.map((transaction) => (
-              <TableRow key={transaction.id}>
-                <TableCell>
-                  {format(new Date(transaction.date), "dd.MM.yyyy")}
-                </TableCell>
-                <TableCell>
-                  {transaction.type === "transfer" ? (
-                    <div className="flex items-center gap-2 text-blue-600">
-                      <ArrowRight className="h-4 w-4" />
-                      <span className="text-sm">
-                        {t("list.transferFrom")}{" "}
-                        {getAccountName(transaction.account_id)} →{" "}
-                        {t("list.transferTo")}{" "}
-                        {getAccountName(transaction.to_account_id)}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      {(() => {
-                        const IconComponent = transaction.category?.icon
-                          ? getCategoryIcon(transaction.category.icon)
-                          : null;
-                        return IconComponent ? (
-                          <IconComponent className="h-4 w-4 text-muted-foreground" />
-                        ) : null;
-                      })()}
-                      <span>
-                        {transaction.category?.name || t("uncategorized")}
-                      </span>
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {transaction.description ||
-                    (transaction.type === "transfer" ? "" : null)}
-                </TableCell>
-                <TableCell
-                  className={cn(
-                    "text-right font-medium whitespace-nowrap",
-                    transaction.type === "income"
-                      ? "text-green-600"
-                      : transaction.type === "expense"
-                        ? "text-red-600"
-                        : "text-blue-600"
-                  )}
-                >
-                  {transaction.type === "transfer"
-                    ? ""
-                    : transaction.type === "income"
-                      ? "+"
-                      : "-"}
-                  {formatCurrency(transaction.amount, transaction.currency)}
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => setEditingTransaction(transaction)}
-                      >
-                        <Edit2 className="mr-2 h-4 w-4" />
-                        {t("actions.edit")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => setDeletingTransactionId(transaction.id)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        {t("actions.delete")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
+              <TransactionRow
+                key={transaction.id}
+                transaction={transaction}
+                getAccountName={getAccountName}
+                onEdit={handleEditTransaction}
+                onDelete={handleDeleteTransaction}
+                t={t}
+              />
             ))}
           </TableBody>
         </Table>
@@ -257,92 +406,16 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
 
       {/* Мобильная версия - карточки */}
       <div className="md:hidden space-y-3">
-        {transactions.map((transaction) => {
-          const IconComponent = transaction.category?.icon
-            ? getCategoryIcon(transaction.category.icon)
-            : null;
-          return (
-            <div
-              key={transaction.id}
-              className="rounded-lg border bg-card p-4 space-y-3"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1 space-y-2">
-                  {transaction.type === "transfer" ? (
-                    <div className="flex items-center gap-2 text-blue-600">
-                      <ArrowRight className="h-4 w-4" />
-                      <span className="font-medium text-sm">
-                        {t("list.transferFrom")}{" "}
-                        {getAccountName(transaction.account_id)} →{" "}
-                        {t("list.transferTo")}{" "}
-                        {getAccountName(transaction.to_account_id)}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      {IconComponent && (
-                        <IconComponent className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      <span className="font-medium">
-                        {transaction.category?.name || t("uncategorized")}
-                      </span>
-                    </div>
-                  )}
-                  {transaction.description &&
-                    transaction.type !== "transfer" && (
-                      <p className="text-sm text-muted-foreground">
-                        {transaction.description}
-                      </p>
-                    )}
-                  <p className="text-xs text-muted-foreground">
-                    {format(new Date(transaction.date), "dd.MM.yyyy")}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "font-semibold text-lg whitespace-nowrap",
-                      transaction.type === "income"
-                        ? "text-green-600"
-                        : transaction.type === "expense"
-                          ? "text-red-600"
-                          : "text-blue-600"
-                    )}
-                  >
-                    {transaction.type === "transfer"
-                      ? ""
-                      : transaction.type === "income"
-                        ? "+"
-                        : "-"}
-                    {formatCurrency(transaction.amount, transaction.currency)}
-                  </span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => setEditingTransaction(transaction)}
-                      >
-                        <Edit2 className="mr-2 h-4 w-4" />
-                        {t("actions.edit")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => setDeletingTransactionId(transaction.id)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        {t("actions.delete")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {transactions.map((transaction) => (
+          <TransactionCard
+            key={transaction.id}
+            transaction={transaction}
+            getAccountName={getAccountName}
+            onEdit={handleEditTransaction}
+            onDelete={handleDeleteTransaction}
+            t={t}
+          />
+        ))}
       </div>
 
       <Dialog
@@ -442,4 +515,4 @@ export function TransactionList({ monthFilter }: TransactionListProps) {
       </AnimatePresence>
     </>
   );
-}
+});

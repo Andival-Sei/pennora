@@ -210,10 +210,14 @@ export const transactionFormSchema = (tErrors: TranslationFn) =>
 
 #### 🟡 Важно
 
-1. **Отсутствие мемоизации в компонентах**
+1. **Отсутствие мемоизации в компонентах** ✅ **ИСПРАВЛЕНО**
    - **Проблема:** Компоненты могут ререндериться без необходимости
-   - **Рекомендация:** Добавить `React.memo` для компонентов списков
-   - **Рекомендация:** Использовать `useCallback` для обработчиков событий
+   - **Решение:** Добавлена мемоизация во всех компонентах списков:
+     - `TransactionList` - обернут в `React.memo`, созданы мемоизированные компоненты `TransactionRow` и `TransactionCard`
+     - `CategoryList` - все обработчики мемоизированы через `useCallback`, дерево категорий мемоизировано через `useMemo`
+     - `CategoryItem` - обернут в `React.memo`, обработчики и вычисляемые значения мемоизированы
+     - `CategoryTree` - обернут в `React.memo`, создан мемоизированный компонент `CategoryGroup`, обработчики мемоизированы
+     - `RecentTransactions` - обернут в `React.memo`, создан мемоизированный компонент `RecentTransactionItem`, `getAccountName` мемоизирован
 
 2. **Нет lazy loading для тяжелых компонентов**
    - **Проблема:** Все компоненты загружаются сразу
@@ -242,18 +246,41 @@ export const transactionFormSchema = (tErrors: TranslationFn) =>
 
 ### Конкретные рекомендации
 
-1. **Добавить мемоизацию:**
+1. **Добавить мемоизацию:** ✅ **РЕАЛИЗОВАНО**
+
+Реализована мемоизация во всех компонентах списков:
 
 ```typescript
 // components/features/transactions/TransactionList.tsx
-export const TransactionList = React.memo(({ transactions }: Props) => {
-  // ...
+export const TransactionList = memo(function TransactionList({ monthFilter }: TransactionListProps) {
+  // Мемоизированные обработчики
+  const handleEditTransaction = useCallback((transaction) => {
+    setEditingTransaction(transaction);
+  }, []);
+
+  // Мемоизированные компоненты для элементов списка
+  const TransactionRow = memo(function TransactionRow({ ... }) { ... });
+  const TransactionCard = memo(function TransactionCard({ ... }) { ... });
 });
 
-// Использовать useCallback для обработчиков
-const handleDelete = useCallback((id: string) => {
+// components/features/categories/CategoryList.tsx
+export function CategoryList() {
+  // Все обработчики мемоизированы
+  const handleCreate = useCallback(async (data) => { ... }, [createCategory]);
+  const handleEdit = useCallback(async (data) => { ... }, [editingCategory, updateCategory]);
   // ...
-}, []);
+
+  // Дерево категорий мемоизировано
+  const tree = useMemo(() => buildTree(), [categories, buildTree]);
+}
+
+// components/features/categories/CategoryItem.tsx
+export const CategoryItem = memo(function CategoryItem({ ... }) {
+  // Обработчики и вычисляемые значения мемоизированы
+  const handleRowClick = useCallback((e) => { ... }, [hasChildren, toggleExpand]);
+  const IconComponent = useMemo(() => { ... }, [category.icon, category.type]);
+  const categoryColor = useMemo(() => { ... }, [category.color, category.type]);
+});
 ```
 
 2. **Lazy loading тяжелых компонентов:**

@@ -41,14 +41,15 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Мокируем next-intl для тестов
-vi.mock("next-intl", async () => {
-  const actual = await vi.importActual("next-intl");
-  return {
-    ...actual,
-    useTranslations: () => (key: string) => key,
-    useLocale: () => "ru",
-  };
-});
+// Удаляем глобальный мок, так как мы используем NextIntlClientProvider в test-utils.tsx
+// vi.mock("next-intl", async () => {
+//   const actual = await vi.importActual("next-intl");
+//   return {
+//     ...actual,
+//     useTranslations: () => (key: string) => key,
+//     useLocale: () => "ru",
+//   };
+// });
 
 // Мокируем sonner для тестов
 vi.mock("sonner", () => ({

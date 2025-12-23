@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowRight, Loader2 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
+import { memo, useCallback } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,15 +38,108 @@ const defaultIcons: Record<string, keyof typeof LucideIcons> = {
   trending: "TrendingUp",
 };
 
-function getCategoryIcon(iconKey: string | null) {
+// Компонент для рендеринга иконки категории - объявлен вне render-функций
+const CategoryIcon = memo(function CategoryIcon({
+  iconKey,
+  className,
+}: {
+  iconKey: string | null;
+  className?: string;
+}) {
   if (!iconKey) return null;
   const IconComponent = LucideIcons[
     defaultIcons[iconKey] as keyof typeof LucideIcons
   ] as React.ComponentType<{ className?: string }> | undefined;
-  return IconComponent || null;
+  if (!IconComponent) return null;
+  return <IconComponent className={className} />;
+});
+
+// Мемоизированный компонент для элемента транзакции
+interface RecentTransactionItemProps {
+  transaction: {
+    id: string;
+    type: "income" | "expense" | "transfer";
+    amount: number;
+    currency: string;
+    date: string;
+    category?: { name: string; icon: string | null } | null;
+    account_id: string | null;
+    to_account_id: string | null;
+  };
+  getAccountName: (accountId: string | null) => string;
+  tTransactions: (key: string) => string;
 }
 
-export function RecentTransactions() {
+const RecentTransactionItem = memo(function RecentTransactionItem({
+  transaction,
+  getAccountName,
+  tTransactions,
+}: RecentTransactionItemProps) {
+  const iconKey = transaction.category?.icon ?? null;
+
+  return (
+    <div
+      key={transaction.id}
+      className="flex items-center justify-between py-2 border-b last:border-0"
+    >
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        {transaction.type === "transfer" ? (
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+            <ArrowRight className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          </div>
+        ) : (
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+            {iconKey ? (
+              <CategoryIcon
+                iconKey={iconKey}
+                className="h-4 w-4 text-muted-foreground"
+              />
+            ) : (
+              <div className="h-2 w-2 rounded-full bg-muted-foreground/50" />
+            )}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          {transaction.type === "transfer" ? (
+            <p className="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">
+              {tTransactions("list.transferFrom")}{" "}
+              {getAccountName(transaction.account_id)} →{" "}
+              {getAccountName(transaction.to_account_id)}
+            </p>
+          ) : (
+            <p className="text-sm font-medium truncate">
+              {transaction.category?.name || tTransactions("uncategorized")}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            {format(new Date(transaction.date), "dd.MM.yyyy")}
+          </p>
+        </div>
+      </div>
+      <div className="flex-shrink-0 ml-4">
+        <span
+          className={cn(
+            "text-sm font-semibold whitespace-nowrap",
+            transaction.type === "income"
+              ? "text-emerald-600 dark:text-emerald-400"
+              : transaction.type === "expense"
+                ? "text-red-600 dark:text-red-400"
+                : "text-blue-600 dark:text-blue-400"
+          )}
+        >
+          {transaction.type === "transfer"
+            ? ""
+            : transaction.type === "income"
+              ? "+"
+              : "-"}
+          {formatCurrency(transaction.amount, transaction.currency)}
+        </span>
+      </div>
+    </div>
+  );
+});
+
+export const RecentTransactions = memo(function RecentTransactions() {
   const t = useTranslations("dashboard");
   const tTransactions = useTranslations("transactions");
 
@@ -66,11 +160,14 @@ export function RecentTransactions() {
     gcTime: QUERY_GC_TIME.ACCOUNTS,
   });
 
-  const getAccountName = (accountId: string | null) => {
-    if (!accountId) return "";
-    const account = accounts.find((acc) => acc.id === accountId);
-    return account?.name || "";
-  };
+  const getAccountName = useCallback(
+    (accountId: string | null) => {
+      if (!accountId) return "";
+      const account = accounts.find((acc) => acc.id === accountId);
+      return account?.name || "";
+    },
+    [accounts]
+  );
 
   if (isLoading) {
     return (
@@ -125,73 +222,17 @@ export function RecentTransactions() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {transactions.map((transaction) => {
-              const IconComponent = transaction.category?.icon
-                ? getCategoryIcon(transaction.category.icon)
-                : null;
-
-              return (
-                <div
-                  key={transaction.id}
-                  className="flex items-center justify-between py-2 border-b last:border-0"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    {transaction.type === "transfer" ? (
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                        <ArrowRight className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                    ) : (
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                        {IconComponent ? (
-                          <IconComponent className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <div className="h-2 w-2 rounded-full bg-muted-foreground/50" />
-                        )}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      {transaction.type === "transfer" ? (
-                        <p className="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">
-                          {tTransactions("list.transferFrom")}{" "}
-                          {getAccountName(transaction.account_id)} →{" "}
-                          {getAccountName(transaction.to_account_id)}
-                        </p>
-                      ) : (
-                        <p className="text-sm font-medium truncate">
-                          {transaction.category?.name ||
-                            tTransactions("uncategorized")}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(transaction.date), "dd.MM.yyyy")}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0 ml-4">
-                    <span
-                      className={cn(
-                        "text-sm font-semibold whitespace-nowrap",
-                        transaction.type === "income"
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : transaction.type === "expense"
-                            ? "text-red-600 dark:text-red-400"
-                            : "text-blue-600 dark:text-blue-400"
-                      )}
-                    >
-                      {transaction.type === "transfer"
-                        ? ""
-                        : transaction.type === "income"
-                          ? "+"
-                          : "-"}
-                      {formatCurrency(transaction.amount, transaction.currency)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+            {transactions.map((transaction) => (
+              <RecentTransactionItem
+                key={transaction.id}
+                transaction={transaction}
+                getAccountName={getAccountName}
+                tTransactions={tTransactions}
+              />
+            ))}
           </div>
         </CardContent>
       </Card>
     </FadeIn>
   );
-}
+});

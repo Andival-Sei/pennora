@@ -199,8 +199,9 @@ describe("errorHandler", () => {
       const error: SupabaseError = {
         message: "Invalid login credentials",
       };
+      // Функция getErrorMessage убирает префикс "errors." перед вызовом t()
       const t = vi.fn((key: string) => {
-        if (key === "errors.invalidCredentials") {
+        if (key === "invalidCredentials") {
           return "Неверный email или пароль";
         }
         return key;
@@ -208,7 +209,7 @@ describe("errorHandler", () => {
 
       const result = getErrorMessage(error, t);
       expect(result).toBe("Неверный email или пароль");
-      expect(t).toHaveBeenCalledWith("errors.invalidCredentials");
+      expect(t).toHaveBeenCalledWith("invalidCredentials");
     });
 
     it("должен возвращать fallback сообщение, если перевод не найден", () => {
@@ -218,6 +219,7 @@ describe("errorHandler", () => {
       const t = vi.fn((key: string) => key); // Возвращает ключ, если перевод не найден
 
       const result = getErrorMessage(error, t);
+      // Когда перевод не найден, возвращается оригинальное сообщение ошибки
       expect(result).toBe("Invalid login credentials");
     });
 
@@ -225,8 +227,9 @@ describe("errorHandler", () => {
       const error: SupabaseError = {
         message: "Some unknown error",
       };
+      // Функция getErrorMessage убирает префикс "errors." перед вызовом t()
       const t = vi.fn((key: string) => {
-        if (key === "errors.unknown") {
+        if (key === "unknown") {
           return "Произошла неизвестная ошибка";
         }
         return key;

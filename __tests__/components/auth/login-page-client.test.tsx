@@ -110,18 +110,23 @@ describe("LoginPageClient", () => {
     it("должен рендерить форму с полями", async () => {
       renderWithProviders(<LoginPageClient />);
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+          // Ищем по переведённому тексту "Пароль"
+          expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     it("должен рендерить кнопку отправки", async () => {
       renderWithProviders(<LoginPageClient />);
 
       await waitFor(() => {
+        // Кнопка имеет переведённый текст "Войти"
         expect(
-          screen.getByRole("button", { name: /login\.submit/i })
+          screen.getByRole("button", { name: /войти/i })
         ).toBeInTheDocument();
       });
     });
@@ -133,7 +138,7 @@ describe("LoginPageClient", () => {
 
       await waitFor(() => {
         const submitButton = screen.getByRole("button", {
-          name: /login\.submit/i,
+          name: /войти/i,
         });
         expect(submitButton).toBeDisabled();
       });
@@ -149,11 +154,11 @@ describe("LoginPageClient", () => {
 
       // Заполняем форму валидными данными
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "password123");
+      await user.type(screen.getByLabelText(/пароль/i), "password123");
 
       await waitFor(() => {
         const submitButton = screen.getByRole("button", {
-          name: /login\.submit/i,
+          name: /войти/i,
         });
         expect(submitButton).not.toBeDisabled();
       });
@@ -173,10 +178,10 @@ describe("LoginPageClient", () => {
 
       // Заполняем форму валидными данными
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "password123");
+      await user.type(screen.getByLabelText(/пароль/i), "password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /login\.submit/i,
+        name: /войти/i,
       });
       await user.click(submitButton);
 
@@ -204,16 +209,17 @@ describe("LoginPageClient", () => {
 
       // Заполняем форму валидными данными
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "wrongpassword");
+      await user.type(screen.getByLabelText(/пароль/i), "wrongpassword");
 
       const submitButton = screen.getByRole("button", {
-        name: /login\.submit/i,
+        name: /войти/i,
       });
       await user.click(submitButton);
 
       await waitFor(() => {
+        // Сообщение об ошибке переводится через tErrors(serverError)
         expect(
-          screen.getByText(/errors\.invalidCredentials/i)
+          screen.getByText(/Неверный email или пароль/i)
         ).toBeInTheDocument();
       });
     });
@@ -237,10 +243,10 @@ describe("LoginPageClient", () => {
 
       // Заполняем форму валидными данными
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "password123");
+      await user.type(screen.getByLabelText(/пароль/i), "password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /login\.submit/i,
+        name: /войти/i,
       });
       await user.click(submitButton);
 
@@ -272,16 +278,16 @@ describe("LoginPageClient", () => {
 
       // Заполняем форму валидными данными
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "password123");
+      await user.type(screen.getByLabelText(/пароль/i), "password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /login\.submit/i,
+        name: /войти/i,
       });
       await user.click(submitButton);
 
-      // Проверяем, что кнопка показывает состояние загрузки
+      // Проверяем, что кнопка показывает состояние загрузки ("Загрузка...")
       await waitFor(() => {
-        expect(screen.getByText(/loading/i)).toBeInTheDocument();
+        expect(screen.getByText(/загрузка/i)).toBeInTheDocument();
       });
     });
   });

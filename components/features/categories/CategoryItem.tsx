@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo, useCallback, useMemo } from "react";
 import { ChevronRight, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -37,7 +37,7 @@ const defaultIcons: Record<string, keyof typeof LucideIcons> = {
   trending: "TrendingUp",
 };
 
-export function CategoryItem({
+export const CategoryItem = memo(function CategoryItem({
   category,
   level = 0,
   onEdit,
@@ -50,53 +50,85 @@ export function CategoryItem({
   // Используем внешнее состояние, если оно передано, иначе внутреннее
   const expanded =
     externalExpanded !== undefined ? externalExpanded : internalExpanded;
-  const toggleExpand =
-    externalToggleExpand || (() => setInternalExpanded(!internalExpanded));
 
-  const hasChildren = category.children && category.children.length > 0;
+  const toggleInternalExpand = useCallback(() => {
+    setInternalExpanded((prev) => !prev);
+  }, []);
+
+  const toggleExpand = externalToggleExpand || toggleInternalExpand;
+
+  const hasChildren = useMemo(
+    () => category.children && category.children.length > 0,
+    [category.children]
+  );
   const indent = level * 24; // 24px на уровень
 
-  // Получаем иконку
-  let IconComponent: React.ComponentType<{
-    className?: string;
-    style?: React.CSSProperties;
-  }> | null = null;
-  if (category.icon) {
-    const IconName = defaultIcons[category.icon] || category.icon;
-    IconComponent =
-      (LucideIcons[
-        IconName as keyof typeof LucideIcons
-      ] as React.ComponentType<{
-        className?: string;
-        style?: React.CSSProperties;
-      }>) || LucideIcons.Folder;
-  } else {
-    IconComponent =
-      category.type === "income"
+  // Мемоизируем иконку
+  const IconComponent = useMemo(() => {
+    if (category.icon) {
+      const IconName = defaultIcons[category.icon] || category.icon;
+      return (
+        (LucideIcons[
+          IconName as keyof typeof LucideIcons
+        ] as React.ComponentType<{
+          className?: string;
+          style?: React.CSSProperties;
+        }>) || LucideIcons.Folder
+      );
+    } else {
+      return category.type === "income"
         ? LucideIcons.TrendingUp
         : LucideIcons.TrendingDown;
-  }
+    }
+  }, [category.icon, category.type]);
 
-  // Цвет категории
-  const categoryColor =
-    category.color || (category.type === "income" ? "#10b981" : "#ef4444");
+  // Мемоизируем цвет категории
+  const categoryColor = useMemo(
+    () =>
+      category.color || (category.type === "income" ? "#10b981" : "#ef4444"),
+    [category.color, category.type]
+  );
+
+  // Мемоизируем обработчики
+  const handleEditClick = useCallback(() => {
+    if (onEdit) {
+      onEdit(category);
+    }
+  }, [onEdit, category]);
+
+  const handleDeleteClick = useCallback(() => {
+    if (onDelete) {
+      onDelete(category);
+    }
+  }, [onDelete, category]);
+
+  const handleToggleExpandClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      toggleExpand();
+    },
+    [toggleExpand]
+  );
 
   // Обработчик клика на строку категории
-  const handleRowClick = (e: React.MouseEvent) => {
-    // Если клик был на кнопке действий (edit/delete) или на стрелке, не раскрываем
-    const target = e.target as HTMLElement;
-    if (
-      target.closest("button") ||
-      target.closest('[role="button"]') ||
-      target.closest(".flex.items-center.gap-1")
-    ) {
-      return;
-    }
-    // Раскрываем только если есть подкатегории
-    if (hasChildren) {
-      toggleExpand();
-    }
-  };
+  const handleRowClick = useCallback(
+    (e: React.MouseEvent) => {
+      // Если клик был на кнопке действий (edit/delete) или на стрелке, не раскрываем
+      const target = e.target as HTMLElement;
+      if (
+        target.closest("button") ||
+        target.closest('[role="button"]') ||
+        target.closest(".flex.items-center.gap-1")
+      ) {
+        return;
+      }
+      // Раскрываем только если есть подкатегории
+      if (hasChildren) {
+        toggleExpand();
+      }
+    },
+    [hasChildren, toggleExpand]
+  );
 
   return (
     <div className="group">
@@ -113,10 +145,7 @@ export function CategoryItem({
         {/* Кнопка раскрытия для категорий с детьми */}
         {hasChildren ? (
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleExpand();
-            }}
+            onClick={handleToggleExpandClick}
             className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-accent"
           >
             <ChevronRight
@@ -155,7 +184,7 @@ export function CategoryItem({
             <Button
               variant="ghost"
               size="icon-sm"
-              onClick={() => onEdit(category)}
+              onClick={handleEditClick}
               className="h-7 w-7"
             >
               <Edit className="h-3.5 w-3.5" />
@@ -165,7 +194,7 @@ export function CategoryItem({
             <Button
               variant="ghost"
               size="icon-sm"
-              onClick={() => onDelete(category)}
+              onClick={handleDeleteClick}
               className="h-7 w-7 text-destructive hover:text-destructive"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -206,4 +235,4 @@ export function CategoryItem({
       </AnimatePresence>
     </div>
   );
-}
+});

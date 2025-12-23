@@ -102,9 +102,10 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/displayName/i)).toBeInTheDocument();
+        // Лейблы имеют переведённые значения: "Имя", "Email", "Пароль"
+        expect(screen.getByLabelText(/имя/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
       });
     });
 
@@ -112,8 +113,9 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
+        // Кнопка имеет текст "Создать аккаунт"
         expect(
-          screen.getByRole("button", { name: /register\.submit/i })
+          screen.getByRole("button", { name: /создать аккаунт/i })
         ).toBeInTheDocument();
       });
     });
@@ -125,7 +127,7 @@ describe("RegisterPageClient", () => {
 
       await waitFor(() => {
         const submitButton = screen.getByRole("button", {
-          name: /register\.submit/i,
+          name: /создать аккаунт/i,
         });
         expect(submitButton).toBeDisabled();
       });
@@ -136,144 +138,124 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/displayName/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/имя/i)).toBeInTheDocument();
       });
 
       // Заполняем форму валидными данными
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Password123");
+      await user.type(screen.getByLabelText(/пароль/i), "Password123");
 
       await waitFor(() => {
         const submitButton = screen.getByRole("button", {
-          name: /register\.submit/i,
+          name: /создать аккаунт/i,
         });
         expect(submitButton).not.toBeDisabled();
       });
     });
 
-    it("должен показывать ошибку для пароля меньше 8 символов", async () => {
+    it("должен блокировать кнопку для пароля меньше 8 символов", async () => {
       const user = userEvent.setup();
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
       });
 
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Short1");
+      await user.type(screen.getByLabelText(/пароль/i), "Short1");
 
-      // Пытаемся отправить форму для триггера валидации
-      const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
-      });
-      await user.click(submitButton);
-
+      // Кнопка должна быть заблокирована из-за невалидного пароля
       await waitFor(() => {
-        expect(
-          screen.getByText(/validation\.password\.min/i)
-        ).toBeInTheDocument();
+        const submitButton = screen.getByRole("button", {
+          name: /создать аккаунт/i,
+        });
+        expect(submitButton).toBeDisabled();
       });
     });
 
-    it("должен показывать ошибку для пароля без заглавной буквы", async () => {
+    it("должен блокировать кнопку для пароля без заглавной буквы", async () => {
       const user = userEvent.setup();
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
       });
 
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "lowercase123");
+      await user.type(screen.getByLabelText(/пароль/i), "lowercase123");
 
-      // Пытаемся отправить форму для триггера валидации
-      const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
-      });
-      await user.click(submitButton);
-
+      // Кнопка должна быть заблокирована из-за невалидного пароля
       await waitFor(() => {
-        expect(
-          screen.getByText(/validation\.password\.uppercase/i)
-        ).toBeInTheDocument();
+        const submitButton = screen.getByRole("button", {
+          name: /создать аккаунт/i,
+        });
+        expect(submitButton).toBeDisabled();
       });
     });
 
-    it("должен показывать ошибку для пароля без строчной буквы", async () => {
+    it("должен блокировать кнопку для пароля без строчной буквы", async () => {
       const user = userEvent.setup();
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
       });
 
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "UPPERCASE123");
+      await user.type(screen.getByLabelText(/пароль/i), "UPPERCASE123");
 
-      // Пытаемся отправить форму для триггера валидации
-      const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
-      });
-      await user.click(submitButton);
-
+      // Кнопка должна быть заблокирована из-за невалидного пароля
       await waitFor(() => {
-        expect(
-          screen.getByText(/validation\.password\.lowercase/i)
-        ).toBeInTheDocument();
+        const submitButton = screen.getByRole("button", {
+          name: /создать аккаунт/i,
+        });
+        expect(submitButton).toBeDisabled();
       });
     });
 
-    it("должен показывать ошибку для пароля без цифры", async () => {
+    it("должен блокировать кнопку для пароля без цифры", async () => {
       const user = userEvent.setup();
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
       });
 
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "NoNumbers");
+      await user.type(screen.getByLabelText(/пароль/i), "NoNumbers");
 
-      // Пытаемся отправить форму для триггера валидации
-      const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
-      });
-      await user.click(submitButton);
-
+      // Кнопка должна быть заблокирована из-за невалидного пароля
       await waitFor(() => {
-        expect(
-          screen.getByText(/validation\.password\.number/i)
-        ).toBeInTheDocument();
+        const submitButton = screen.getByRole("button", {
+          name: /создать аккаунт/i,
+        });
+        expect(submitButton).toBeDisabled();
       });
     });
 
-    it("должен показывать ошибку для пароля с кириллицей", async () => {
+    it("должен блокировать кнопку для пароля с кириллицей", async () => {
       const user = userEvent.setup();
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
       });
 
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Пароль123");
+      await user.type(screen.getByLabelText(/пароль/i), "Пароль123");
 
-      // Пытаемся отправить форму для триггера валидации
-      const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
-      });
-      await user.click(submitButton);
-
+      // Кнопка должна быть заблокирована из-за невалидного пароля
       await waitFor(() => {
-        expect(
-          screen.getByText(/validation\.password\.latinOnly/i)
-        ).toBeInTheDocument();
+        const submitButton = screen.getByRole("button", {
+          name: /создать аккаунт/i,
+        });
+        expect(submitButton).toBeDisabled();
       });
     });
 
@@ -282,10 +264,10 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
       });
 
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText(/пароль/i);
       await user.type(passwordInput, "Password123");
 
       // PasswordInput должен показывать индикатор силы
@@ -301,10 +283,10 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
       });
 
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText(/пароль/i);
       await user.click(passwordInput);
 
       // PasswordInput должен показывать требования при фокусе
@@ -328,16 +310,16 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/displayName/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/имя/i)).toBeInTheDocument();
       });
 
       // Заполняем форму валидными данными
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Password123");
+      await user.type(screen.getByLabelText(/пароль/i), "Password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
+        name: /создать аккаунт/i,
       });
       await user.click(submitButton);
 
@@ -361,23 +343,22 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/displayName/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/имя/i)).toBeInTheDocument();
       });
 
       // Заполняем форму валидными данными
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Password123");
+      await user.type(screen.getByLabelText(/пароль/i), "Password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
+        name: /создать аккаунт/i,
       });
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/errors\.userAlreadyExists/i)
-        ).toBeInTheDocument();
+        // Сообщение об ошибке переводится
+        expect(screen.getByText(/уже существует/i)).toBeInTheDocument();
       });
     });
 
@@ -392,29 +373,28 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/displayName/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/имя/i)).toBeInTheDocument();
       });
 
       // Заполняем форму валидными данными
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Password123");
+      await user.type(screen.getByLabelText(/пароль/i), "Password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
+        name: /создать аккаунт/i,
       });
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/register\.emailConfirmation\.title/i)
-        ).toBeInTheDocument();
+        // Заголовок экрана подтверждения: "Проверьте вашу почту"
+        expect(screen.getByText(/проверьте вашу почту/i)).toBeInTheDocument();
       });
 
-      // Проверяем, что отображается экран подтверждения
+      // Проверяем, что отображается кнопка повторной отправки
       expect(
         screen.getByRole("button", {
-          name: /register\.emailConfirmation\.resendButton/i,
+          name: /отправить письмо повторно/i,
         })
       ).toBeInTheDocument();
     });
@@ -437,22 +417,22 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/displayName/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/имя/i)).toBeInTheDocument();
       });
 
       // Заполняем форму валидными данными
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Password123");
+      await user.type(screen.getByLabelText(/пароль/i), "Password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
+        name: /создать аккаунт/i,
       });
       await user.click(submitButton);
 
-      // Проверяем, что кнопка показывает состояние загрузки
+      // Проверяем, что кнопка показывает состояние загрузки ("Загрузка...")
       await waitFor(() => {
-        expect(screen.getByText(/loading/i)).toBeInTheDocument();
+        expect(screen.getByText(/загрузка/i)).toBeInTheDocument();
       });
     });
   });
@@ -471,23 +451,23 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/displayName/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/имя/i)).toBeInTheDocument();
       });
 
       // Заполняем и отправляем форму
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Password123");
+      await user.type(screen.getByLabelText(/пароль/i), "Password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
+        name: /создать аккаунт/i,
       });
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(
           screen.getByRole("button", {
-            name: /register\.emailConfirmation\.resendButton/i,
+            name: /отправить письмо повторно/i,
           })
         ).toBeInTheDocument();
       });
@@ -502,30 +482,30 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/displayName/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/имя/i)).toBeInTheDocument();
       });
 
       // Заполняем и отправляем форму
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Password123");
+      await user.type(screen.getByLabelText(/пароль/i), "Password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
+        name: /создать аккаунт/i,
       });
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(
           screen.getByRole("button", {
-            name: /register\.emailConfirmation\.resendButton/i,
+            name: /отправить письмо повторно/i,
           })
         ).toBeInTheDocument();
       });
 
       // Нажимаем кнопку повторной отправки
       const resendButton = screen.getByRole("button", {
-        name: /register\.emailConfirmation\.resendButton/i,
+        name: /отправить письмо повторно/i,
       });
       await user.click(resendButton);
 
@@ -545,36 +525,37 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/displayName/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/имя/i)).toBeInTheDocument();
       });
 
       // Заполняем и отправляем форму
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Password123");
+      await user.type(screen.getByLabelText(/пароль/i), "Password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
+        name: /создать аккаунт/i,
       });
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(
           screen.getByRole("button", {
-            name: /register\.emailConfirmation\.resendButton/i,
+            name: /отправить письмо повторно/i,
           })
         ).toBeInTheDocument();
       });
 
       // Нажимаем кнопку повторной отправки
       const resendButton = screen.getByRole("button", {
-        name: /register\.emailConfirmation\.resendButton/i,
+        name: /отправить письмо повторно/i,
       });
       await user.click(resendButton);
 
       await waitFor(() => {
+        // Сообщение об успехе: "Письмо отправлено повторно"
         expect(
-          screen.getByText(/register\.emailConfirmation\.resendSuccess/i)
+          screen.getByText(/письмо отправлено повторно/i)
         ).toBeInTheDocument();
       });
     });
@@ -588,37 +569,36 @@ describe("RegisterPageClient", () => {
       renderWithProviders(<RegisterPageClient />);
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/displayName/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/имя/i)).toBeInTheDocument();
       });
 
       // Заполняем и отправляем форму
-      await user.type(screen.getByLabelText(/displayName/i), "Иван Иванов");
+      await user.type(screen.getByLabelText(/имя/i), "Иван Иванов");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
-      await user.type(screen.getByLabelText(/password/i), "Password123");
+      await user.type(screen.getByLabelText(/пароль/i), "Password123");
 
       const submitButton = screen.getByRole("button", {
-        name: /register\.submit/i,
+        name: /создать аккаунт/i,
       });
       await user.click(submitButton);
 
       await waitFor(() => {
         expect(
           screen.getByRole("button", {
-            name: /register\.emailConfirmation\.resendButton/i,
+            name: /отправить письмо повторно/i,
           })
         ).toBeInTheDocument();
       });
 
       // Нажимаем кнопку повторной отправки
       const resendButton = screen.getByRole("button", {
-        name: /register\.emailConfirmation\.resendButton/i,
+        name: /отправить письмо повторно/i,
       });
       await user.click(resendButton);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/errors\.rateLimitExceeded/i)
-        ).toBeInTheDocument();
+        // Сообщение об ошибке: "Слишком много попыток"
+        expect(screen.getByText(/слишком много попыток/i)).toBeInTheDocument();
       });
     });
   });

@@ -236,11 +236,16 @@ export function getErrorMessage(
 
   const translationKey = getErrorTranslationKey(error);
 
+  // Убираем префикс "errors." если он есть, так как t уже в контексте "errors"
+  const keyWithoutPrefix = translationKey.startsWith("errors.")
+    ? translationKey.slice(7) // Убираем "errors."
+    : translationKey;
+
   try {
-    const message = t(translationKey);
+    const message = t(keyWithoutPrefix);
     // Если сообщение совпадает с ключом, значит перевод не найден
-    if (message === translationKey) {
-      console.warn(`Translation key not found: ${translationKey}`);
+    if (message === keyWithoutPrefix || message === translationKey) {
+      console.warn(`Translation key not found: ${keyWithoutPrefix}`);
       // Пытаемся получить оригинальное сообщение об ошибке
       if (error instanceof Error) {
         return error.message || "Произошла неизвестная ошибка";
