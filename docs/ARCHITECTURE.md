@@ -82,6 +82,14 @@ pennora/
 │   │   │   ├── database.ts      # База данных для очереди синхронизации
 │   │   │   └── models.ts        # Типы для очереди операций
 │   │   └── rxdb/                # RxDB (TODO, если понадобится)
+│   ├── services/                # Слой сервисов (бизнес-логика)
+│   │   ├── transactions/        # Сервисы для транзакций
+│   │   │   ├── transaction.service.ts  # Бизнес-логика транзакций
+│   │   │   └── index.ts
+│   │   ├── accounts/            # Сервисы для счетов
+│   │   │   ├── account.service.ts      # Бизнес-логика счетов
+│   │   │   └── index.ts
+│   │   └── index.ts             # Экспорт всех сервисов
 │   ├── receipt/                 # Обработка чеков
 │   │   ├── processor.ts         # Главный процессор чеков
 │   │   ├── ocr.ts               # OCR обработка (Tesseract.js, pdfjs-dist)
@@ -132,7 +140,10 @@ pennora/
 │   │   ├── errorHandler.ts       # Унифицированная обработка ошибок (Supabase, Auth, сетевые)
 │   │   └── index.ts              # Общие утилиты (cn, etc.)
 │   ├── validations/              # Схемы валидации
-│   │   └── auth.ts
+│   │   ├── auth.ts              # Схемы валидации для аутентификации
+│   │   ├── transactions.ts      # Схемы валидации для транзакций
+│   │   ├── categories.ts        # Схемы валидации для категорий
+│   │   └── accounts.ts          # Схемы валидации для счетов
 │   └── supabase/                 # Реэкспорты для обратной совместимости
 │       ├── client.ts
 │       ├── server.ts
@@ -339,6 +350,72 @@ pennora/
 - **Seed данные**: `supabase/seed.sql`
 - **Документация БД**: `docs/DATABASE.md`
 
+## Слой сервисов
+
+Слой сервисов (`lib/services/`) содержит бизнес-логику приложения, вынесенную из компонентов и хуков. Это улучшает тестируемость, переиспользование и поддержку кода.
+
+### Структура
+
+- **`lib/services/transactions/`** — сервисы для работы с транзакциями
+  - `transaction.service.ts` — основная бизнес-логика (форматирование дат, преобразование данных, фильтрация счетов)
+- **`lib/services/accounts/`** — сервисы для работы со счетами
+  - `account.service.ts` — бизнес-логика счетов (создание, валидация)
+
+### Принципы
+
+- **Чистые функции**: Сервисы не имеют side effects (кроме работы с данными)
+- **Тестируемость**: Легко покрываются unit тестами
+- **Переиспользование**: Используются в компонентах, хуках и других сервисах
+- **Независимость от React**: Сервисы не зависят от React, их можно использовать в любой части приложения
+
+### Пример использования
+
+```typescript
+import { TransactionService } from "@/lib/services/transactions";
+
+// Преобразование данных формы в TransactionInsert
+const transactionData = TransactionService.prepareTransactionData(
+  formValues,
+  accounts,
+  userId
+);
+
+// Получение доступных счетов для перевода
+const availableAccounts = TransactionService.getAvailableToAccounts(
+  accounts,
+  sourceAccountId
+);
+```
+
+## Валидационные схемы
+
+Валидационные схемы (`lib/validations/`) централизованы и используют фабрики для поддержки переводов.
+
+### Структура
+
+- **`lib/validations/transactions.ts`** — схемы для транзакций
+- **`lib/validations/categories.ts`** — схемы для категорий
+- **`lib/validations/accounts.ts`** — схемы для счетов
+- **`lib/validations/auth.ts`** — схемы для аутентификации
+
+### Принципы
+
+- **Фабрики схем**: Схемы создаются через фабрики, принимающие функцию перевода
+- **Переиспользование**: Схемы можно использовать в формах и API
+- **Типобезопасность**: Типы данных выводятся из схем через TypeScript
+
+### Пример использования
+
+```typescript
+import { createTransactionFormSchema } from "@/lib/validations/transactions";
+
+const schema = createTransactionFormSchema(tErrors);
+const form = useForm({
+  resolver: zodResolver(schema),
+  // ...
+});
+```
+
 ## Принципы разработки
 
 1. **Route Groups**: Использование для организации без влияния на URL
@@ -348,6 +425,7 @@ pennora/
 5. **Офлайн-first**: Поддержка офлайн-режима через IndexedDB
 6. **Синхронизация**: Автоматическая синхронизация при наличии сети
 7. **Мультивалютность**: Поддержка нескольких валют с конвертацией
+8. **Разделение ответственности**: Бизнес-логика в сервисах, валидация в схемах, UI в компонентах
 
 ## TODO и будущие улучшения
 

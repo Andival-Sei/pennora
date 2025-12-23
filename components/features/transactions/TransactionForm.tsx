@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useTranslations, useLocale } from "next-intl";
-import { Loader2 } from "lucide-react";
+import { Loader2, CalendarIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,11 +34,10 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ru as dateFnsRu, enUS as dateFnsEn } from "date-fns/locale";
 import { ru as dayPickerRu } from "react-day-picker/locale/ru";
-import { CalendarIcon } from "lucide-react";
 
 import { useTransactions } from "@/lib/hooks/useTransactions";
 import { useCategories } from "@/lib/hooks/useCategories";
-import { Transaction, TransactionInsert } from "@/lib/types/transaction";
+import { Transaction } from "@/lib/types/transaction";
 import { createClient } from "@/lib/db/supabase/client";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -48,16 +46,11 @@ import { fetchAccounts } from "@/lib/query/queries/accounts";
 import { CascadingCategorySelect } from "@/components/features/categories/CascadingCategorySelect";
 import { motion } from "framer-motion";
 import { getErrorMessage } from "@/lib/utils/errorHandler";
-
-type FormValues = {
-  amount: number;
-  type: "income" | "expense" | "transfer";
-  category_id?: string | "__none__";
-  account_id: string;
-  to_account_id?: string;
-  date: Date;
-  description?: string;
-};
+import {
+  createTransactionFormSchema,
+  type TransactionFormValues,
+} from "@/lib/validations/transactions";
+import { TransactionService } from "@/lib/services/transactions";
 
 interface TransactionFormProps {
   initialData?:
@@ -84,37 +77,8 @@ export function TransactionForm({
   const { categories, loading: loadingCategories } = useCategories();
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  // Создаем схему валидации с переводами внутри компонента
-  const formSchema = z
-    .object({
-      amount: z
-        .number()
-        .min(0.01, tErrors("validation.transactions.amountMin")),
-      type: z.enum(["income", "expense", "transfer"]),
-      category_id: z.string().optional().or(z.literal("__none__")),
-      account_id: z
-        .string()
-        .min(1, tErrors("validation.transactions.accountRequired")),
-      to_account_id: z.string().optional(),
-      date: z.date(),
-      description: z.string().optional(),
-    })
-    .refine(
-      (data) => {
-        if (data.type === "transfer") {
-          return (
-            data.to_account_id &&
-            data.to_account_id.length > 0 &&
-            data.to_account_id !== data.account_id
-          );
-        }
-        return true;
-      },
-      {
-        message: tErrors("validation.transactions.toAccountDifferent"),
-        path: ["to_account_id"],
-      }
-    );
+  // Создаем схему валидации с переводами через фабрику
+  const formSchema = createTransactionFormSchema(tErrors);
 
   // Локаль для date-fns и react-day-picker
   const dateFnsLocale = locale === "ru" ? dateFnsRu : dateFnsEn;
@@ -128,8 +92,18 @@ export function TransactionForm({
     gcTime: 30 * 60 * 1000, // 30 минут
   });
 
-  // Создаем валидную дату по умолчанию (сегодняшняя дата, время установлено на начало дня)
-  const getDefaultDate = () => {
+  // Получаем начальные значения для формы через сервис
+  const getInitialFormValues = (): TransactionFormValues => {
+    return TransactionService.getInitialFormValues(initialData);
+  };
+
+  // Получаем пустые значения для сброса формы через сервис
+  const getEmptyFormValues = (): TransactionFormValues => {
+    return TransactionService.getEmptyFormValues();
+  };
+
+  // Получаем валидную дату по умолчанию через сервис
+  const getDefaultDate = (): Date => {
     if (initialData && "date" in initialData && initialData.date) {
       if (typeof initialData.date === "string") {
         return new Date(initialData.date);
@@ -138,52 +112,10 @@ export function TransactionForm({
         return initialData.date;
       }
     }
-    const today = new Date();
-    // Устанавливаем время на начало дня для консистентности
-    today.setHours(0, 0, 0, 0);
-    return today;
+    return TransactionService.getDefaultDate();
   };
 
-  // Определяем, является ли initialData полным Transaction или частичными данными
-  const isFullTransaction = (data: typeof initialData): data is Transaction => {
-    return data !== undefined && "id" in data && data.id !== undefined;
-  };
-
-  // Получаем начальные значения для формы
-  const getInitialFormValues = (): FormValues => {
-    const defaultDate = getDefaultDate();
-    const isFull = isFullTransaction(initialData);
-
-    return {
-      amount: (isFull ? initialData.amount : initialData?.amount) || 0,
-      type: (isFull ? initialData.type : undefined) || "expense",
-      category_id: isFull
-        ? initialData.category_id || "__none__"
-        : initialData?.category_id || "__none__",
-      account_id:
-        (isFull ? initialData.account_id : initialData?.account_id) || "",
-      to_account_id:
-        (isFull ? initialData.to_account_id : initialData?.to_account_id) || "",
-      date: defaultDate,
-      description:
-        (isFull ? initialData.description : initialData?.description) || "",
-    };
-  };
-
-  // Получаем пустые значения для сброса формы
-  const getEmptyFormValues = (): FormValues => {
-    return {
-      amount: 0,
-      type: "expense",
-      category_id: "__none__",
-      account_id: "",
-      to_account_id: "",
-      date: getDefaultDate(),
-      description: "",
-    };
-  };
-
-  const form = useForm<FormValues>({
+  const form = useForm<TransactionFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: getInitialFormValues(),
   });
@@ -198,15 +130,10 @@ export function TransactionForm({
     name: "account_id",
   });
 
-  // Получаем валюту исходного счета
-  const sourceAccount = accounts.find((acc) => acc.id === accountId);
-  const sourceCurrency = sourceAccount?.currency;
-
-  // Фильтруем счета для целевого счета:
-  // 1. Исключаем исходный счет
-  // 2. Показываем только счета с той же валютой (запрещаем переводы между разными валютами)
-  const availableToAccounts = accounts.filter(
-    (acc) => acc.id !== accountId && acc.currency === sourceCurrency
+  // Получаем доступные счета для перевода через сервис
+  const availableToAccounts = TransactionService.getAvailableToAccounts(
+    accounts,
+    accountId
   );
 
   // Сбрасываем целевой счет, если он больше не доступен (например, изменилась валюта исходного счета)
@@ -220,9 +147,9 @@ export function TransactionForm({
         form.setValue("to_account_id", "");
       }
     }
-  }, [accountId, sourceCurrency, transactionType, availableToAccounts, form]);
+  }, [accountId, transactionType, availableToAccounts, form]);
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (values: TransactionFormValues) => {
     try {
       // Получаем пользователя
       const supabase = createClient();
@@ -241,41 +168,15 @@ export function TransactionForm({
         return;
       }
 
-      // Форматируем дату в формат YYYY-MM-DD (без времени, чтобы избежать проблем с часовыми поясами)
-      // Используем локальную дату, а не UTC
-      const transactionDate =
-        values.date instanceof Date ? values.date : getDefaultDate();
-      const year = transactionDate.getFullYear();
-      const month = String(transactionDate.getMonth() + 1).padStart(2, "0");
-      const day = String(transactionDate.getDate()).padStart(2, "0");
-      const dateString = `${year}-${month}-${day}`;
-
-      // Получаем валюту из выбранного счета
-      const selectedAccount = accounts.find(
-        (acc) => acc.id === values.account_id
+      // Преобразуем данные формы в TransactionInsert через сервис
+      const transactionData = TransactionService.prepareTransactionData(
+        values,
+        accounts,
+        user.id
       );
-      const currency = selectedAccount?.currency || "RUB";
-
-      const transactionData: TransactionInsert = {
-        amount: values.amount,
-        type: values.type,
-        category_id:
-          values.type === "transfer" ||
-          values.category_id === "__none__" ||
-          !values.category_id
-            ? null
-            : values.category_id,
-        account_id: values.account_id,
-        to_account_id:
-          values.type === "transfer" ? values.to_account_id || null : null,
-        date: dateString,
-        description: values.description || null,
-        currency,
-        user_id: user.id,
-      };
 
       // Проверяем, есть ли id в initialData (только полные Transaction объекты имеют id)
-      if (isFullTransaction(initialData)) {
+      if (TransactionService.isFullTransaction(initialData)) {
         await updateTransaction(initialData.id, transactionData);
       } else {
         await addTransaction(transactionData);
