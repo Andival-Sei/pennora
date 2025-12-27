@@ -7,6 +7,30 @@ import { queueManager } from "@/lib/sync/queueManager";
 import { isOnline } from "@/lib/utils/network";
 
 /**
+ * Хук для определения необходимости показа статуса синхронизации
+ * Возвращает true, если статус должен отображаться
+ * SSR-безопасный (возвращает false на сервере)
+ */
+export function useSyncStatusVisible(): boolean {
+  const {
+    isOnline: isOnlineState,
+    isSyncing,
+    pendingOperations,
+  } = useSyncStore();
+
+  // На сервере не показываем (предотвращение hydration mismatch)
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  // Показываем статус, если:
+  // - Не онлайн, или
+  // - Есть ожидающие операции, или
+  // - Идет синхронизация
+  return !isOnlineState || pendingOperations > 0 || isSyncing;
+}
+
+/**
  * Хук для работы с синхронизацией данных
  * Предоставляет состояние синхронизации и методы для управления
  */
