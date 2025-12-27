@@ -1,4 +1,9 @@
-import type { Transaction, TransactionInsert } from "@/lib/types/transaction";
+import type {
+  Transaction,
+  TransactionInsert,
+  TransactionItemFormData,
+  TransactionWithItemsInsert,
+} from "@/lib/types/transaction";
 import type { TransactionFormValues } from "@/lib/validations/transactions";
 import type { Database } from "@/lib/db/supabase/types";
 
@@ -200,5 +205,113 @@ export class TransactionService {
       date: this.getDefaultDate(),
       description: "",
     };
+  }
+
+  /**
+   * Проверяет, является ли транзакция split transaction (с несколькими позициями)
+   * @param items - Массив позиций
+   * @returns true если транзакция содержит более одной позиции
+   */
+  static isSplitTransaction(items?: TransactionItemFormData[]): boolean {
+    return Array.isArray(items) && items.length > 1;
+  }
+
+  /**
+   * Вычисляет общую сумму из позиций
+   * @param items - Массив позиций
+   * @returns Общая сумма всех позиций
+   */
+  static calculateTotalFromItems(items: TransactionItemFormData[]): number {
+    return items.reduce((sum, item) => sum + (item.amount || 0), 0);
+  }
+
+  /**
+   * Валидирует соответствие суммы транзакции и суммы позиций
+   * @param totalAmount - Общая сумма транзакции
+   * @param items - Массив позиций
+   * @returns true если суммы совпадают (с погрешностью 0.01)
+   */
+  static validateItemsSum(
+    totalAmount: number,
+    items: TransactionItemFormData[]
+  ): boolean {
+    const itemsSum = this.calculateTotalFromItems(items);
+    // Допускаем погрешность в 1 копейку из-за округления
+    return Math.abs(totalAmount - itemsSum) < 0.01;
+  }
+
+  /**
+   * Подготавливает данные транзакции с позициями для сохранения
+   * @param formValues - Значения формы
+   * @param accounts - Массив всех счетов
+   * @param userId - ID пользователя
+   * @param items - Массив позиций (опционально)
+   * @param defaultCurrency - Валюта по умолчанию
+   * @returns Данные транзакции с позициями для вставки в БД
+   */
+  static prepareTransactionWithItemsData(
+    formValues: TransactionFormValues,
+    accounts: Account[],
+    userId: string,
+    items?: TransactionItemFormData[],
+    defaultCurrency: string = "RUB"
+  ): TransactionWithItemsInsert {
+    // Базовые данные транзакции
+    const baseTransaction = this.prepareTransactionData(
+      formValues,
+      accounts,
+      userId,
+      defaultCurrency
+    );
+
+    // Если есть позиции для split transaction
+    if (items && items.length > 0) {
+      // Для split transaction сумма = сумма позиций
+      const totalAmount = this.calculateTotalFromItems(items);
+
+      // Для split transaction category_id в header = null (категории в items)
+      return {
+        ...baseTransaction,
+        amount: totalAmount,
+        category_id: items.length > 1 ? null : items[0]?.category_id || null,
+        items: items.map((item, index) => ({
+          ...item,
+          sort_order: index,
+        })),
+      };
+    }
+
+    // Обычная транзакция без позиций
+    return baseTransaction;
+  }
+
+  /**
+   * Создаёт пустую позицию для формы
+   * @param sortOrder - Порядок сортировки
+   * @returns Пустая позиция
+   */
+  static createEmptyItem(sortOrder: number = 0): TransactionItemFormData {
+    return {
+      category_id: null,
+      amount: 0,
+      description: null,
+      sort_order: sortOrder,
+    };
+  }
+
+  /**
+   * Преобразует данные из чека в позиции транзакции
+   * @param receiptItems - Позиции из чека
+   * @returns Массив позиций для формы
+   */
+  static convertReceiptItemsToFormData(
+    receiptItems: Array<{ name: string; price: number }>
+  ): TransactionItemFormData[] {
+    return receiptItems.map((item, index) => ({
+      category_id: null, // Категория будет определена позже через category-matcher
+      amount: item.price,
+      description: item.name,
+      sort_order: index,
+    }));
   }
 }

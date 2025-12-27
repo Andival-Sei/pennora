@@ -1,12 +1,135 @@
 import { createClient } from "@/lib/db/supabase/client";
 import { getClientUser } from "@/lib/db/supabase/auth-client";
-import { TransactionWithCategory } from "@/lib/types/transaction";
+import {
+  TransactionWithCategory,
+  TransactionWithItems,
+} from "@/lib/types/transaction";
 
 /**
  * Загружает транзакции пользователя с опциональной фильтрацией по месяцу и году
+ * Включает позиции (items) для split transactions
  * Оптимизировано: использует конкретные поля вместо * для лучшей производительности
  */
 export async function fetchTransactions(filters?: {
+  month?: number;
+  year?: number;
+}): Promise<TransactionWithItems[]> {
+  const user = await getClientUser();
+  if (!user) {
+    throw new Error("Пользователь не авторизован");
+  }
+
+  const supabase = createClient();
+
+  let query = supabase
+    .from("transactions")
+    .select(
+      `
+      id,
+      user_id,
+      account_id,
+      category_id,
+      to_account_id,
+      type,
+      amount,
+      currency,
+      exchange_rate,
+      description,
+      date,
+      created_at,
+      updated_at,
+      category:categories(
+        id,
+        user_id,
+        name,
+        type,
+        icon,
+        color,
+        parent_id,
+        sort_order,
+        is_archived,
+        is_system,
+        created_at,
+        updated_at
+      ),
+      items:transaction_items(
+        id,
+        transaction_id,
+        category_id,
+        amount,
+        description,
+        sort_order,
+        created_at,
+        updated_at,
+        category:categories(
+          id,
+          user_id,
+          name,
+          type,
+          icon,
+          color,
+          parent_id,
+          sort_order,
+          is_archived,
+          is_system,
+          created_at,
+          updated_at
+        )
+      )
+    `
+    )
+    .eq("user_id", user.id);
+
+  // Применяем фильтр по месяцу и году, если они указаны
+  // Используем формат YYYY-MM-DD для корректной фильтрации без проблем с часовыми поясами
+  if (filters?.month !== undefined && filters?.year !== undefined) {
+    // Начало месяца: 1 число выбранного месяца
+    const startDateStr = `${filters.year}-${String(filters.month + 1).padStart(2, "0")}-01`;
+    // Конец месяца: последний день выбранного месяца (первый день следующего месяца минус 1)
+    const lastDay = new Date(filters.year, filters.month + 1, 0).getDate();
+    const endDateStr = `${filters.year}-${String(filters.month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    query = query.gte("date", startDateStr).lte("date", endDateStr);
+  }
+
+  // Сортируем по дате транзакции (date) по убыванию, чтобы новые транзакции были сверху
+  const { data, error } = await query.order("date", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  // Преобразуем данные в нужный формат
+  return (data || []).map((item) => {
+    // Преобразуем category из массива в объект или null
+    const category = Array.isArray(item.category)
+      ? item.category[0] || null
+      : item.category || null;
+
+    // Преобразуем items с их категориями
+    const mappedItems = (item.items || []).map(
+      (i: Record<string, unknown>) => ({
+        ...i,
+        sort_order: (i.sort_order as number) ?? 0,
+        category: Array.isArray(i.category)
+          ? (i.category as Record<string, unknown>[])[0] || null
+          : i.category || null,
+      })
+    );
+
+    const items = mappedItems.sort((a, b) => a.sort_order - b.sort_order);
+
+    return {
+      ...item,
+      category,
+      items,
+    };
+  }) as TransactionWithItems[];
+}
+
+/**
+ * Загружает транзакции без items (для обратной совместимости)
+ */
+export async function fetchTransactionsSimple(filters?: {
   month?: number;
   year?: number;
 }): Promise<TransactionWithCategory[]> {
@@ -52,25 +175,19 @@ export async function fetchTransactions(filters?: {
     )
     .eq("user_id", user.id);
 
-  // Применяем фильтр по месяцу и году, если они указаны
-  // Используем формат YYYY-MM-DD для корректной фильтрации без проблем с часовыми поясами
   if (filters?.month !== undefined && filters?.year !== undefined) {
-    // Начало месяца: 1 число выбранного месяца
     const startDateStr = `${filters.year}-${String(filters.month + 1).padStart(2, "0")}-01`;
-    // Конец месяца: последний день выбранного месяца (первый день следующего месяца минус 1)
     const lastDay = new Date(filters.year, filters.month + 1, 0).getDate();
     const endDateStr = `${filters.year}-${String(filters.month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
     query = query.gte("date", startDateStr).lte("date", endDateStr);
   }
 
-  // Сортируем по дате транзакции (date) по убыванию, чтобы новые транзакции были сверху
   const { data, error } = await query.order("date", { ascending: false });
 
   if (error) {
     throw error;
   }
 
-  // Преобразуем category из массива в объект или null для каждой транзакции
   return (data || []).map((item) => ({
     ...item,
     category: Array.isArray(item.category)

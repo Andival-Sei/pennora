@@ -159,9 +159,9 @@ export function getErrorTranslationKey(error: unknown): string {
   // Проверяем сетевые ошибки (высший приоритет)
   if (isNetworkError(error)) {
     if (typeof navigator !== "undefined" && !navigator.onLine) {
-      return "network.offline";
+      return "errors.network.offline";
     }
-    return "network.failed";
+    return "errors.network.failed";
   }
 
   // Проверяем ошибки аутентификации (перед общими ошибками Supabase)
@@ -179,25 +179,25 @@ export function getErrorTranslationKey(error: unknown): string {
     // Проверяем сообщение на наличие ключевых слов
     const message = getSupabaseErrorMessage(error).toLowerCase();
     if (message.includes("network") || message.includes("connection")) {
-      return "network.failed";
+      return "errors.network.failed";
     }
     if (message.includes("timeout")) {
-      return "network.timeout";
+      return "errors.network.timeout";
     }
     if (
       message.includes("unauthorized") ||
       message.includes("not authenticated")
     ) {
-      return "mutations.unauthorized";
+      return "errors.mutations.unauthorized";
     }
     if (message.includes("forbidden") || message.includes("permission")) {
-      return "mutations.forbidden";
+      return "errors.mutations.forbidden";
     }
     if (message.includes("not found") || message.includes("does not exist")) {
-      return "mutations.notFound";
+      return "errors.mutations.notFound";
     }
     if (message.includes("conflict") || message.includes("duplicate")) {
-      return "mutations.conflict";
+      return "errors.mutations.conflict";
     }
   }
 
@@ -205,13 +205,13 @@ export function getErrorTranslationKey(error: unknown): string {
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
     if (message.includes("network") || message.includes("fetch")) {
-      return "network.failed";
+      return "errors.network.failed";
     }
     if (message.includes("timeout")) {
-      return "network.timeout";
+      return "errors.network.timeout";
     }
     if (message.includes("unauthorized")) {
-      return "mutations.unauthorized";
+      return "errors.mutations.unauthorized";
     }
   }
 

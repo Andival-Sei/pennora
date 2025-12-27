@@ -27,7 +27,7 @@ import { useTransactions } from "@/lib/hooks/useTransactions";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchTransactions } from "@/lib/query/queries/transactions";
 import { fetchAccounts } from "@/lib/query/queries/accounts";
-import { TransactionWithCategory } from "@/lib/types/transaction";
+import type { TransactionWithItems } from "@/lib/types/transaction";
 import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 import { cn } from "@/lib/utils";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -85,9 +85,9 @@ interface TransactionListProps {
 
 // Мемоизированный компонент для строки таблицы (десктоп)
 interface TransactionRowProps {
-  transaction: TransactionWithCategory;
+  transaction: TransactionWithItems;
   getAccountName: (accountId: string | null) => string;
-  onEdit: (transaction: TransactionWithCategory) => void;
+  onEdit: (transaction: TransactionWithItems) => void;
   onDelete: (id: string) => void;
   t: (key: string) => string;
 }
@@ -100,6 +100,7 @@ const TransactionRow = memo(function TransactionRow({
   t,
 }: TransactionRowProps) {
   const iconKey = transaction.category?.icon ?? null;
+  const hasItems = transaction.items && transaction.items.length > 1;
 
   const handleEdit = useCallback(() => {
     onEdit(transaction);
@@ -120,6 +121,14 @@ const TransactionRow = memo(function TransactionRow({
               {t("list.transferFrom")} {getAccountName(transaction.account_id)}{" "}
               → {t("list.transferTo")}{" "}
               {getAccountName(transaction.to_account_id)}
+            </span>
+          </div>
+        ) : hasItems ? (
+          // Отображаем количество позиций для split transactions
+          <div className="flex items-center gap-2">
+            <LucideIcons.Package className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              {transaction.items!.length} {t("items.title")}
             </span>
           </div>
         ) : (
@@ -178,9 +187,9 @@ const TransactionRow = memo(function TransactionRow({
 
 // Мемоизированный компонент для карточки (мобильная версия)
 interface TransactionCardProps {
-  transaction: TransactionWithCategory;
+  transaction: TransactionWithItems;
   getAccountName: (accountId: string | null) => string;
-  onEdit: (transaction: TransactionWithCategory) => void;
+  onEdit: (transaction: TransactionWithItems) => void;
   onDelete: (id: string) => void;
   t: (key: string) => string;
 }
@@ -192,7 +201,9 @@ const TransactionCard = memo(function TransactionCard({
   onDelete,
   t,
 }: TransactionCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const iconKey = transaction.category?.icon ?? null;
+  const hasItems = transaction.items && transaction.items.length > 1;
 
   const handleEdit = useCallback(() => {
     onEdit(transaction);
@@ -219,6 +230,24 @@ const TransactionCard = memo(function TransactionCard({
                 {getAccountName(transaction.to_account_id)}
               </span>
             </div>
+          ) : hasItems ? (
+            // Отображаем количество позиций для split transactions
+            <button
+              type="button"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
+            >
+              <LucideIcons.Package className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">
+                {transaction.items!.length} {t("items.title")}
+              </span>
+              <motion.span
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <LucideIcons.ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </motion.span>
+            </button>
           ) : (
             <div className="flex items-center gap-2">
               <CategoryIcon
@@ -276,6 +305,41 @@ const TransactionCard = memo(function TransactionCard({
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Раскрывающийся список позиций */}
+      <AnimatePresence>
+        {hasItems && isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="border-t pt-3 mt-2 space-y-2"
+          >
+            {transaction.items!.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between text-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <CategoryIcon
+                    iconKey={item.category?.icon ?? null}
+                    className="h-3 w-3 text-muted-foreground"
+                  />
+                  <span className="text-muted-foreground">
+                    {item.description ||
+                      item.category?.name ||
+                      t("uncategorized")}
+                  </span>
+                </div>
+                <span className="text-red-600 font-medium">
+                  -{formatCurrency(item.amount, transaction.currency)}
+                </span>
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 });
@@ -287,7 +351,7 @@ export const TransactionList = memo(function TransactionList({
   const tCommon = useTranslations("common");
   const { deleteTransaction } = useTransactions();
   const [editingTransaction, setEditingTransaction] =
-    useState<TransactionWithCategory | null>(null);
+    useState<TransactionWithItems | null>(null);
   const [deletingTransactionId, setDeletingTransactionId] = useState<
     string | null
   >(null);
@@ -344,7 +408,7 @@ export const TransactionList = memo(function TransactionList({
 
   // Мемоизируем обработчики для редактирования и удаления
   const handleEditTransaction = useCallback(
-    (transaction: TransactionWithCategory) => {
+    (transaction: TransactionWithItems) => {
       setEditingTransaction(transaction);
     },
     []
@@ -422,7 +486,7 @@ export const TransactionList = memo(function TransactionList({
         open={!!editingTransaction}
         onOpenChange={(open) => !open && setEditingTransaction(null)}
       >
-        <DialogContent>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>{t("editTitle")}</DialogTitle>
           </DialogHeader>

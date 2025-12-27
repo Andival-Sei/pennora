@@ -19,8 +19,18 @@ import { TransactionForm } from "./TransactionForm";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { matchCategoryByDescription } from "@/lib/receipt/category-matcher";
 import type { ReceiptProcessingResult } from "@/lib/receipt/types";
+import type { TransactionItemFormData } from "@/lib/types/transaction";
 
 type InputMethod = "upload" | "camera" | "manual" | null;
+
+// Тип для предзаполненных данных с поддержкой items
+interface PrefilledData {
+  amount: number;
+  date: Date;
+  description: string | null;
+  categoryId?: string | null;
+  items?: TransactionItemFormData[];
+}
 
 interface ReceiptInputDialogProps {
   open: boolean;
@@ -36,12 +46,9 @@ export function ReceiptInputDialog({
   const t = useTranslations("receipt");
   const { categories } = useCategories();
   const [inputMethod, setInputMethod] = useState<InputMethod>(null);
-  const [prefilledData, setPrefilledData] = useState<{
-    amount: number;
-    date: Date;
-    description: string | null;
-    categoryId?: string | null;
-  } | null>(null);
+  const [prefilledData, setPrefilledData] = useState<PrefilledData | null>(
+    null
+  );
 
   const handleMethodSelect = (method: InputMethod) => {
     setInputMethod(method);
@@ -59,12 +66,33 @@ export function ReceiptInputDialog({
           )
         : null;
 
+      // Если в чеке есть несколько позиций, создаём items
+      let items: TransactionItemFormData[] | undefined;
+      if (result.data.items && result.data.items.length > 0) {
+        items = result.data.items.map((item, index) => {
+          // Пытаемся определить категорию для каждой позиции
+          const itemCategoryId = matchCategoryByDescription(
+            item.name,
+            categories,
+            "expense"
+          );
+
+          return {
+            category_id: itemCategoryId || null,
+            amount: item.price,
+            description: item.name,
+            sort_order: index,
+          };
+        });
+      }
+
       // Предзаполняем данные для формы
       setPrefilledData({
         amount: result.data.amount,
         date: result.data.date,
         description: result.data.description,
         categoryId: suggestedCategoryId || null,
+        items: items && items.length > 0 ? items : undefined,
       });
       // Переключаемся на ручной ввод с предзаполненными данными
       setInputMethod("manual");
@@ -254,6 +282,7 @@ export function ReceiptInputDialog({
                           date: prefilledData.date,
                           description: prefilledData.description || undefined,
                           category_id: prefilledData.categoryId || undefined,
+                          items: prefilledData.items,
                         }
                       : undefined
                   }

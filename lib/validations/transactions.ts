@@ -6,11 +6,40 @@ import * as z from "zod";
 export type TranslationFn = (key: string) => string;
 
 /**
+ * Создает схему валидации для позиции транзакции (item)
+ * @param tErrors - Функция перевода для сообщений об ошибках
+ * @returns Zod схема для валидации позиции
+ */
+export function createTransactionItemSchema(tErrors: TranslationFn) {
+  return z.object({
+    category_id: z.string().nullable().optional(),
+    amount: z
+      .union([
+        z.number().min(0.01, tErrors("validation.transactions.amountMin")),
+        z.undefined(),
+      ])
+      .optional(),
+    description: z.string().nullable().optional(),
+    sort_order: z.number().optional(),
+  });
+}
+
+/**
+ * Тип данных позиции транзакции (выводится из схемы)
+ */
+export type TransactionItemFormValues = z.infer<
+  ReturnType<typeof createTransactionItemSchema>
+>;
+
+/**
  * Создает схему валидации для формы транзакции
+ * Поддерживает как простые транзакции, так и транзакции с позициями (items)
  * @param tErrors - Функция перевода для сообщений об ошибках
  * @returns Zod схема для валидации формы транзакции
  */
 export function createTransactionFormSchema(tErrors: TranslationFn) {
+  const itemSchema = createTransactionItemSchema(tErrors);
+
   return z
     .object({
       amount: z
@@ -24,6 +53,8 @@ export function createTransactionFormSchema(tErrors: TranslationFn) {
       to_account_id: z.string().optional(),
       date: z.date(),
       description: z.string().optional(),
+      // Позиции для split transaction (только для расходов)
+      items: z.array(itemSchema).optional(),
     })
     .refine(
       (data) => {
@@ -39,6 +70,31 @@ export function createTransactionFormSchema(tErrors: TranslationFn) {
       {
         message: tErrors("validation.transactions.toAccountDifferent"),
         path: ["to_account_id"],
+      }
+    )
+    .refine(
+      (data) => {
+        // Если есть items для expense, проверяем что сумма items = amount
+        if (data.type === "expense" && data.items && data.items.length > 0) {
+          // Проверяем, что все позиции имеют валидный amount
+          const hasInvalidItems = data.items.some(
+            (item) => !item.amount || item.amount < 0.01
+          );
+          if (hasInvalidItems) {
+            return false;
+          }
+          const itemsSum = data.items.reduce(
+            (sum, item) => sum + (item.amount || 0),
+            0
+          );
+          // Допускаем погрешность в 1 копейку
+          return Math.abs(data.amount - itemsSum) < 0.01;
+        }
+        return true;
+      },
+      {
+        message: tErrors("validation.transactions.itemsSumMismatch"),
+        path: ["items"],
       }
     );
 }

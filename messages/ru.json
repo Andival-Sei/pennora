@@ -231,7 +231,8 @@
       "transactions": {
         "amountMin": "Сумма должна быть больше 0",
         "accountRequired": "Выберите счет",
-        "toAccountDifferent": "Целевой счёт должен отличаться от исходного"
+        "toAccountDifferent": "Целевой счёт должен отличаться от исходного",
+        "itemsSumMismatch": "Сумма позиций должна равняться общей сумме транзакции"
       },
       "generic": {
         "required": "Это поле обязательно",
@@ -395,6 +396,34 @@
     "noTransactions": "Транзакций пока нет",
     "deleteConfirm": "Вы уверены, что хотите удалить эту транзакцию?",
     "uncategorized": "Без категории",
+    "wizard": {
+      "title": "Новая транзакция",
+      "description": "Создайте новую транзакцию",
+      "steps": {
+        "type": "Выберите тип",
+        "expenseMode": "Тип расхода",
+        "inputMethod": "Способ ввода",
+        "formIncome": "Новый доход",
+        "formExpenseSimple": "Новый расход",
+        "formExpenseDetailed": "Чек с позициями",
+        "formTransfer": "Новый перевод"
+      },
+      "types": {
+        "income": "Доход",
+        "incomeDesc": "Зарплата, подарки, возвраты",
+        "expense": "Расход",
+        "expenseDesc": "Покупки, оплата услуг",
+        "transfer": "Перевод",
+        "transferDesc": "Между своими счетами"
+      },
+      "expenseMode": {
+        "simple": "Простая покупка",
+        "simpleDesc": "Одна категория, одна сумма",
+        "detailed": "Чек с позициями",
+        "detailedDesc": "Несколько товаров с разными категориями"
+      },
+      "needsTwoAccounts": "Нужно 2+ счёта"
+    },
     "list": {
       "date": "Дата",
       "category": "Категория",
@@ -434,6 +463,23 @@
       "toAccountPlaceholder": "Выберите целевой счёт",
       "toAccountError": "Выберите целевой счёт",
       "toAccountSameError": "Целевой счёт должен отличаться от исходного"
+    },
+    "items": {
+      "title": "Позиции",
+      "add": "Добавить позицию",
+      "remove": "Удалить позицию",
+      "category": "Категория",
+      "amount": "Сумма",
+      "description": "Название",
+      "descriptionPlaceholder": "Например: Молоко 3.2%",
+      "total": "Итого",
+      "count": "{count} позиций",
+      "countOne": "{count} позиция",
+      "countFew": "{count} позиции",
+      "expand": "Показать позиции",
+      "collapse": "Скрыть позиции",
+      "empty": "Нет позиций",
+      "addFirst": "Добавьте первую позицию"
     }
   },
   "categories": {

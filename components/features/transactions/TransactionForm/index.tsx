@@ -5,6 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -22,25 +23,33 @@ import { TransactionService } from "@/lib/services/transactions";
 import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 import { useTransactions } from "@/lib/hooks/useTransactions";
 import { useCategories } from "@/lib/hooks/useCategories";
-import { Transaction } from "@/lib/types/transaction";
+import type {
+  TransactionItemFormData,
+  TransactionWithItems,
+} from "@/lib/types/transaction";
 import { TransactionTypeField } from "./TransactionTypeField";
 import { TransactionAmountField } from "./TransactionAmountField";
 import { TransactionAccountFields } from "./TransactionAccountFields";
 import { TransactionCategoryField } from "./TransactionCategoryField";
 import { TransactionDateField } from "./TransactionDateField";
 import { TransactionDescriptionField } from "./TransactionDescriptionField";
+import { TransactionItemsField } from "./TransactionItemsField";
+
+// Расширенный тип для initialData с поддержкой items
+type InitialDataWithItems =
+  | TransactionWithItems
+  | Partial<{
+      amount: number;
+      date: Date;
+      description?: string;
+      category_id?: string;
+      account_id?: string;
+      to_account_id?: string;
+      items?: TransactionItemFormData[];
+    }>;
 
 interface TransactionFormProps {
-  initialData?:
-    | Transaction
-    | Partial<{
-        amount: number;
-        date: Date;
-        description?: string;
-        category_id?: string;
-        account_id?: string;
-        to_account_id?: string;
-      }>;
+  initialData?: InitialDataWithItems;
   onSuccess?: () => void;
 }
 
@@ -69,12 +78,35 @@ export function TransactionForm({
 
   // Получаем начальные значения для формы через сервис
   const getInitialFormValues = (): TransactionFormValues => {
-    return TransactionService.getInitialFormValues(initialData);
+    const baseValues = TransactionService.getInitialFormValues(initialData);
+
+    // Если есть items в initialData, добавляем их
+    if (initialData && "items" in initialData && initialData.items) {
+      // Преобразуем items из TransactionWithItems в формат формы
+      const formItems = Array.isArray(initialData.items)
+        ? initialData.items.map((item, index) => ({
+            category_id: item.category_id || null,
+            amount: item.amount || 0,
+            description: item.description || null,
+            sort_order: item.sort_order ?? index,
+          }))
+        : [];
+
+      return {
+        ...baseValues,
+        items: formItems.length > 0 ? formItems : undefined,
+      };
+    }
+
+    return baseValues;
   };
 
   // Получаем пустые значения для сброса формы через сервис
   const getEmptyFormValues = (): TransactionFormValues => {
-    return TransactionService.getEmptyFormValues();
+    return {
+      ...TransactionService.getEmptyFormValues(),
+      items: undefined,
+    };
   };
 
   // Получаем валидную дату по умолчанию через сервис
@@ -93,6 +125,7 @@ export function TransactionForm({
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: getInitialFormValues(),
+    mode: "onChange",
   });
 
   const isLoading = form.formState.isSubmitting;
@@ -143,16 +176,33 @@ export function TransactionForm({
         return;
       }
 
+      // Подготавливаем items для expense транзакций, фильтруем позиции без amount
+      const items =
+        values.type === "expense" && values.items && values.items.length > 0
+          ? values.items
+              .filter(
+                (item) => item.amount !== undefined && item.amount >= 0.01
+              )
+              .map((item, index) => ({
+                category_id: item.category_id ?? null,
+                amount: item.amount!,
+                description: item.description ?? null,
+                sort_order: item.sort_order ?? index,
+              }))
+          : undefined;
+
       // Преобразуем данные формы в TransactionInsert через сервис
-      const transactionData = TransactionService.prepareTransactionData(
-        values,
-        accounts,
-        user.id
-      );
+      const transactionData =
+        TransactionService.prepareTransactionWithItemsData(
+          values,
+          accounts,
+          user.id,
+          items
+        );
 
       // Проверяем, есть ли id в initialData (только полные Transaction объекты имеют id)
       if (TransactionService.isFullTransaction(initialData)) {
-        await updateTransaction(initialData.id, transactionData);
+        await updateTransaction(initialData.id, transactionData, items);
       } else {
         await addTransaction(transactionData);
       }
@@ -212,7 +262,11 @@ export function TransactionForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4"
+        noValidate
+      >
         <div className="grid grid-cols-2 gap-4">
           <TransactionTypeField form={form} accountsCount={accounts.length} />
           <TransactionAmountField form={form} />
@@ -239,13 +293,39 @@ export function TransactionForm({
 
         <TransactionDescriptionField form={form} />
 
+        {/* Секция позиций для расходов (split transaction) */}
+        <AnimatePresence mode="wait">
+          {transactionType === "expense" && (
+            <motion.div
+              key="items-section"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <TransactionItemsField
+                form={form}
+                categories={categories}
+                loadingCategories={loadingCategories}
+                currency={
+                  accounts.find((a) => a.id === accountId)?.currency || "RUB"
+                }
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {form.formState.errors.root && (
           <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
             {form.formState.errors.root.message}
           </div>
         )}
 
-        <Button type="submit" disabled={isLoading} className="w-full">
+        <Button
+          type="submit"
+          disabled={isLoading || !form.formState.isValid}
+          className="w-full"
+        >
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {initialData && "id" in initialData ? t("update") : t("create")}
         </Button>

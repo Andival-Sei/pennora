@@ -231,7 +231,8 @@
       "transactions": {
         "amountMin": "Amount must be greater than 0",
         "accountRequired": "Please select an account",
-        "toAccountDifferent": "Destination account must differ from source"
+        "toAccountDifferent": "Destination account must differ from source",
+        "itemsSumMismatch": "Items total must equal the transaction amount"
       },
       "generic": {
         "required": "This field is required",
@@ -395,6 +396,34 @@
     "noTransactions": "No transactions yet",
     "deleteConfirm": "Are you sure you want to delete this transaction?",
     "uncategorized": "Uncategorized",
+    "wizard": {
+      "title": "New Transaction",
+      "description": "Create a new transaction",
+      "steps": {
+        "type": "Choose Type",
+        "expenseMode": "Expense Type",
+        "inputMethod": "Input Method",
+        "formIncome": "New Income",
+        "formExpenseSimple": "New Expense",
+        "formExpenseDetailed": "Receipt with Items",
+        "formTransfer": "New Transfer"
+      },
+      "types": {
+        "income": "Income",
+        "incomeDesc": "Salary, gifts, refunds",
+        "expense": "Expense",
+        "expenseDesc": "Purchases, services",
+        "transfer": "Transfer",
+        "transferDesc": "Between your accounts"
+      },
+      "expenseMode": {
+        "simple": "Simple Purchase",
+        "simpleDesc": "One category, one amount",
+        "detailed": "Receipt with Items",
+        "detailedDesc": "Multiple items with different categories"
+      },
+      "needsTwoAccounts": "Need 2+ accounts"
+    },
     "list": {
       "date": "Date",
       "category": "Category",
@@ -434,6 +463,23 @@
       "toAccountPlaceholder": "Select destination account",
       "toAccountError": "Select destination account",
       "toAccountSameError": "Destination account must differ from source"
+    },
+    "items": {
+      "title": "Items",
+      "add": "Add item",
+      "remove": "Remove item",
+      "category": "Category",
+      "amount": "Amount",
+      "description": "Description",
+      "descriptionPlaceholder": "e.g., Milk 3.2%",
+      "total": "Total",
+      "count": "{count} items",
+      "countOne": "{count} item",
+      "countFew": "{count} items",
+      "expand": "Show items",
+      "collapse": "Hide items",
+      "empty": "No items",
+      "addFirst": "Add your first item"
     }
   },
   "categories": {

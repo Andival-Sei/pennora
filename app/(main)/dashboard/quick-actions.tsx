@@ -6,7 +6,7 @@ import { Plus, Wallet, Receipt, FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/motion";
 import { useTranslations } from "next-intl";
-import { ReceiptInputDialog } from "@/components/features/transactions/ReceiptInputDialog";
+import { TransactionWizard } from "@/components/features/transactions/TransactionWizard";
 
 export function QuickActions() {
   const t = useTranslations("dashboard");
@@ -19,7 +19,7 @@ export function QuickActions() {
           <Plus className="h-4 w-4" />
           {t("quickActions.addTransaction")}
         </Button>
-        <ReceiptInputDialog
+        <TransactionWizard
           open={open}
           onOpenChange={setOpen}
           onSuccess={() => {

@@ -8,7 +8,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/motion";
 import { TransactionList } from "./TransactionList";
-import { ReceiptInputDialog } from "./ReceiptInputDialog";
+import { TransactionWizard } from "./TransactionWizard";
 import { MonthYearSelector } from "./MonthYearSelector";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchAvailableMonthsAndYears } from "@/lib/query/queries/transactions";
@@ -77,7 +77,7 @@ export function TransactionPageContent() {
                 <Plus className="mr-2 h-4 w-4" />
                 {t("add")}
               </Button>
-              <ReceiptInputDialog
+              <TransactionWizard
                 open={open}
                 onOpenChange={setOpen}
                 onSuccess={() => {
