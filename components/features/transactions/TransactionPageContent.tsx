@@ -40,18 +40,14 @@ export function TransactionPageContent() {
   );
   const availableYears = availableData?.years || [];
 
-  // Вычисляем начальное значение месяца
+  // Вычисляем начальное значение месяца - всегда используем текущий месяц/год
   const initialMonthFilter = useMemo(() => {
-    if (availableMonths.length > 0) {
-      return availableMonths[0];
-    }
-    // Если транзакций нет, используем текущий месяц/год
     const currentDate = new Date();
     return {
       month: currentDate.getMonth(),
       year: currentDate.getFullYear(),
     };
-  }, [availableMonths]);
+  }, []);
 
   const [monthFilter, setMonthFilter] = useState<{
     month: number;

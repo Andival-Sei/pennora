@@ -53,19 +53,18 @@ export async function fetchTransactions(filters?: {
     .eq("user_id", user.id);
 
   // Применяем фильтр по месяцу и году, если они указаны
+  // Используем формат YYYY-MM-DD для корректной фильтрации без проблем с часовыми поясами
   if (filters?.month !== undefined && filters?.year !== undefined) {
-    const startDate = new Date(filters.year, filters.month, 1);
-    const endDate = new Date(filters.year, filters.month + 1, 0, 23, 59, 59);
-    query = query
-      .gte("date", startDate.toISOString())
-      .lte("date", endDate.toISOString());
+    // Начало месяца: 1 число выбранного месяца
+    const startDateStr = `${filters.year}-${String(filters.month + 1).padStart(2, "0")}-01`;
+    // Конец месяца: последний день выбранного месяца (первый день следующего месяца минус 1)
+    const lastDay = new Date(filters.year, filters.month + 1, 0).getDate();
+    const endDateStr = `${filters.year}-${String(filters.month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    query = query.gte("date", startDateStr).lte("date", endDateStr);
   }
 
-  // Сортируем по дате создания (created_at) по убыванию, чтобы новые транзакции были сверху
-  // Если даты создания одинаковые, сортируем по дате транзакции
-  const { data, error } = await query
-    .order("created_at", { ascending: false })
-    .order("date", { ascending: false });
+  // Сортируем по дате транзакции (date) по убыванию, чтобы новые транзакции были сверху
+  const { data, error } = await query.order("date", { ascending: false });
 
   if (error) {
     throw error;
@@ -173,8 +172,10 @@ export async function fetchMonthlyStatistics(filters?: {
   const year = filters?.year ?? currentDate.getFullYear();
 
   // Вычисляем диапазон дат для месяца
-  const startDate = new Date(year, month, 1);
-  const endDate = new Date(year, month + 1, 0, 23, 59, 59);
+  // Используем формат YYYY-MM-DD для корректной фильтрации без проблем с часовыми поясами
+  const startDateStr = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const endDateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 
   // Загружаем транзакции за месяц, исключая переводы
   const { data, error } = await supabase
@@ -182,8 +183,8 @@ export async function fetchMonthlyStatistics(filters?: {
     .select("amount, currency, type")
     .eq("user_id", user.id)
     .in("type", ["income", "expense"]) // Исключаем transfer
-    .gte("date", startDate.toISOString())
-    .lte("date", endDate.toISOString());
+    .gte("date", startDateStr)
+    .lte("date", endDateStr);
 
   if (error) {
     throw error;
