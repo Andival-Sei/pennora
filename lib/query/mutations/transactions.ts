@@ -107,6 +107,7 @@ function findTempTransaction(
 
 /**
  * Создает новую транзакцию
+ * Оптимизировано: использует конкретные поля вместо * для лучшей производительности
  */
 async function createTransaction(
   transaction: TransactionInsert
@@ -118,8 +119,33 @@ async function createTransaction(
     .insert(transaction)
     .select(
       `
-      *,
-      category:categories(*)
+      id,
+      user_id,
+      account_id,
+      category_id,
+      to_account_id,
+      type,
+      amount,
+      currency,
+      exchange_rate,
+      description,
+      date,
+      created_at,
+      updated_at,
+      category:categories(
+        id,
+        user_id,
+        name,
+        type,
+        icon,
+        color,
+        parent_id,
+        sort_order,
+        is_archived,
+        is_system,
+        created_at,
+        updated_at
+      )
     `
     )
     .single();
@@ -128,11 +154,19 @@ async function createTransaction(
     throw error;
   }
 
-  return data as TransactionWithCategory;
+  // Преобразуем category из массива в объект или null
+  const result = {
+    ...data,
+    category: Array.isArray(data.category)
+      ? data.category[0] || null
+      : data.category || null,
+  };
+  return result as TransactionWithCategory;
 }
 
 /**
  * Обновляет существующую транзакцию
+ * Оптимизировано: использует конкретные поля вместо * для лучшей производительности
  */
 async function updateTransaction(
   id: string,
@@ -146,8 +180,33 @@ async function updateTransaction(
     .eq("id", id)
     .select(
       `
-      *,
-      category:categories(*)
+      id,
+      user_id,
+      account_id,
+      category_id,
+      to_account_id,
+      type,
+      amount,
+      currency,
+      exchange_rate,
+      description,
+      date,
+      created_at,
+      updated_at,
+      category:categories(
+        id,
+        user_id,
+        name,
+        type,
+        icon,
+        color,
+        parent_id,
+        sort_order,
+        is_archived,
+        is_system,
+        created_at,
+        updated_at
+      )
     `
     )
     .single();
@@ -156,7 +215,14 @@ async function updateTransaction(
     throw error;
   }
 
-  return data as TransactionWithCategory;
+  // Преобразуем category из массива в объект или null
+  const result = {
+    ...data,
+    category: Array.isArray(data.category)
+      ? data.category[0] || null
+      : data.category || null,
+  };
+  return result as TransactionWithCategory;
 }
 
 /**

@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/db/supabase/client";
+import { getClientUser } from "@/lib/db/supabase/auth-client";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { queryKeys } from "../keys";
@@ -16,27 +17,27 @@ type AccountUpdate = Database["public"]["Tables"]["accounts"]["Update"];
 
 /**
  * Обновляет существующий счёт
+ * Оптимизировано: использует getClientUser() и конкретные поля
  */
 async function updateAccount(
   id: string,
   updates: AccountUpdate
 ): Promise<Account> {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getClientUser();
   if (!user) {
     throw new Error("User not authenticated");
   }
+
+  const supabase = createClient();
 
   const { data, error } = await supabase
     .from("accounts")
     .update(updates)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select()
+    .select(
+      "id, user_id, name, type, currency, balance, icon, color, is_archived, created_at, updated_at"
+    )
     .single();
 
   if (error) {

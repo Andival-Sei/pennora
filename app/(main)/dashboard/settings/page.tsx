@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/db/supabase/client";
 import { Loader2 } from "lucide-react";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";

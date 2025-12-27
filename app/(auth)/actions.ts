@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/db/supabase/server";
 import { getErrorTranslationKey } from "@/lib/utils/errorHandler";
 import { saveInitialSettings } from "@/lib/settings/save-initial-settings";
 import { getAppUrl } from "@/lib/utils";

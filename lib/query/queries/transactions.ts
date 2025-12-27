@@ -1,29 +1,53 @@
 import { createClient } from "@/lib/db/supabase/client";
+import { getClientUser } from "@/lib/db/supabase/auth-client";
 import { TransactionWithCategory } from "@/lib/types/transaction";
 
 /**
  * Загружает транзакции пользователя с опциональной фильтрацией по месяцу и году
+ * Оптимизировано: использует конкретные поля вместо * для лучшей производительности
  */
 export async function fetchTransactions(filters?: {
   month?: number;
   year?: number;
 }): Promise<TransactionWithCategory[]> {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getClientUser();
   if (!user) {
     throw new Error("Пользователь не авторизован");
   }
+
+  const supabase = createClient();
 
   let query = supabase
     .from("transactions")
     .select(
       `
-      *,
-      category:categories(*)
+      id,
+      user_id,
+      account_id,
+      category_id,
+      to_account_id,
+      type,
+      amount,
+      currency,
+      exchange_rate,
+      description,
+      date,
+      created_at,
+      updated_at,
+      category:categories(
+        id,
+        user_id,
+        name,
+        type,
+        icon,
+        color,
+        parent_id,
+        sort_order,
+        is_archived,
+        is_system,
+        created_at,
+        updated_at
+      )
     `
     )
     .eq("user_id", user.id);
@@ -47,25 +71,29 @@ export async function fetchTransactions(filters?: {
     throw error;
   }
 
-  return (data || []) as TransactionWithCategory[];
+  // Преобразуем category из массива в объект или null для каждой транзакции
+  return (data || []).map((item) => ({
+    ...item,
+    category: Array.isArray(item.category)
+      ? item.category[0] || null
+      : item.category || null,
+  })) as TransactionWithCategory[];
 }
 
 /**
  * Получает доступные месяцы и годы для фильтрации транзакций
+ * Оптимизировано: загружает только поле date для минимизации данных
  */
 export async function fetchAvailableMonthsAndYears(): Promise<{
   months: Array<{ month: number; year: number }>;
   years: number[];
 }> {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getClientUser();
   if (!user) {
     return { months: [], years: [] };
   }
+
+  const supabase = createClient();
 
   // Получаем все транзакции пользователя
   const { data, error } = await supabase
@@ -126,20 +154,18 @@ export interface MonthlyStatistics {
  * Получает статистику транзакций за указанный месяц
  * Возвращает агрегированные суммы доходов и расходов
  * Исключает переводы (transfer) из статистики
+ * Оптимизировано: загружает только необходимые поля (amount, currency, type)
  */
 export async function fetchMonthlyStatistics(filters?: {
   month?: number;
   year?: number;
 }): Promise<MonthlyStatistics> {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getClientUser();
   if (!user) {
     throw new Error("Пользователь не авторизован");
   }
+
+  const supabase = createClient();
 
   // Определяем месяц и год для фильтрации
   const currentDate = new Date();

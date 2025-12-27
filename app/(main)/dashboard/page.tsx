@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/db/supabase/server";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";

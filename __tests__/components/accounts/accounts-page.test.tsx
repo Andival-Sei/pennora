@@ -9,7 +9,7 @@ const mockSelect = vi.fn();
 const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
 
-vi.mock("@/lib/supabase/client", () => ({
+vi.mock("@/lib/db/supabase/client", () => ({
   createClient: vi.fn(() => ({
     auth: {
       getUser: mockGetUser,

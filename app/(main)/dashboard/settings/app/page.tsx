@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useTheme } from "@/providers";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/db/supabase/client";
 import { setLocale } from "@/i18n/actions";
 import { signOut } from "@/app/(auth)/actions";
 import { useUnsavedChanges } from "./handle-unsaved-changes";

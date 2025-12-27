@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/db/supabase/client";
 import { getErrorTranslationKey } from "@/lib/utils/errorHandler";
 
 interface UseEmailChangeReturn {

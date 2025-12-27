@@ -19,7 +19,7 @@ const mockLinkIdentity = vi.fn();
 const mockUnlinkIdentity = vi.fn();
 const mockVerifyOtp = vi.fn();
 
-vi.mock("@/lib/supabase/client", () => ({
+vi.mock("@/lib/db/supabase/client", () => ({
   createClient: vi.fn(() => ({
     auth: {
       getUser: mockGetUser,
