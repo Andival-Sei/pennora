@@ -9,6 +9,7 @@ import { createClient } from "@/lib/db/supabase/client";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { queryKeys } from "../keys";
+import { invalidateTransactionRelated } from "../invalidation";
 import { queueManager } from "@/lib/sync/queueManager";
 import { isNetworkError } from "@/lib/utils/network";
 import { getErrorMessage } from "@/lib/utils/errorHandler";
@@ -102,28 +103,6 @@ function findTempTransaction(
           new Date(realTransaction.created_at).getTime()
       ) < 5000 // В пределах 5 секунд
   );
-}
-
-/**
- * Инвалидирует все связанные запросы после изменения транзакции
- */
-function invalidateTransactionQueries(queryClient: QueryClient) {
-  // Инвалидируем все списки транзакций
-  queryClient.invalidateQueries({
-    queryKey: queryKeys.transactions.lists(),
-  });
-  // Инвалидируем доступные месяцы/годы
-  queryClient.invalidateQueries({
-    queryKey: queryKeys.transactions.availableMonths(),
-  });
-  // Инвалидируем статистику
-  queryClient.invalidateQueries({
-    queryKey: queryKeys.statistics.all,
-  });
-  // Инвалидируем кеш счетов для обновления балансов
-  queryClient.invalidateQueries({
-    queryKey: queryKeys.accounts.list(),
-  });
 }
 
 /**
@@ -285,7 +264,7 @@ export function useCreateTransaction() {
       toast.success(t("transactions.success.created"));
     },
     onSettled: () => {
-      invalidateTransactionQueries(queryClient);
+      invalidateTransactionRelated(queryClient);
     },
   });
 }
@@ -388,7 +367,7 @@ export function useUpdateTransaction() {
       toast.success(t("transactions.success.updated"));
     },
     onSettled: () => {
-      invalidateTransactionQueries(queryClient);
+      invalidateTransactionRelated(queryClient);
     },
   });
 }
@@ -440,7 +419,7 @@ export function useDeleteTransaction() {
       toast.success(t("transactions.success.deleted"));
     },
     onSettled: async () => {
-      invalidateTransactionQueries(queryClient);
+      invalidateTransactionRelated(queryClient);
     },
   });
 }

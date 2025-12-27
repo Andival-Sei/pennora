@@ -34,4 +34,10 @@ export const queryKeys = {
     monthly: (month?: number, year?: number) =>
       [...queryKeys.statistics.all, "monthly", month, year] as const,
   },
+  budgets: {
+    all: ["budgets"] as const,
+    lists: () => [...queryKeys.budgets.all, "list"] as const,
+    list: () => [...queryKeys.budgets.lists()] as const,
+    detail: (id: string) => [...queryKeys.budgets.all, "detail", id] as const,
+  },
 } as const;

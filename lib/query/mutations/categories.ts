@@ -5,6 +5,7 @@ import { createClient } from "@/lib/db/supabase/client";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { queryKeys } from "../keys";
+import { invalidateCategoryRelated } from "../invalidation";
 import { queueManager } from "@/lib/sync/queueManager";
 import { isNetworkError } from "@/lib/utils/network";
 import { getErrorMessage } from "@/lib/utils/errorHandler";
@@ -196,9 +197,7 @@ export function useCreateCategory() {
       toast.success(t("categories.success.created"));
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.categories.all,
-      });
+      invalidateCategoryRelated(queryClient);
     },
   });
 }
@@ -270,9 +269,7 @@ export function useUpdateCategory() {
       toast.success(t("categories.success.updated"));
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.categories.all,
-      });
+      invalidateCategoryRelated(queryClient);
     },
   });
 }
@@ -344,9 +341,7 @@ export function useDeleteCategory() {
       toast.success(t("categories.success.deleted"));
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.categories.all,
-      });
+      invalidateCategoryRelated(queryClient);
     },
   });
 }

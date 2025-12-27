@@ -5,6 +5,7 @@ import { createClient } from "@/lib/db/supabase/client";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { queryKeys } from "../keys";
+import { invalidateAccountRelated } from "../invalidation";
 import { queueManager } from "@/lib/sync/queueManager";
 import { isNetworkError } from "@/lib/utils/network";
 import { getErrorMessage } from "@/lib/utils/errorHandler";
@@ -109,13 +110,7 @@ export function useUpdateAccount() {
       toast.success(t("accounts.success.updated"));
     },
     onSettled: () => {
-      // Инвалидируем кеш счетов и статистики
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.accounts.all,
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.statistics.all,
-      });
+      invalidateAccountRelated(queryClient);
     },
   });
 }

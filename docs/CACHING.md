@@ -157,6 +157,19 @@ const { categories, loading } = useCategories();
 - `gcTime`: 30 минут
 - `refetchOnMount`: false
 
+### Бюджеты (Budgets)
+
+**Настройки:**
+
+- `staleTime`: 10 минут (данные редко меняются)
+- `gcTime`: 30 минут
+- `refetchOnMount`: false
+
+**Особенности:**
+
+- Базовая структура queries реализована
+- TODO: Добавить полную реализацию mutations и хуков
+
 ### Статистика (Statistics)
 
 **Настройки:**
@@ -220,21 +233,50 @@ export function useCreateTransaction() {
 
 ## Инвалидация кеша
 
-Кеш автоматически инвалидируется при мутациях:
+Кеш автоматически инвалидируется при мутациях через централизованную систему инвалидации (`lib/query/invalidation.ts`).
+
+### Централизованная система инвалидации
+
+Все функции инвалидации кеша находятся в `lib/query/invalidation.ts`:
+
+- `invalidateTransactionRelated()` — инвалидирует transactions, statistics, accounts, availableMonths
+- `invalidateCategoryRelated()` — инвалидирует categories
+- `invalidateAccountRelated()` — инвалидирует accounts, statistics
+- `invalidateBudgetRelated()` — инвалидирует budgets
+- `invalidateAll()` — инвалидирует все кеши (используется после синхронизации)
 
 ### После создания транзакции:
 
 ```typescript
-queryClient.invalidateQueries({ queryKey: queryKeys.transactions.lists() });
-queryClient.invalidateQueries({
-  queryKey: queryKeys.transactions.availableMonths(),
-});
+invalidateTransactionRelated(queryClient);
+// Инвалидирует:
+// - transactions (все списки)
+// - statistics (зависит от транзакций)
+// - accounts (балансы могут измениться)
+// - availableMonths (может появиться новый месяц)
 ```
 
 ### После изменения категории:
 
 ```typescript
-queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+invalidateCategoryRelated(queryClient);
+// Инвалидирует все категории (включая tree)
+```
+
+### После изменения счета:
+
+```typescript
+invalidateAccountRelated(queryClient);
+// Инвалидирует:
+// - accounts (все списки)
+// - statistics (может зависеть от счетов)
+```
+
+### После синхронизации:
+
+```typescript
+invalidateAll(queryClient);
+// Инвалидирует все кеши, так как синхронизация может затрагивать любые данные
 ```
 
 ## Персистентное кеширование
@@ -323,17 +365,37 @@ const { data, isLoading } = useQuery({
 });
 ```
 
-4. **Создать mutation (если нужны изменения):**
+4. **Добавить функцию инвалидации в `lib/query/invalidation.ts`:**
+
+```typescript
+export function invalidateNewDataRelated(queryClient: QueryClient): void {
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.newData.all,
+  });
+}
+```
+
+5. **Создать mutation (если нужны изменения):**
 
 ```typescript
 // lib/query/mutations/newData.ts
+import { invalidateNewDataRelated } from "../invalidation";
+
 export function useCreateNewData() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createNewData,
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.newData.all });
+      invalidateNewDataRelated(queryClient);
     },
+  });
+}
+```
+
+```typescript
+export function invalidateNewDataRelated(queryClient: QueryClient): void {
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.newData.all,
   });
 }
 ```
