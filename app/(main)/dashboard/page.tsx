@@ -51,7 +51,10 @@ export default async function DashboardPage() {
     <main className="min-h-screen bg-background">
       <ResponsiveContainer className="py-8">
         <FadeIn delay={0.1}>
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6">{t("title")}</h2>
+          <div className="flex items-center gap-3 mb-6">
+            <Home className="h-8 w-8 text-primary" />
+            <h2 className="text-2xl sm:text-3xl font-bold">{t("title")}</h2>
+          </div>
         </FadeIn>
 
         {/* Карточки балансов с конвертацией валют */}

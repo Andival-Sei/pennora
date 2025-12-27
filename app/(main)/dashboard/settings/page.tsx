@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/db/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Settings } from "lucide-react";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
 import { SettingsNavigation } from "@/components/settings/SettingsNavigation";
@@ -91,15 +91,15 @@ export default function SettingsPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <FadeIn>
-        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-          <ResponsiveContainer className="flex items-center justify-between py-4">
-            <h1 className="text-xl font-bold text-foreground">{t("title")}</h1>
-          </ResponsiveContainer>
-        </header>
-      </FadeIn>
-
       <ResponsiveContainer className="py-8 space-y-6">
+        <FadeIn delay={0.1}>
+          <div className="flex items-center gap-3 mb-6">
+            <Settings className="h-8 w-8 text-primary" />
+            <h2 className="text-2xl sm:text-3xl font-bold">
+              {t("account.title")}
+            </h2>
+          </div>
+        </FadeIn>
         <SettingsNavigation />
 
         <ProfileSection
