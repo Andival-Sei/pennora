@@ -229,7 +229,7 @@
     "sameEmail": "Новый email совпадает с текущим",
     "validation": {
       "transactions": {
-        "amountMin": "Сумма должна быть больше 0",
+        "amountMin": "Минимум 0.01",
         "accountRequired": "Выберите счет",
         "toAccountDifferent": "Целевой счёт должен отличаться от исходного",
         "itemsSumMismatch": "Сумма позиций должна равняться общей сумме транзакции"

@@ -229,7 +229,7 @@
     "sameEmail": "New email is the same as current email",
     "validation": {
       "transactions": {
-        "amountMin": "Amount must be greater than 0",
+        "amountMin": "Min 0.01",
         "accountRequired": "Please select an account",
         "toAccountDifferent": "Destination account must differ from source",
         "itemsSumMismatch": "Items total must equal the transaction amount"

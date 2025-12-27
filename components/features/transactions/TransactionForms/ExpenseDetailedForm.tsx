@@ -18,7 +18,7 @@ import {
   FormItem,
   FormLabel,
   FormControl,
-  FormMessage,
+  useFormField,
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { CascadingCategorySelect } from "@/components/features/categories/CascadingCategorySelect";
@@ -46,6 +46,37 @@ interface ExpenseDetailedFormProps {
   prefilledData?: PrefilledData | null;
   editData?: TransactionWithItems;
   onSuccess?: () => void;
+}
+
+/**
+ * Компонент для плавного отображения сообщений об ошибках формы
+ * Резервирует место для предотвращения сдвига layout
+ */
+function AnimatedFormMessage() {
+  const { error, formMessageId } = useFormField();
+  const message = error ? String(error?.message) : null;
+
+  return (
+    <div className="h-5 overflow-hidden">
+      <AnimatePresence>
+        {message ? (
+          <motion.p
+            key={formMessageId}
+            id={formMessageId}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="text-xs font-medium text-destructive leading-tight"
+          >
+            {message}
+          </motion.p>
+        ) : (
+          <div className="h-5" aria-hidden="true" />
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 /**
@@ -291,100 +322,141 @@ export function ExpenseDetailedForm({
             {fields.map((field, index) => (
               <motion.div
                 key={field.id}
-                initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                animate={{ opacity: 1, height: "auto", scale: 1 }}
-                exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
+                layout
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{
+                  opacity: 0,
+                  height: 0,
+                  scale: 0.95,
+                  y: -10,
+                  marginBottom: 0,
+                  transition: { duration: 0.25, ease: "easeIn" },
+                }}
+                transition={{
+                  layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                  opacity: { duration: 0.2, ease: "easeOut" },
+                  scale: { duration: 0.2, ease: "easeOut" },
+                  y: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+                }}
+                className="overflow-hidden"
               >
-                <Card className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
+                <Card className="border-border/50 shadow-sm transition-shadow duration-200 hover:shadow-md focus-within:shadow-md">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex items-start gap-3 sm:gap-4">
                       {/* Номер позиции */}
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                         {index + 1}
                       </div>
 
                       {/* Поля позиции */}
-                      <div className="flex-1 space-y-3">
-                        {/* Описание и Сумма */}
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="flex-1 space-y-4">
+                        {/* Первый ряд: Описание и Сумма */}
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
                           {/* Описание (название товара) */}
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.description`}
-                            render={({ field: descriptionField }) => (
-                              <FormItem className="space-y-1.5">
-                                <FormLabel className="text-xs font-medium">
-                                  {t("items.description")}
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    id={`items.${index}.description`}
-                                    placeholder={t(
-                                      "items.descriptionPlaceholder"
-                                    )}
-                                    className="h-9"
-                                    value={descriptionField.value ?? ""}
-                                    onChange={descriptionField.onChange}
-                                    onBlur={descriptionField.onBlur}
-                                    name={descriptionField.name}
-                                    ref={descriptionField.ref}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          <div className="flex-1">
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.description`}
+                              render={({ field: descriptionField }) => (
+                                <FormItem className="space-y-1.5">
+                                  <FormLabel
+                                    htmlFor={`items.${index}.description`}
+                                    className="text-xs font-medium"
+                                  >
+                                    {t("items.description")}
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      id={`items.${index}.description`}
+                                      aria-describedby={`items.${index}.description-description`}
+                                      placeholder={t(
+                                        "items.descriptionPlaceholder"
+                                      )}
+                                      className="h-9 transition-colors focus-visible:ring-2"
+                                      value={descriptionField.value ?? ""}
+                                      onChange={descriptionField.onChange}
+                                      onBlur={descriptionField.onBlur}
+                                      name={descriptionField.name}
+                                      ref={descriptionField.ref}
+                                    />
+                                  </FormControl>
+                                  <div
+                                    id={`items.${index}.description-description`}
+                                    className="sr-only"
+                                  >
+                                    {t("items.description")}
+                                  </div>
+                                  <AnimatedFormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
 
                           {/* Сумма */}
-                          <FormField
-                            control={form.control}
-                            name={`items.${index}.amount`}
-                            render={({ field: amountField }) => (
-                              <FormItem className="space-y-1.5">
-                                <FormLabel className="text-xs font-medium">
-                                  {t("items.amount")}
-                                </FormLabel>
-                                <FormControl>
-                                  <Input
-                                    id={`items.${index}.amount`}
-                                    type="number"
-                                    step="any"
-                                    className="h-9"
-                                    value={amountField.value ?? ""}
-                                    onChange={(e) => {
-                                      const value = e.target.value;
-                                      if (value === "") {
-                                        amountField.onChange(
-                                          undefined as unknown as number
-                                        );
-                                      } else {
-                                        const numValue = Number(value);
-                                        if (!isNaN(numValue)) {
-                                          amountField.onChange(numValue);
-                                        } else {
+                          <div className="sm:w-32">
+                            <FormField
+                              control={form.control}
+                              name={`items.${index}.amount`}
+                              render={({ field: amountField }) => (
+                                <FormItem className="space-y-1.5">
+                                  <FormLabel
+                                    htmlFor={`items.${index}.amount`}
+                                    className="text-xs font-medium text-muted-foreground"
+                                  >
+                                    {t("items.amount")}
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      id={`items.${index}.amount`}
+                                      aria-describedby={`items.${index}.amount-description`}
+                                      type="number"
+                                      step="any"
+                                      className="h-9 text-lg font-semibold transition-colors focus-visible:ring-2"
+                                      value={amountField.value ?? ""}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "") {
                                           amountField.onChange(
                                             undefined as unknown as number
                                           );
+                                        } else {
+                                          const numValue = Number(value);
+                                          if (!isNaN(numValue)) {
+                                            amountField.onChange(numValue);
+                                          } else {
+                                            amountField.onChange(
+                                              undefined as unknown as number
+                                            );
+                                          }
                                         }
-                                      }
-                                      setTimeout(updateTotalAmount, 0);
-                                    }}
-                                    onBlur={amountField.onBlur}
-                                    name={amountField.name}
-                                    ref={amountField.ref}
-                                    onInvalid={(e) => {
-                                      e.preventDefault();
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                                        setTimeout(updateTotalAmount, 0);
+                                      }}
+                                      onBlur={amountField.onBlur}
+                                      name={amountField.name}
+                                      ref={amountField.ref}
+                                      onInvalid={(e) => {
+                                        e.preventDefault();
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <div
+                                    id={`items.${index}.amount-description`}
+                                    className="sr-only"
+                                  >
+                                    {t("items.amount")}
+                                  </div>
+                                  <AnimatedFormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
                         </div>
 
-                        {/* Категория */}
+                        {/* Разделитель */}
+                        <div className="border-t border-border/50" />
+
+                        {/* Второй ряд: Категория */}
                         <FormField
                           control={form.control}
                           name={`items.${index}.category_id`}
@@ -406,7 +478,7 @@ export function ExpenseDetailedForm({
                                   isLoading={loadingCategories}
                                 />
                               </FormControl>
-                              <FormMessage />
+                              <AnimatedFormMessage />
                             </FormItem>
                           )}
                         />
@@ -418,11 +490,12 @@ export function ExpenseDetailedForm({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                          className="h-10 w-10 shrink-0 text-muted-foreground transition-all duration-200 hover:scale-110 hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/20"
                           onClick={() => {
                             remove(index);
                             setTimeout(updateTotalAmount, 0);
                           }}
+                          aria-label={`${t("items.remove")} ${index + 1}`}
                         >
                           <X className="h-4 w-4" />
                           <span className="sr-only">{t("items.remove")}</span>
