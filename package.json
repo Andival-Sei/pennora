@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:all": "pnpm format && pnpm lint:fix && pnpm exec tsc --noEmit && pnpm build",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:bench": "vitest bench",
