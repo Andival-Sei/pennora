@@ -1,34 +1,28 @@
 name: Release
 
 on:
-  workflow_run:
-    workflows: ["CI"]
+  push:
     branches:
-      - main
-    types:
-      - completed
+      - develop
 
 permissions:
-  contents: read
+  contents: write # для создания Git тегов и релизов
+  pull-requests: write # для создания PR с изменениями версии
+  issues: write # для комментирования в issues
+  id-token: write # для npm trusted publishing (OIDC)
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     # Запускается только после успешного прохождения CI
-    if: github.event.workflow_run.conclusion == 'success'
-    permissions:
-      contents: write # для создания Git тегов и релизов
-      issues: write # для комментирования в issues
-      pull-requests: write # для комментирования в PR
-      id-token: write # для npm trusted publishing (OIDC)
+    if: github.event.after != '0000000000000000000000000000000000000000'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # полная история коммитов для анализа
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
