@@ -1,3 +1,27 @@
+## [1.2.1](https://github.com/Andival-Sei/pennora/compare/v1.2.0...v1.2.1) (2025-12-28)
+
+### Bug Fixes
+
+- **pwa:** исправить ошибку TypeScript в InstallPrompt ([b536cb1](https://github.com/Andival-Sei/pennora/commit/b536cb1f57215d172f0e6a7908247ec36e7c5af4))
+
+# [1.2.0](https://github.com/Andival-Sei/pennora/compare/v1.1.1...v1.2.0) (2025-12-28)
+
+### Features
+
+- **pwa:** реализовать полноценный PWA функционал для Windows и Android ([a81ca72](https://github.com/Andival-Sei/pennora/commit/a81ca7278e6fe97d39971c9f2f2844c8d2689247))
+
+## [1.1.1](https://github.com/Andival-Sei/pennora/compare/v1.1.0...v1.1.1) (2025-12-28)
+
+### Bug Fixes
+
+- **ui:** исправить layout shift при открытии модальных окон ([0f97b7a](https://github.com/Andival-Sei/pennora/commit/0f97b7a860109bf0c17b97fe018c89f8228ffaac))
+
+# [1.1.0](https://github.com/Andival-Sei/pennora/compare/v1.0.0...v1.1.0) (2025-12-28)
+
+### Features
+
+- **categories:** разделение категории "Фрукты и ягоды" на "Фрукты" и "Ягоды", добавление подкатегории "Туалетная бумага" ([0d7e461](https://github.com/Andival-Sei/pennora/commit/0d7e4611e01f160a645c5ea4c01cbb8f7b7c4f5e))
+
 # 1.0.0 (2025-12-28)
 
 ### Bug Fixes

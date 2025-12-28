@@ -573,6 +573,14 @@
     "changesWillSync": "Changes will be synced when connection is restored",
     "deleteWillSync": "Deletion will be synced when connection is restored"
   },
+  "pwa": {
+    "installTitle": "Install Pennora",
+    "installDescription": "Install the app for quick access and offline work",
+    "installBenefit1": "Quick access from home screen",
+    "installBenefit2": "Work without internet",
+    "installBenefit3": "Notifications and updates",
+    "installButton": "Install"
+  },
   "receipt": {
     "dialog": {
       "title": "Add Transaction",
