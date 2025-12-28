@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, startTransition } from "react";
 import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
@@ -168,6 +168,17 @@ export default function AccountsPage() {
     },
   });
 
+  // Используем useWatch вместо watch() для совместимости с React Compiler
+  const cardBank = useWatch({ control: cardForm.control, name: "bank" });
+  const cardCurrency = useWatch({
+    control: cardForm.control,
+    name: "currency",
+  });
+  const cashCurrency = useWatch({
+    control: cashForm.control,
+    name: "currency",
+  });
+
   // Определяем доступные валюты для наличных (те, которых еще нет)
   const availableCashCurrencies = useMemo(() => {
     const existingCashCurrencies = accounts
@@ -186,16 +197,20 @@ export default function AccountsPage() {
   // Автоматически устанавливаем тип источника при открытии диалога
   useEffect(() => {
     if (isDialogOpen) {
-      if (hasAllCashCurrencies) {
-        // Если все валюты наличных уже есть, автоматически выбираем карту
-        setSourceType("card");
-      } else {
-        // Иначе сбрасываем выбор
-        setSourceType(null);
-      }
+      startTransition(() => {
+        if (hasAllCashCurrencies) {
+          // Если все валюты наличных уже есть, автоматически выбираем карту
+          setSourceType("card");
+        } else {
+          // Иначе сбрасываем выбор
+          setSourceType(null);
+        }
+      });
     } else {
       // При закрытии диалога сбрасываем формы и тип
-      setSourceType(null);
+      startTransition(() => {
+        setSourceType(null);
+      });
       cardForm.reset();
       cashForm.reset();
     }
@@ -212,28 +227,36 @@ export default function AccountsPage() {
           currency: editingAccount.currency,
           balance: editingAccount.balance.toString(),
         });
-        setSourceType("card");
+        startTransition(() => {
+          setSourceType("card");
+        });
       } else if (editingAccount.type === "cash") {
         const { currency } = parseCashAccountName(editingAccount.name);
         cashForm.reset({
           currency: (currency || editingAccount.currency) as CurrencyCode,
           balance: editingAccount.balance.toString(),
         });
-        setSourceType("cash");
+        startTransition(() => {
+          setSourceType("cash");
+        });
       }
     } else if (!isEditDialogOpen) {
       // При закрытии диалога редактирования сбрасываем формы
       cardForm.reset();
       cashForm.reset();
-      setSourceType(null);
-      setEditingAccount(null);
+      startTransition(() => {
+        setSourceType(null);
+        setEditingAccount(null);
+      });
     }
   }, [editingAccount, isEditDialogOpen, cardForm, cashForm]);
 
   // Обработка ошибок загрузки
   useEffect(() => {
     if (accountsError) {
-      setError("errors.databaseError");
+      startTransition(() => {
+        setError("errors.databaseError");
+      });
     }
   }, [accountsError]);
 
@@ -486,7 +509,7 @@ export default function AccountsPage() {
                             {tOnboarding("card.bankLabel")}
                           </Label>
                           <Select
-                            value={cardForm.watch("bank")}
+                            value={cardBank || ""}
                             onValueChange={(value) =>
                               cardForm.setValue("bank", value)
                             }
@@ -539,7 +562,7 @@ export default function AccountsPage() {
                             {tAccounts("currency")}
                           </Label>
                           <Select
-                            value={cardForm.watch("currency")}
+                            value={cardCurrency || ""}
                             onValueChange={(value) =>
                               cardForm.setValue(
                                 "currency",
@@ -602,7 +625,7 @@ export default function AccountsPage() {
                             {tAccounts("currency")}
                           </Label>
                           <Select
-                            value={cashForm.watch("currency")}
+                            value={cashCurrency || ""}
                             onValueChange={(value) =>
                               cashForm.setValue(
                                 "currency",
@@ -895,7 +918,7 @@ export default function AccountsPage() {
                       {tOnboarding("card.bankLabel")}
                     </Label>
                     <Select
-                      value={cardForm.watch("bank")}
+                      value={cardBank || ""}
                       onValueChange={(value) =>
                         cardForm.setValue("bank", value)
                       }
@@ -946,7 +969,7 @@ export default function AccountsPage() {
                       {tAccounts("currency")}
                     </Label>
                     <Select
-                      value={cardForm.watch("currency")}
+                      value={cardCurrency || ""}
                       onValueChange={(value) =>
                         cardForm.setValue("currency", value as CurrencyCode)
                       }
@@ -1003,7 +1026,7 @@ export default function AccountsPage() {
                       {tAccounts("currency")}
                     </Label>
                     <Select
-                      value={cashForm.watch("currency")}
+                      value={cashCurrency || ""}
                       onValueChange={(value) =>
                         cashForm.setValue("currency", value as CurrencyCode)
                       }
