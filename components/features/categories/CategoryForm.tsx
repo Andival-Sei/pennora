@@ -116,11 +116,6 @@ const availableIcons: Array<{
   { name: "Umbrella", key: "umbrella", component: "Umbrella" },
   { name: "Sun", key: "sun", component: "Sun" },
   { name: "Moon", key: "moon", component: "Moon" },
-
-  // Еда и продукты
-  { name: "Apple", key: "apple", component: "Apple" },
-  { name: "Cherry", key: "cherry", component: "Cherry" },
-  { name: "Circle", key: "circle", component: "Circle" },
 ];
 
 // Предустановленные цвета
