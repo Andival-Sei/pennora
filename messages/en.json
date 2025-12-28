@@ -19,6 +19,7 @@
     "dashboard": "Dashboard",
     "accounts": "Accounts",
     "transactions": "Transactions",
+    "statistics": "Statistics",
     "categories": "Categories",
     "budgets": "Budgets",
     "settings": "Settings"
@@ -710,6 +711,56 @@
         "title": "Contact",
         "content": "If you have questions about the terms of service, please contact us:"
       }
+    }
+  },
+  "statistics": {
+    "title": "Statistics",
+    "tabs": {
+      "overview": "Overview",
+      "trends": "Trends",
+      "categories": "Categories"
+    },
+    "filters": {
+      "period": "Period",
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "last3Months": "3 months",
+      "last6Months": "6 months",
+      "thisYear": "This year",
+      "custom": "Custom",
+      "type": "Type",
+      "income": "Income",
+      "expense": "Expenses",
+      "all": "All",
+      "categoryLevel": "Level",
+      "topOnly": "Top level",
+      "allCategories": "All",
+      "hierarchy": "Hierarchy"
+    },
+    "charts": {
+      "noData": "No data for selected period",
+      "total": "Total",
+      "percentage": "Percentage"
+    },
+    "overview": {
+      "income": "Income",
+      "expense": "Expenses",
+      "balance": "Balance",
+      "vsPrevious": "vs previous period",
+      "topCategories": "Expenses by category"
+    },
+    "trends": {
+      "groupBy": "Group by",
+      "byDay": "By day",
+      "byWeek": "By week",
+      "byMonth": "By month"
+    },
+    "categories": {
+      "category": "Category",
+      "amount": "Amount",
+      "percentage": "Share",
+      "transactions": "Transactions",
+      "showDetails": "Show details"
     }
   }
 }

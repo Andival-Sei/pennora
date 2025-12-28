@@ -6,6 +6,7 @@ export interface ReceiptData {
   date: Date;
   amount: number;
   description: string | null;
+  merchant: string | null; // Название продавца/магазина
   paymentMethod: "cash" | "card" | null;
   items?: Array<{ name: string; price: number }>;
   suggestedCategoryId?: string | null; // Предложенная категория

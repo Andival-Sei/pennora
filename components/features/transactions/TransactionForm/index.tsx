@@ -257,7 +257,10 @@ export function TransactionForm({
         values.type === "expense" && values.items
           ? values.items
               .filter(
-                (item) => item.amount !== undefined && item.amount >= 0.01
+                (item) =>
+                  item.amount !== undefined &&
+                  item.amount !== null &&
+                  item.amount >= 0.01
               )
               .map((item, index) => ({
                 category_id: normalizeItemCategoryId(item.category_id),

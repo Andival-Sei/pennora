@@ -19,6 +19,7 @@
     "dashboard": "Главная",
     "accounts": "Счета",
     "transactions": "Транзакции",
+    "statistics": "Статистика",
     "categories": "Категории",
     "budgets": "Бюджеты",
     "settings": "Настройки"
@@ -710,6 +711,56 @@
         "title": "Контакты",
         "content": "Если у вас есть вопросы об условиях использования, свяжитесь с нами:"
       }
+    }
+  },
+  "statistics": {
+    "title": "Статистика",
+    "tabs": {
+      "overview": "Обзор",
+      "trends": "Тренды",
+      "categories": "Категории"
+    },
+    "filters": {
+      "period": "Период",
+      "thisMonth": "Этот месяц",
+      "lastMonth": "Прошлый месяц",
+      "last3Months": "3 месяца",
+      "last6Months": "6 месяцев",
+      "thisYear": "Этот год",
+      "custom": "Произвольный",
+      "type": "Тип",
+      "income": "Доходы",
+      "expense": "Расходы",
+      "all": "Все",
+      "categoryLevel": "Уровень",
+      "topOnly": "Верхние",
+      "allCategories": "Все",
+      "hierarchy": "Иерархия"
+    },
+    "charts": {
+      "noData": "Нет данных за выбранный период",
+      "total": "Всего",
+      "percentage": "Процент"
+    },
+    "overview": {
+      "income": "Доходы",
+      "expense": "Расходы",
+      "balance": "Баланс",
+      "vsPrevious": "к прошлому периоду",
+      "topCategories": "Расходы по категориям"
+    },
+    "trends": {
+      "groupBy": "Группировать",
+      "byDay": "По дням",
+      "byWeek": "По неделям",
+      "byMonth": "По месяцам"
+    },
+    "categories": {
+      "category": "Категория",
+      "amount": "Сумма",
+      "percentage": "Доля",
+      "transactions": "Транзакций",
+      "showDetails": "Показать детали"
     }
   }
 }

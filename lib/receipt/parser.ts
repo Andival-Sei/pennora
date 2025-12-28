@@ -3,6 +3,10 @@
  */
 
 import type { ReceiptData } from "./types";
+import {
+  normalizeMerchantName,
+  getMerchantCategory,
+} from "./merchant-database";
 
 /**
  * Парсит дату из текста чека
@@ -138,10 +142,73 @@ function parseAmount(text: string): number | null {
 
 /**
  * Парсит наименование продавца из текста чека
- * Обычно это первая строка или строка после "ООО", "ИП"
+ * Ищет в различных местах: домены, ООО/ИП, известные магазины
  */
 function parseMerchant(text: string): string | null {
   const lines = text.split("\n").filter((line) => line.trim().length > 0);
+  const fullText = text.toLowerCase();
+
+  // Сначала ищем известные магазины по ключевым словам в тексте
+  // (приоритет выше, так как это более точное определение)
+  const knownKeywords = [
+    "самокат",
+    "samokat",
+    "пятёрочка",
+    "5ka",
+    "магнит",
+    "magnit",
+    "перекрёсток",
+    "perekrestok",
+    "ашан",
+    "auchan",
+    "лента",
+    "lenta",
+    "окей",
+    "okey",
+    "дикси",
+    "dixy",
+    "метро",
+    "metro",
+    "яндекс.лавка",
+    "yandex.lavka",
+    "яндекс.еда",
+    "yandex.eda",
+  ];
+
+  for (const keyword of knownKeywords) {
+    if (fullText.includes(keyword.toLowerCase())) {
+      return keyword;
+    }
+  }
+
+  // Ищем домены в тексте (например, samokat.ru, 5ka.ru)
+  const domainPattern = /([a-z0-9-]+)\.(?:ru|com|net|org|рф)/gi;
+  const domainMatches = Array.from(fullText.matchAll(domainPattern));
+  if (domainMatches && domainMatches.length > 0) {
+    // Берем первый найденный домен
+    for (const match of domainMatches) {
+      const domain = match[1]; // Извлекаем название до точки
+      if (domain && domain.length > 2) {
+        // Проверяем, не служебный ли это домен
+        const serviceDomains = [
+          "mail",
+          "www",
+          "http",
+          "https",
+          "ftp",
+          "platformaofd", // Платформа ОФД (доставка чеков), не магазин
+          "chek", // chek.pofd.ru - платформа ОФД
+          "pofd", // pofd.ru - платформа ОФД
+          "ofd", // Оператор фискальных данных
+          "nalog", // nalog.ru - налоговая служба
+          "fns", // fns.ru - федеральная налоговая служба
+        ];
+        if (!serviceDomains.includes(domain.toLowerCase())) {
+          return domain;
+        }
+      }
+    }
+  }
 
   // Ищем ООО или ИП
   for (const line of lines) {
@@ -247,6 +314,7 @@ function isEndOfItemsSection(line: string): boolean {
 /**
  * Находит цену товара, начиная с указанного индекса
  * Ищет в структуре: "Общая стоимость позиции..." -> следующая строка с ценой
+ * Также ищет цену в строке с количеством: "1 шт. x 186.00"
  */
 function findItemPrice(lines: string[], startIndex: number): number | null {
   // Ищем строку "Общая стоимость позиции..."
@@ -264,7 +332,7 @@ function findItemPrice(lines: string[], startIndex: number): number | null {
       break;
     }
 
-    // Ищем строку "Общая стоимость позиции..."
+    // Ищем строку "Общая стоимость позиции..." с ценой
     const hasTotalPrice = line.match(/Общая\s+стоимость\s+позиции/i);
     if (hasTotalPrice) {
       // Проверяем, есть ли цена в самой строке
@@ -273,7 +341,8 @@ function findItemPrice(lines: string[], startIndex: number): number | null {
       );
       if (totalPriceMatch && totalPriceMatch[1]) {
         const price = parseFloat(totalPriceMatch[1].replace(",", "."));
-        if (!isNaN(price) && price > 0) {
+        // Фильтруем слишком маленькие суммы (вероятно НДС или другие служебные суммы)
+        if (!isNaN(price) && price > 10) {
           return price;
         }
       }
@@ -284,10 +353,31 @@ function findItemPrice(lines: string[], startIndex: number): number | null {
         const priceMatch = nextLine.match(/^(\d+[.,]\d{2})$/);
         if (priceMatch) {
           const price = parseFloat(priceMatch[1].replace(",", "."));
-          if (!isNaN(price) && price > 0) {
+          // Фильтруем слишком маленькие суммы
+          if (!isNaN(price) && price > 10) {
             return price;
           }
         }
+      }
+    }
+
+    // Ищем цену в строке с количеством: "1 шт. x 186.00" или "x 186.00"
+    // Это цена за единицу, но если нет "Общая стоимость", используем её
+    const quantityPriceMatch = line.match(
+      /(?:^\d+\s*шт\.?\s*x\s*|^x\s*|^×\s*)(\d+[.,]\d{2})/i
+    );
+    if (quantityPriceMatch && quantityPriceMatch[1]) {
+      const price = parseFloat(quantityPriceMatch[1].replace(",", "."));
+      // Если это цена за единицу, умножаем на количество (если указано)
+      const quantityMatch = line.match(/^(\d+)\s*шт\.?\s*x/i);
+      if (quantityMatch) {
+        const quantity = parseInt(quantityMatch[1]);
+        if (!isNaN(quantity) && quantity > 0 && !isNaN(price) && price > 10) {
+          return price * quantity;
+        }
+      } else if (!isNaN(price) && price > 10) {
+        // Если количество не указано, используем цену как есть
+        return price;
       }
     }
   }
@@ -368,13 +458,106 @@ function parseItems(text: string): Array<{ name: string; price: number }> {
 }
 
 /**
- * Извлекает название первого товара для использования в описании
+ * Склоняет название магазина в родительный падеж для фразы "из [название]"
+ * @param merchant - название магазина в именительном падеже
+ * @returns название в родительном падеже
  */
-function parseFirstItemName(text: string): string | null {
-  const items = parseItems(text);
-  if (items.length > 0 && items[0].name) {
+function getMerchantGenitive(merchant: string): string {
+  const lower = merchant.toLowerCase();
+
+  // Специальные случаи для известных магазинов
+  const specialCases: Record<string, string> = {
+    самокат: "Самоката",
+    "яндекс.лавка": "Яндекс.Лавки",
+    "яндекс еда": "Яндекс.Еды",
+    "яндекс.еда": "Яндекс.Еды",
+    пятёрочка: "Пятёрочки",
+    магнит: "Магнита",
+    перекрёсток: "Перекрёстка",
+    ашан: "Ашана",
+    лента: "Ленты",
+    окей: "О'Кея",
+    дикси: "Дикси",
+    метро: "Метро",
+    макдональдс: "Макдональдса",
+    kfc: "KFC",
+    "burger king": "Burger King",
+  };
+
+  if (specialCases[lower]) {
+    return specialCases[lower];
+  }
+
+  // Общие правила склонения
+  // Если заканчивается на согласную (кроме й, ь), добавляем "а"
+  if (/[бвгджзклмнпрстфхцчшщ]$/i.test(merchant)) {
+    return merchant + "а";
+  }
+
+  // Если заканчивается на "й", заменяем на "я"
+  if (/й$/i.test(merchant)) {
+    return merchant.slice(0, -1) + "я";
+  }
+
+  // Если заканчивается на "ь", заменяем на "я"
+  if (/ь$/i.test(merchant)) {
+    return merchant.slice(0, -1) + "я";
+  }
+
+  // Если заканчивается на гласную, добавляем "а" (для большинства случаев)
+  if (/[аеёиоуыэюя]$/i.test(merchant)) {
+    // Для слов на "а" заменяем на "ы" (но есть исключения)
+    if (/а$/i.test(merchant) && merchant.length > 3) {
+      return merchant.slice(0, -1) + "ы";
+    }
+    return merchant + "а";
+  }
+
+  // Если не подошло ни одно правило, возвращаем исходное
+  return merchant;
+}
+
+/**
+ * Генерирует описание транзакции на основе данных чека
+ * Для сплит-транзакций (несколько позиций) создаёт общее описание
+ * Для одиночных позиций использует название товара
+ */
+function generateDescription(
+  merchant: string | null,
+  items: Array<{ name: string; price: number }>,
+  merchantCategory: string | null
+): string | null {
+  // Если нет позиций и нет продавца, возвращаем null
+  if (items.length === 0 && !merchant) {
+    return null;
+  }
+
+  // Если одна позиция, используем название товара
+  if (items.length === 1) {
     return items[0].name;
   }
+
+  // Если несколько позиций, создаём общее описание
+  if (items.length > 1) {
+    if (merchant && merchantCategory) {
+      // Формат: "Категория из Магазина" (магазин в родительном падеже)
+      const merchantGenitive = getMerchantGenitive(merchant);
+      return `${merchantCategory} из ${merchantGenitive}`;
+    } else if (merchant) {
+      // Формат: "Покупка из Магазина" (магазин в родительном падеже)
+      const merchantGenitive = getMerchantGenitive(merchant);
+      return `Покупка из ${merchantGenitive}`;
+    } else {
+      // Если нет магазина, используем количество позиций
+      return `Покупка (${items.length} позиций)`;
+    }
+  }
+
+  // Если нет позиций, но есть продавец
+  if (merchant) {
+    return `Покупка в ${merchant}`;
+  }
+
   return null;
 }
 
@@ -389,15 +572,24 @@ export function parseReceiptText(text: string): Partial<ReceiptData> {
   const paymentMethod = parsePaymentMethod(normalizedText);
   const items = parseItems(normalizedText);
 
-  // Для описания приоритет: название товара > название продавца
-  const firstItemName = parseFirstItemName(normalizedText);
-  const merchantName = parseMerchant(normalizedText);
-  const description = firstItemName || merchantName;
+  // Парсим продавца и нормализуем название
+  const rawMerchant = parseMerchant(normalizedText);
+  let merchant: string | null = null;
+  let merchantCategory: string | null = null;
+
+  if (rawMerchant) {
+    merchant = normalizeMerchantName(rawMerchant);
+    merchantCategory = getMerchantCategory(merchant);
+  }
+
+  // Генерируем описание на основе количества позиций
+  const description = generateDescription(merchant, items, merchantCategory);
 
   return {
     date: date || undefined,
     amount: amount || undefined,
     description: description || null,
+    merchant: merchant || null,
     paymentMethod: paymentMethod || null,
     items: items.length > 0 ? items : undefined,
   };

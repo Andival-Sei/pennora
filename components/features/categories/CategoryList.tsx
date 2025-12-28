@@ -159,6 +159,7 @@ export function CategoryList() {
           tree={tree}
           onEdit={handleEditClick}
           onDelete={handleDeleteClick}
+          allCategories={categories}
         />
       ) : (
         <div className="rounded-lg border border-dashed p-12 text-center">

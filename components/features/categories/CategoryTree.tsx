@@ -7,6 +7,7 @@ import { CategoryItem } from "./CategoryItem";
 import type {
   CategoryTree as CategoryTreeType,
   CategoryWithChildren,
+  Category,
 } from "@/lib/types/category";
 import { useTranslations } from "next-intl";
 
@@ -14,6 +15,7 @@ interface CategoryTreeProps {
   tree: CategoryTreeType;
   onEdit?: (category: CategoryWithChildren) => void;
   onDelete?: (category: CategoryWithChildren) => void;
+  allCategories?: Category[]; // Плоский список всех категорий для наследования цветов
 }
 
 // Мемоизированный компонент для группы категорий
@@ -24,6 +26,7 @@ interface CategoryGroupProps {
   onToggleExpand: (categoryId: string) => void;
   onEdit?: (category: CategoryWithChildren) => void;
   onDelete?: (category: CategoryWithChildren) => void;
+  allCategories?: Category[];
   t: (key: string) => string;
 }
 
@@ -34,6 +37,7 @@ const CategoryGroup = memo(function CategoryGroup({
   onToggleExpand,
   onEdit,
   onDelete,
+  allCategories = [],
   t,
 }: CategoryGroupProps) {
   if (categories.length === 0) return null;
@@ -62,6 +66,7 @@ const CategoryGroup = memo(function CategoryGroup({
               onDelete={onDelete}
               expanded={expanded.has(category.id)}
               onToggleExpand={handleToggleExpand}
+              allCategories={allCategories}
             />
           );
         })}
@@ -74,6 +79,7 @@ export const CategoryTree = memo(function CategoryTree({
   tree,
   onEdit,
   onDelete,
+  allCategories = [],
 }: CategoryTreeProps) {
   const t = useTranslations("categories");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -99,6 +105,7 @@ export const CategoryTree = memo(function CategoryTree({
         onToggleExpand={toggleExpand}
         onEdit={onEdit}
         onDelete={onDelete}
+        allCategories={allCategories}
         t={t}
       />
       <CategoryGroup
@@ -108,6 +115,7 @@ export const CategoryTree = memo(function CategoryTree({
         onToggleExpand={toggleExpand}
         onEdit={onEdit}
         onDelete={onDelete}
+        allCategories={allCategories}
         t={t}
       />
     </div>

@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { useTheme } from "@/providers";
 import { createClient } from "@/lib/db/supabase/client";
 import { setLocale } from "@/i18n/actions";
-import { signOut } from "@/app/(auth)/actions";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import { useUnsavedChanges } from "./handle-unsaved-changes";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,15 +26,7 @@ import {
 } from "@/components/ui/select";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
-import {
-  Check,
-  Loader2,
-  Monitor,
-  Moon,
-  Sun,
-  LogOut,
-  Settings,
-} from "lucide-react";
+import { Check, Loader2, Monitor, Moon, Sun, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CurrencyCode } from "@/lib/currency/rates";
 import type { Locale } from "@/i18n/request";
@@ -353,12 +345,9 @@ export default function AppSettingsPage() {
               <CardDescription>{tApp("logoutDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={signOut}>
-                <Button variant="destructive" type="submit">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  {tAuth("logout")}
-                </Button>
-              </form>
+              <LogoutButton variant="destructive">
+                {tAuth("logout")}
+              </LogoutButton>
             </CardContent>
           </Card>
         </FadeIn>

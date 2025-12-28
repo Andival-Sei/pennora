@@ -256,7 +256,12 @@ export function ExpenseDetailedForm({
 
       // Подготавливаем items, фильтруем позиции без amount
       const items = values.items
-        ?.filter((item) => item.amount !== undefined && item.amount >= 0.01)
+        ?.filter(
+          (item) =>
+            item.amount !== undefined &&
+            item.amount !== null &&
+            item.amount >= 0.01
+        )
         .map((item, index) => ({
           category_id: item.category_id ?? null,
           amount: item.amount!,

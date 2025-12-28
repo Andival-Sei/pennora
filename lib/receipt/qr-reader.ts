@@ -25,6 +25,35 @@ export async function readQRCode(imageData: ImageData): Promise<string | null> {
  * @returns данные из QR-кода или null
  */
 export async function readQRCodeFromFile(file: File): Promise<string | null> {
+  // Проверяем, работаем ли мы в Node.js окружении
+  const isNode = typeof window === "undefined";
+
+  if (isNode) {
+    // Используем node-canvas для Node.js окружения
+    try {
+      // Динамический импорт для работы в Node.js
+      const { createCanvas, loadImage } = await import("canvas");
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const img = await loadImage(buffer);
+      const canvas = createCanvas(img.width, img.height);
+      const ctx = canvas.getContext("2d");
+
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      // Приводим к стандартному типу ImageData для браузера
+      return await readQRCode(imageData as ImageData);
+    } catch (error) {
+      // Если canvas недоступен (не установлен или не скомпилирован),
+      // просто возвращаем null - OCR продолжит работу без QR-кода
+      console.log(
+        "QR-код не может быть прочитан (canvas недоступен), продолжаем с OCR:",
+        error instanceof Error ? error.message : String(error)
+      );
+      return null;
+    }
+  }
+
+  // Браузерное окружение
   return new Promise((resolve) => {
     const img = new Image();
     const canvas = document.createElement("canvas");

@@ -43,24 +43,90 @@ import { TransactionForm } from "./TransactionForm";
 import { formatCurrency } from "@/lib/currency/formatter";
 import { groupByDate } from "@/lib/utils/date";
 
-// Маппинг иконок категорий
+// Маппинг иконок категорий (полный список, синхронизирован с CategoryItem.tsx)
 const defaultIcons: Record<string, keyof typeof LucideIcons> = {
+  // Основные категории
   home: "Home",
   shopping: "ShoppingCart",
+  "shopping-bag": "ShoppingBag",
   car: "Car",
+  "car-front": "CarFront",
   food: "UtensilsCrossed",
+  utensils: "Utensils",
   heart: "Heart",
+  "heart-pulse": "HeartPulse",
   gift: "Gift",
   wallet: "Wallet",
+  "credit-card": "CreditCard",
+  banknote: "Banknote",
   coffee: "Coffee",
-  plane: "Plane",
-  gamepad: "Gamepad2",
-  book: "Book",
-  music: "Music",
-  film: "Film",
-  briefcase: "Briefcase",
   dollar: "DollarSign",
   trending: "TrendingUp",
+  "trending-down": "TrendingDown",
+
+  // Транспорт
+  plane: "Plane",
+  train: "Train",
+  bike: "Bike",
+  bus: "Bus",
+  fuel: "Fuel",
+
+  // Развлечения и хобби
+  gamepad: "Gamepad2",
+  music: "Music",
+  film: "Film",
+  camera: "Camera",
+  palette: "Palette",
+  dumbbell: "Dumbbell",
+  trophy: "Trophy",
+
+  // Образование и работа
+  book: "Book",
+  "graduation-cap": "GraduationCap",
+  school: "School",
+  briefcase: "Briefcase",
+  building: "Building",
+  "file-text": "FileText",
+  calculator: "Calculator",
+
+  // Здоровье и красота
+  stethoscope: "Stethoscope",
+  pill: "Pill",
+  scissors: "Scissors",
+  sparkles: "Sparkles",
+
+  // Семья и домашние животные
+  baby: "Baby",
+  dog: "Dog",
+  cat: "Cat",
+
+  // Технологии и связь
+  smartphone: "Smartphone",
+  laptop: "Laptop",
+  wifi: "Wifi",
+  phone: "Phone",
+  mail: "Mail",
+
+  // Прочее
+  tag: "Tag",
+  star: "Star",
+  bell: "Bell",
+  calendar: "Calendar",
+  clock: "Clock",
+  "map-pin": "MapPin",
+  package: "Package",
+  box: "Box",
+  receipt: "Receipt",
+  store: "Store",
+  zap: "Zap",
+  droplet: "Droplet",
+  flame: "Flame",
+  "tree-pine": "TreePine",
+  shirt: "Shirt",
+  footprints: "Footprints",
+  umbrella: "Umbrella",
+  sun: "Sun",
+  moon: "Moon",
 };
 
 // Компонент для рендеринга иконки категории
@@ -73,10 +139,10 @@ const CategoryIcon = memo(function CategoryIcon({
 }) {
   if (!iconKey) return null;
   const IconName = defaultIcons[iconKey] || iconKey;
-  const IconComponent = LucideIcons[IconName as keyof typeof LucideIcons] as
-    | React.ComponentType<{ className?: string }>
-    | undefined;
-  if (!IconComponent) return null;
+  const IconComponent =
+    (LucideIcons[IconName as keyof typeof LucideIcons] as
+      | React.ComponentType<{ className?: string }>
+      | undefined) || LucideIcons.Folder;
   return <IconComponent className={className} />;
 });
 

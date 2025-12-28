@@ -33,6 +33,27 @@ export const queryKeys = {
     all: ["statistics"] as const,
     monthly: (month?: number, year?: number) =>
       [...queryKeys.statistics.all, "monthly", month, year] as const,
+    byCategory: (filters: {
+      from: string;
+      to: string;
+      type: "income" | "expense" | "all";
+      level: "top" | "all" | "hierarchy";
+      displayCurrency: string;
+    }) => [...queryKeys.statistics.all, "byCategory", filters] as const,
+    byPeriod: (filters: {
+      from: string;
+      to: string;
+      groupBy: "day" | "week" | "month";
+      displayCurrency: string;
+    }) => [...queryKeys.statistics.all, "byPeriod", filters] as const,
+    summary: (from: string, to: string, displayCurrency: string) =>
+      [
+        ...queryKeys.statistics.all,
+        "summary",
+        from,
+        to,
+        displayCurrency,
+      ] as const,
   },
   budgets: {
     all: ["budgets"] as const,
