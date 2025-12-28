@@ -96,7 +96,8 @@
       "links": {
         "title": "Links",
         "privacy": "Privacy Policy",
-        "terms": "Terms of Service"
+        "terms": "Terms of Service",
+        "license": "License"
       },
       "contact": {
         "title": "Contact",
@@ -710,6 +711,47 @@
       "contact": {
         "title": "Contact",
         "content": "If you have questions about the terms of service, please contact us:"
+      }
+    }
+  },
+  "license": {
+    "title": "License",
+    "description": "Proprietary License for Pennora",
+    "lastUpdated": "Last updated: January 15, 2025",
+    "sections": {
+      "overview": {
+        "title": "Overview",
+        "content": "Pennora is proprietary software. All rights to this software and associated documentation files are reserved. This software may not be used, copied, modified, or distributed without explicit written permission from the copyright holder."
+      },
+      "licenseType": {
+        "title": "License Type",
+        "content": "This software is licensed under a proprietary license (All Rights Reserved). The following activities are prohibited without explicit written permission:",
+        "items": {
+          "use": "Use the software for any purpose",
+          "modify": "Modify or adapt the software",
+          "distribute": "Distribute, publish, or sublicense the software",
+          "commercial": "Use the software in any commercial or non-commercial projects"
+        }
+      },
+      "conditions": {
+        "title": "Terms and Conditions",
+        "content": "By using this software, you agree to the following conditions:",
+        "items": {
+          "copyright": "You must respect all copyright notices and restrictions",
+          "license": "You may not remove or alter any copyright notices or license information"
+        }
+      },
+      "warranty": {
+        "title": "Warranty Disclaimer",
+        "content": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY."
+      },
+      "fullText": {
+        "title": "Full License Text",
+        "content": "Copyright (c) 2025 Pennora\nAll Rights Reserved.\n\nThis software and associated documentation files (the \"Software\") are proprietary.\nYou may not use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, or permit persons to whom the Software is furnished to do so,\nwithout explicit written permission from the copyright holder.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,\nINCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A\nPARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT\nHOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION\nOF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\nSOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n---\n\nThird-Party Libraries\n\nThis Software includes third-party libraries that are subject to their respective\nopen-source licenses (primarily MIT and Apache 2.0). These licenses permit the use\nof such libraries in proprietary software."
+      },
+      "contact": {
+        "title": "Contact",
+        "content": "If you have questions about the license or wish to obtain permission to use this software, please contact us:"
       }
     }
   },

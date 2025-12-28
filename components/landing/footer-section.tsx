@@ -44,6 +44,14 @@ export function FooterSection() {
                   {t("links.terms")}
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/license"
+                  className="text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors"
+                >
+                  {t("links.license")}
+                </Link>
+              </li>
             </ul>
           </div>
 

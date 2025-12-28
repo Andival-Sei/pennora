@@ -1,0 +1,24 @@
+Copyright (c) 2025 Pennora
+All Rights Reserved.
+
+This software and associated documentation files (the "Software") are proprietary.
+You may not use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, or permit persons to whom the Software is furnished to do so,
+without explicit written permission from the copyright holder.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+Third-Party Libraries
+---------------------
+
+This Software includes third-party libraries that are subject to their respective
+open-source licenses (primarily MIT and Apache 2.0). These licenses permit the use
+of such libraries in proprietary software. License information for each library can
+be found in the node_modules directories or on the respective project pages.
