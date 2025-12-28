@@ -4,7 +4,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 
-import { cn, getScrollbarWidth } from "@/lib/utils/index";
+import { cn } from "@/lib/utils/index";
 
 function Dialog({
   ...props
@@ -54,58 +54,10 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
 }) {
-  const scrollbarWidth = React.useMemo(() => getScrollbarWidth(), []);
-  const contentRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    const content = contentRef.current;
-    if (!content) return;
-
-    // Находим контейнер контента (main с классом scrollbar-gutter-stable)
-    const mainContainer = document.querySelector(
-      "main.scrollbar-gutter-stable"
-    ) as HTMLElement;
-    if (!mainContainer) return;
-
-    const originalPaddingRight = mainContainer.style.paddingRight || "";
-
-    // Используем MutationObserver для отслеживания изменений data-state
-    const observer = new MutationObserver(() => {
-      const isOpen = content.getAttribute("data-state") === "open";
-
-      if (isOpen && scrollbarWidth > 0) {
-        // Добавляем padding-right к контейнеру контента равный ширине скроллбара при открытии
-        // Это предотвращает layout shift когда Radix UI скрывает скроллбар
-        mainContainer.style.paddingRight = `${scrollbarWidth}px`;
-      } else {
-        // Убираем padding-right при закрытии
-        mainContainer.style.paddingRight = originalPaddingRight;
-      }
-    });
-
-    // Наблюдаем за изменениями data-state
-    observer.observe(content, {
-      attributes: true,
-      attributeFilter: ["data-state"],
-    });
-
-    // Проверяем начальное состояние
-    const isInitiallyOpen = content.getAttribute("data-state") === "open";
-    if (isInitiallyOpen && scrollbarWidth > 0) {
-      mainContainer.style.paddingRight = `${scrollbarWidth}px`;
-    }
-
-    return () => {
-      observer.disconnect();
-      mainContainer.style.paddingRight = originalPaddingRight;
-    };
-  }, [scrollbarWidth]);
-
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
       <DialogPrimitive.Content
-        ref={contentRef}
         data-slot="dialog-content"
         className={cn(
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 outline-none overflow-x-hidden sm:max-w-lg",
