@@ -103,11 +103,6 @@ const defaultIcons: Record<string, keyof typeof LucideIcons> = {
   umbrella: "Umbrella",
   sun: "Sun",
   moon: "Moon",
-
-  // Еда и продукты
-  apple: "Apple",
-  cherry: "Cherry",
-  circle: "Circle",
 };
 
 export const CategoryItem = memo(function CategoryItem({

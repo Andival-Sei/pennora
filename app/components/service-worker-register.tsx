@@ -2,95 +2,63 @@
 
 import { useEffect } from "react";
 
-/**
- * Компонент регистрации Service Worker
- * Поддерживает работу в dev и production режимах
- */
 export function ServiceWorkerRegister() {
   useEffect(() => {
     // Проверка поддержки Service Worker
-    if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
-      return;
-    }
+    if (
+      typeof window !== "undefined" &&
+      "serviceWorker" in navigator &&
+      process.env.NODE_ENV === "production"
+    ) {
+      const registerSW = async () => {
+        try {
+          const registration = await navigator.serviceWorker.register(
+            "/sw.js",
+            {
+              scope: "/",
+              updateViaCache: "none",
+            }
+          );
 
-    const registerSW = async () => {
-      try {
-        // Регистрируем Service Worker
-        const reg = await navigator.serviceWorker.register("/sw.js", {
-          scope: "/",
-          updateViaCache: "none",
-        });
+          // Обработка обновлений Service Worker
+          registration.addEventListener("updatefound", () => {
+            const newWorker = registration.installing;
 
-        // Обработка обновлений Service Worker
-        reg.addEventListener("updatefound", () => {
-          const newWorker = reg.installing;
-
-          if (newWorker) {
-            newWorker.addEventListener("statechange", () => {
-              if (
-                newWorker.state === "installed" &&
-                navigator.serviceWorker.controller
-              ) {
-                // Новый Service Worker установлен, но старый еще активен
-                console.log("Доступно обновление Service Worker");
-                // Можно показать уведомление пользователю
+            if (newWorker) {
+              newWorker.addEventListener("statechange", () => {
                 if (
-                  "Notification" in window &&
-                  Notification.permission === "granted"
+                  newWorker.state === "installed" &&
+                  navigator.serviceWorker.controller
                 ) {
-                  new Notification("Доступно обновление", {
-                    body: "Перезагрузите страницу для применения обновлений",
-                    icon: "/icons/icon-192x192.png",
-                    tag: "sw-update",
-                  });
+                  // Новый Service Worker установлен, но старый еще активен
+                  // Можно показать уведомление пользователю о доступном обновлении
+                  console.log("Доступно обновление Service Worker");
                 }
-              }
-            });
-          }
-        });
-
-        // Обработка контролирующего Service Worker
-        if (reg.waiting) {
-          console.log("Service Worker ожидает активации");
-          // Можно предложить пользователю обновить страницу
-        }
-
-        if (reg.active) {
-          console.log("Service Worker активен");
-        }
-
-        // Периодическая проверка обновлений (каждые 60 секунд)
-        setInterval(() => {
-          reg.update().catch((err) => {
-            console.error("Ошибка проверки обновлений SW:", err);
+              });
+            }
           });
-        }, 60000);
-      } catch (error) {
-        console.error("Ошибка регистрации Service Worker:", error);
-      }
-    };
 
-    // Регистрация после загрузки страницы
-    if (document.readyState === "complete") {
-      registerSW();
-    } else {
-      window.addEventListener("load", registerSW);
+          // Обработка контролирующего Service Worker
+          if (registration.waiting) {
+            // Service Worker ждет активации
+            console.log("Service Worker ожидает активации");
+          }
+
+          if (registration.active) {
+            console.log("Service Worker активен");
+          }
+        } catch (error) {
+          console.error("Ошибка регистрации Service Worker:", error);
+        }
+      };
+
+      // Регистрация после загрузки страницы
+      if (document.readyState === "complete") {
+        registerSW();
+      } else {
+        window.addEventListener("load", registerSW);
+      }
     }
-
-    // Обработка сообщений от Service Worker
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.type === "SYNC_REQUEST") {
-        // Service Worker запрашивает синхронизацию
-        // Отправляем событие для запуска синхронизации
-        window.dispatchEvent(new CustomEvent("sw-sync-request"));
-      }
-    };
-
-    navigator.serviceWorker.addEventListener("message", handleMessage);
-
-    return () => {
-      navigator.serviceWorker.removeEventListener("message", handleMessage);
-    };
   }, []);
 
   return null;

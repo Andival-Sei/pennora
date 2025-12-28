@@ -336,8 +336,6 @@ pennora/
 - **Service Worker**: `public/sw.js` (Workbox CDN, ручная реализация)
 - **Иконки**: `public/icons/` (192x192, 512x512, apple-touch-icon)
 - **Регистрация**: `app/components/service-worker-register.tsx`
-- **Установка**: `components/features/pwa/InstallPrompt.tsx`
-- **Оффлайн страница**: `app/offline/page.tsx`
 
 **Подход:**
 
@@ -345,18 +343,6 @@ pennora/
 - Workbox через CDN (не требует webpack)
 - Работает с Turbopack
 - Интегрировано с существующей оффлайн-синхронизацией через IndexedDB
-- Поддержка Background Sync API для автоматической синхронизации
-- Промпт установки для Windows и Android
-- Полноценный оффлайн режим с fallback страницей
-
-**Функциональность:**
-
-- ✅ Установка на Windows и Android
-- ✅ Оффлайн режим с кешированием ресурсов
-- ✅ Background Sync для автоматической синхронизации
-- ✅ Промпт установки с умной логикой показа
-- ✅ Оффлайн fallback страница
-- ✅ Обновления Service Worker с уведомлениями
 
 ### Capacitor
 

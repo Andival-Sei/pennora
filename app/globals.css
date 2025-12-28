@@ -235,22 +235,7 @@
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
-  /* Убираем скроллбар с html - он будет на контейнере контента */
-  overflow: hidden;
-}
-
-/* Предотвращение layout shift при открытии модалок.
-   Скроллбар теперь на контейнере контента, а не на html/body.
-   JavaScript в Dialog компоненте добавляет padding-right к контейнеру контента при открытии,
-   равный ширине скроллбара, чтобы контент не сдвигался когда Radix UI скрывает скроллбар. */
-body {
-  /* body не должен иметь overflow, чтобы не создавать двойной скроллбар */
-  overflow: hidden;
-  height: 100vh;
-}
-
-/* Класс для контейнера контента со скроллбаром */
-.scrollbar-gutter-stable {
+  /* Предотвращение layout shift при открытии модалок */
   scrollbar-gutter: stable;
 }
 

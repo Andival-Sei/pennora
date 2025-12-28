@@ -8,7 +8,6 @@ import { ThemeProvider } from "@/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeInitializer } from "@/components/settings/theme-initializer";
 import { ServiceWorkerRegister } from "@/app/components/service-worker-register";
-import { InstallPrompt } from "@/components/features/pwa/InstallPrompt";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -256,7 +255,6 @@ export default async function RootLayout({
           <NextIntlClientProvider locale={locale} messages={messages}>
             {children}
             <Toaster />
-            <InstallPrompt />
           </NextIntlClientProvider>
         </ThemeProvider>
         <SpeedInsights />

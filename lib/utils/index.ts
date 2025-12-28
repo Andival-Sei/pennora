@@ -33,28 +33,3 @@ export function getAppUrl(): string {
     ? "http://localhost:3000"
     : "https://pennora.vercel.app";
 }
-
-/**
- * Вычисляет ширину скроллбара в пикселях
- * Используется для предотвращения layout shift при открытии модалок
- */
-export function getScrollbarWidth(): number {
-  if (typeof window === "undefined") return 0;
-
-  // Создаем временный элемент для измерения
-  const outer = document.createElement("div");
-  outer.style.visibility = "hidden";
-  outer.style.overflow = "scroll";
-  // @ts-expect-error - msOverflowStyle существует только в IE
-  outer.style.msOverflowStyle = "scrollbar"; // для IE
-  document.body.appendChild(outer);
-
-  const inner = document.createElement("div");
-  outer.appendChild(inner);
-
-  const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
-
-  outer.parentNode?.removeChild(outer);
-
-  return scrollbarWidth;
-}

@@ -23,30 +23,24 @@ export default function MainLayout({
 
   return (
     <QueryProvider>
-      <div className="flex flex-col h-screen overflow-hidden">
-        {/* Статус синхронизации в верхней части экрана */}
-        <AnimatePresence>
-          {isSyncStatusVisible && (
-            <motion.div
-              className="flex-shrink-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            >
-              <div className="container mx-auto px-4 py-2">
-                <SyncStatus />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {/* Контейнер контента со скроллбаром */}
-        <main className="flex-1 overflow-y-auto scrollbar-gutter-stable pb-16">
-          {children}
-        </main>
-        {/* Навигационное меню - fixed, не скроллится */}
-        <BottomNav />
-      </div>
+      {/* Статус синхронизации в верхней части экрана */}
+      <AnimatePresence>
+        {isSyncStatusVisible && (
+          <motion.div
+            className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <div className="container mx-auto px-4 py-2">
+              <SyncStatus />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="pb-16">{children}</div>
+      <BottomNav />
     </QueryProvider>
   );
 }
