@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useCallback, memo } from "react";
-import { format } from "date-fns";
+import { useState, useCallback, memo, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -11,25 +10,20 @@ import {
   X,
   Loader2,
   ChevronDown,
+  ArrowRight,
+  Package,
+  Calendar,
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { useTransactions } from "@/lib/hooks/useTransactions";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchTransactions } from "@/lib/query/queries/transactions";
@@ -47,9 +41,9 @@ import {
 } from "@/components/ui/dialog";
 import { TransactionForm } from "./TransactionForm";
 import { formatCurrency } from "@/lib/currency/formatter";
-import { ArrowRight } from "lucide-react";
+import { groupByDate } from "@/lib/utils/date";
 
-// Маппинг иконок категорий (как в CategoryItem)
+// Маппинг иконок категорий
 const defaultIcons: Record<string, keyof typeof LucideIcons> = {
   home: "Home",
   shopping: "ShoppingCart",
@@ -69,7 +63,7 @@ const defaultIcons: Record<string, keyof typeof LucideIcons> = {
   trending: "TrendingUp",
 };
 
-// Компонент для рендеринга иконки категории - объявлен вне render-функций
+// Компонент для рендеринга иконки категории
 const CategoryIcon = memo(function CategoryIcon({
   iconKey,
   className,
@@ -90,8 +84,8 @@ interface TransactionListProps {
   monthFilter?: { month: number; year: number };
 }
 
-// Мемоизированный компонент для строки таблицы (десктоп)
-interface TransactionRowProps {
+// Компонент элемента транзакции (общий для desktop и mobile)
+interface TransactionItemProps {
   transaction: TransactionWithItems;
   getAccountName: (accountId: string | null) => string;
   onEdit: (transaction: TransactionWithItems) => void;
@@ -99,13 +93,13 @@ interface TransactionRowProps {
   t: (key: string) => string;
 }
 
-const TransactionRow = memo(function TransactionRow({
+const TransactionItem = memo(function TransactionItem({
   transaction,
   getAccountName,
   onEdit,
   onDelete,
   t,
-}: TransactionRowProps) {
+}: TransactionItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const iconKey = transaction.category?.icon ?? null;
   const hasItems = transaction.items && transaction.items.length > 1;
@@ -122,253 +116,102 @@ const TransactionRow = memo(function TransactionRow({
     setIsExpanded((prev) => !prev);
   }, []);
 
+  // Определение цвета и знака для суммы
+  const amountColor =
+    transaction.type === "income"
+      ? "text-emerald-600 dark:text-emerald-400"
+      : transaction.type === "expense"
+        ? "text-red-600 dark:text-red-400"
+        : "text-blue-600 dark:text-blue-400";
+
+  const amountSign =
+    transaction.type === "transfer"
+      ? ""
+      : transaction.type === "income"
+        ? "+"
+        : "-";
+
   return (
-    <>
-      <TableRow>
-        <TableCell>
-          {format(new Date(transaction.date), "dd.MM.yyyy")}
-        </TableCell>
-        <TableCell>
+    <div className="group">
+      <div className="flex items-center gap-3 py-3 px-4 hover:bg-muted/50 transition-colors rounded-lg -mx-4">
+        {/* Иконка */}
+        <div
+          className={cn(
+            "shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+            transaction.type === "transfer"
+              ? "bg-blue-100 dark:bg-blue-900/30"
+              : transaction.type === "income"
+                ? "bg-emerald-100 dark:bg-emerald-900/30"
+                : "bg-muted"
+          )}
+        >
           {transaction.type === "transfer" ? (
-            <div className="flex items-center gap-2 text-blue-600">
-              <ArrowRight className="h-4 w-4" />
-              <span className="text-sm">
-                {t("list.transferFrom")}{" "}
-                {getAccountName(transaction.account_id)} →{" "}
-                {t("list.transferTo")}{" "}
-                {getAccountName(transaction.to_account_id)}
-              </span>
-            </div>
+            <ArrowRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           ) : hasItems ? (
-            // Отображаем позиции для split transactions с возможностью раскрытия
+            <Package className="h-5 w-5 text-muted-foreground" />
+          ) : iconKey ? (
+            <CategoryIcon
+              iconKey={iconKey}
+              className={cn(
+                "h-5 w-5",
+                transaction.type === "income"
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-muted-foreground"
+              )}
+            />
+          ) : (
+            <div className="h-2 w-2 rounded-full bg-muted-foreground/50" />
+          )}
+        </div>
+
+        {/* Основная информация */}
+        <div className="flex-1 min-w-0">
+          {transaction.type === "transfer" ? (
+            <p className="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">
+              {getAccountName(transaction.account_id)} →{" "}
+              {getAccountName(transaction.to_account_id)}
+            </p>
+          ) : hasItems ? (
             <button
               type="button"
               onClick={handleToggleExpand}
-              className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity group"
+              className="text-left hover:opacity-80 transition-opacity w-full flex items-center gap-2"
             >
-              <LucideIcons.Package className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
               <span className="text-sm font-medium">
                 {transaction.items!.length} {t("items.title")}
               </span>
               <motion.span
                 animate={{ rotate: isExpanded ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
-                className="ml-auto"
               >
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </motion.span>
             </button>
           ) : (
-            <div className="flex items-center gap-2">
-              <CategoryIcon
-                iconKey={iconKey}
-                className="h-4 w-4 text-muted-foreground"
-              />
-              <span>{transaction.category?.name || t("uncategorized")}</span>
-            </div>
-          )}
-        </TableCell>
-        <TableCell>
-          {transaction.description ||
-            (transaction.type === "transfer" ? "" : null)}
-        </TableCell>
-        <TableCell
-          className={cn(
-            "text-right font-medium whitespace-nowrap",
-            transaction.type === "income"
-              ? "text-green-600"
-              : transaction.type === "expense"
-                ? "text-red-600"
-                : "text-blue-600"
-          )}
-        >
-          {transaction.type === "transfer"
-            ? ""
-            : transaction.type === "income"
-              ? "+"
-              : "-"}
-          {formatCurrency(transaction.amount, transaction.currency)}
-        </TableCell>
-        <TableCell>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleEdit}>
-                <Edit2 className="mr-2 h-4 w-4" />
-                {t("actions.edit")}
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600" onClick={handleDelete}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                {t("actions.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TableCell>
-      </TableRow>
-      {/* Раскрывающиеся позиции для split transactions */}
-      <AnimatePresence>
-        {hasItems && isExpanded && transaction.items && (
-          <TableRow>
-            <TableCell colSpan={5} className="p-0">
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                className="bg-muted/30 px-4 py-3"
-              >
-                <div className="space-y-0">
-                  {transaction.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center text-sm py-2 hover:bg-muted/50 rounded-md -mx-2 px-2"
-                    >
-                      {/* Spacer for Date */}
-                      <div className="w-[15%]" />
-
-                      {/* Category */}
-                      <div className="w-[25%] flex items-center gap-2 pr-4">
-                        <CategoryIcon
-                          iconKey={item.category?.icon ?? null}
-                          className="h-3 w-3 text-muted-foreground shrink-0"
-                        />
-                        <span className="text-muted-foreground truncate">
-                          {item.category?.name || t("uncategorized")}
-                        </span>
-                      </div>
-
-                      {/* Description */}
-                      <div className="w-[40%] text-muted-foreground truncate pr-4">
-                        {item.description}
-                      </div>
-
-                      {/* Amount */}
-                      <div className="w-[15%] text-right text-red-600 font-medium">
-                        -{formatCurrency(item.amount, transaction.currency)}
-                      </div>
-
-                      {/* Spacer for Actions */}
-                      <div className="w-[50px]" />
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </TableCell>
-          </TableRow>
-        )}
-      </AnimatePresence>
-    </>
-  );
-});
-
-// Мемоизированный компонент для карточки (мобильная версия)
-interface TransactionCardProps {
-  transaction: TransactionWithItems;
-  getAccountName: (accountId: string | null) => string;
-  onEdit: (transaction: TransactionWithItems) => void;
-  onDelete: (id: string) => void;
-  t: (key: string) => string;
-}
-
-const TransactionCard = memo(function TransactionCard({
-  transaction,
-  getAccountName,
-  onEdit,
-  onDelete,
-  t,
-}: TransactionCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const iconKey = transaction.category?.icon ?? null;
-  const hasItems = transaction.items && transaction.items.length > 1;
-
-  const handleEdit = useCallback(() => {
-    onEdit(transaction);
-  }, [onEdit, transaction]);
-
-  const handleDelete = useCallback(() => {
-    onDelete(transaction.id);
-  }, [onDelete, transaction.id]);
-
-  return (
-    <div
-      key={transaction.id}
-      className="rounded-lg border bg-card p-4 space-y-3"
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex-1 space-y-2">
-          {transaction.type === "transfer" ? (
-            <div className="flex items-center gap-2 text-blue-600">
-              <ArrowRight className="h-4 w-4" />
-              <span className="font-medium text-sm">
-                {t("list.transferFrom")}{" "}
-                {getAccountName(transaction.account_id)} →{" "}
-                {t("list.transferTo")}{" "}
-                {getAccountName(transaction.to_account_id)}
-              </span>
-            </div>
-          ) : hasItems ? (
-            // Отображаем количество позиций для split transactions
-            <button
-              type="button"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
-            >
-              <LucideIcons.Package className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">
-                {transaction.items!.length} {t("items.title")}
-              </span>
-              <motion.span
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <LucideIcons.ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </motion.span>
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <CategoryIcon
-                iconKey={iconKey}
-                className="h-4 w-4 text-muted-foreground"
-              />
-              <span className="font-medium">
-                {transaction.category?.name || t("uncategorized")}
-              </span>
-            </div>
+            <p className="text-sm font-medium truncate">
+              {transaction.category?.name || t("uncategorized")}
+            </p>
           )}
           {transaction.description && transaction.type !== "transfer" && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground truncate mt-0.5">
               {transaction.description}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">
-            {format(new Date(transaction.date), "dd.MM.yyyy")}
-          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "font-semibold text-lg whitespace-nowrap",
-              transaction.type === "income"
-                ? "text-green-600"
-                : transaction.type === "expense"
-                  ? "text-red-600"
-                  : "text-blue-600"
-            )}
-          >
-            {transaction.type === "transfer"
-              ? ""
-              : transaction.type === "income"
-                ? "+"
-                : "-"}
+
+        {/* Сумма */}
+        <div className="shrink-0 text-right">
+          <span className={cn("text-sm font-semibold", amountColor)}>
+            {amountSign}
             {formatCurrency(transaction.amount, transaction.currency)}
           </span>
+        </div>
+
+        {/* Действия */}
+        <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -386,40 +229,59 @@ const TransactionCard = memo(function TransactionCard({
         </div>
       </div>
 
-      {/* Раскрывающийся список позиций */}
+      {/* Раскрывающиеся позиции для split transactions */}
       <AnimatePresence>
-        {hasItems && isExpanded && (
+        {hasItems && isExpanded && transaction.items && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="border-t pt-3 mt-2 space-y-2"
+            className="ml-[52px] mb-2 pl-4 border-l-2 border-muted"
           >
-            {transaction.items!.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between text-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <CategoryIcon
-                    iconKey={item.category?.icon ?? null}
-                    className="h-3 w-3 text-muted-foreground"
-                  />
-                  <span className="text-muted-foreground">
-                    {item.description ||
-                      item.category?.name ||
-                      t("uncategorized")}
+            <div className="space-y-1 py-2">
+              {transaction.items.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between text-sm py-1.5"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <CategoryIcon
+                      iconKey={item.category?.icon ?? null}
+                      className="h-4 w-4 text-muted-foreground shrink-0"
+                    />
+                    <span className="text-muted-foreground truncate">
+                      {item.category?.name || t("uncategorized")}
+                    </span>
+                    {item.description && (
+                      <span className="text-muted-foreground/60 truncate text-xs">
+                        · {item.description}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-red-600 dark:text-red-400 font-medium shrink-0 ml-4">
+                    -{formatCurrency(item.amount, transaction.currency)}
                   </span>
                 </div>
-                <span className="text-red-600 font-medium">
-                  -{formatCurrency(item.amount, transaction.currency)}
-                </span>
-              </div>
-            ))}
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+});
+
+// Компонент заголовка даты
+const DateHeader = memo(function DateHeader({ date }: { date: string }) {
+  return (
+    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 px-4 -mx-4 border-b">
+      <div className="flex items-center gap-2">
+        <Calendar className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-muted-foreground">
+          {date}
+        </span>
+      </div>
     </div>
   );
 });
@@ -437,7 +299,7 @@ export const TransactionList = memo(function TransactionList({
   >(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Используем React Query напрямую для загрузки транзакций
+  // Используем React Query для загрузки транзакций
   const filters = monthFilter
     ? { month: monthFilter.month, year: monthFilter.year }
     : undefined;
@@ -462,7 +324,12 @@ export const TransactionList = memo(function TransactionList({
     gcTime: QUERY_GC_TIME.ACCOUNTS,
   });
 
-  // Функция для получения названия счета по ID (мемоизируем)
+  // Группируем транзакции по дате
+  const groupedTransactions = useMemo(() => {
+    return groupByDate(transactions, "ru");
+  }, [transactions]);
+
+  // Функция для получения названия счета по ID
   const getAccountName = useCallback(
     (accountId: string | null) => {
       if (!accountId) return "";
@@ -478,7 +345,6 @@ export const TransactionList = memo(function TransactionList({
       try {
         await deleteTransaction(id);
         setDeletingTransactionId(null);
-        // React Query автоматически обновит данные после мутации
       } finally {
         setIsDeleting(false);
       }
@@ -486,7 +352,6 @@ export const TransactionList = memo(function TransactionList({
     [deleteTransaction]
   );
 
-  // Мемоизируем обработчики для редактирования и удаления
   const handleEditTransaction = useCallback(
     (transaction: TransactionWithItems) => {
       setEditingTransaction(transaction);
@@ -513,57 +378,43 @@ export const TransactionList = memo(function TransactionList({
 
   if (transactions.length === 0) {
     return (
-      <div className="text-center py-4 text-muted-foreground">
-        {t("noTransactions")}
+      <div className="text-center py-12">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
+          <Package className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <p className="text-muted-foreground">{t("noTransactions")}</p>
       </div>
     );
   }
 
   return (
     <>
-      {/* Десктопная версия - таблица */}
-      <div className="hidden md:block rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[15%]">{t("list.date")}</TableHead>
-              <TableHead className="w-[25%]">{t("list.category")}</TableHead>
-              <TableHead className="w-[40%]">{t("list.description")}</TableHead>
-              <TableHead className="text-right w-[15%]">
-                {t("list.amount")}
-              </TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactions.map((transaction) => (
-              <TransactionRow
-                key={transaction.id}
-                transaction={transaction}
-                getAccountName={getAccountName}
-                onEdit={handleEditTransaction}
-                onDelete={handleDeleteTransaction}
-                t={t}
-              />
-            ))}
-          </TableBody>
-        </Table>
+      {/* Список транзакций сгруппированный по датам */}
+      <div className="rounded-xl border bg-card overflow-hidden">
+        <div className="divide-y">
+          {Array.from(groupedTransactions.entries()).map(
+            ([dateKey, dateTransactions]) => (
+              <div key={dateKey} className="px-4">
+                <DateHeader date={dateKey} />
+                <div className="divide-y divide-border/50">
+                  {dateTransactions.map((transaction) => (
+                    <TransactionItem
+                      key={transaction.id}
+                      transaction={transaction}
+                      getAccountName={getAccountName}
+                      onEdit={handleEditTransaction}
+                      onDelete={handleDeleteTransaction}
+                      t={t}
+                    />
+                  ))}
+                </div>
+              </div>
+            )
+          )}
+        </div>
       </div>
 
-      {/* Мобильная версия - карточки */}
-      <div className="md:hidden space-y-3">
-        {transactions.map((transaction) => (
-          <TransactionCard
-            key={transaction.id}
-            transaction={transaction}
-            getAccountName={getAccountName}
-            onEdit={handleEditTransaction}
-            onDelete={handleDeleteTransaction}
-            t={t}
-          />
-        ))}
-      </div>
-
+      {/* Диалог редактирования */}
       <Dialog
         open={!!editingTransaction}
         onOpenChange={(open) => !open && setEditingTransaction(null)}
@@ -578,17 +429,16 @@ export const TransactionList = memo(function TransactionList({
               initialData={editingTransaction}
               onSuccess={() => {
                 setEditingTransaction(null);
-                // React Query автоматически обновит данные после мутации
               }}
             />
           )}
         </DialogContent>
       </Dialog>
 
+      {/* Модальное окно подтверждения удаления */}
       <AnimatePresence>
         {deletingTransactionId && (
           <>
-            {/* Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -596,19 +446,17 @@ export const TransactionList = memo(function TransactionList({
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
               onClick={() => !isDeleting && setDeletingTransactionId(null)}
             />
-
-            {/* Modal */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-card border border-border rounded-lg shadow-lg p-6 max-w-md w-full"
+                className="bg-card border border-border rounded-2xl shadow-lg p-6 max-w-md w-full"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-destructive/10">
+                    <div className="p-2.5 rounded-xl bg-destructive/10">
                       <Trash2 className="h-5 w-5 text-destructive" />
                     </div>
                     <h3 className="text-lg font-semibold">
@@ -624,11 +472,9 @@ export const TransactionList = memo(function TransactionList({
                     </button>
                   )}
                 </div>
-
                 <p className="text-muted-foreground mb-6">
                   {t("deleteConfirm")}
                 </p>
-
                 <div className="flex gap-3 justify-end">
                   <Button
                     variant="outline"
