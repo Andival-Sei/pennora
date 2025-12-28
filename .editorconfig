@@ -1,0 +1,43 @@
+# EditorConfig помогает поддерживать единый стиль кода
+# в разных редакторах и IDE
+# https://editorconfig.org
+
+root = true
+
+# Все файлы по умолчанию
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Markdown файлы
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = off
+
+# JSON файлы
+[*.json]
+indent_size = 2
+
+# YAML файлы
+[*.{yml,yaml}]
+indent_size = 2
+
+# Package files
+[package.json]
+indent_size = 2
+
+# TypeScript и JavaScript файлы
+[*.{ts,tsx,js,jsx,mjs,cjs}]
+indent_size = 2
+
+# CSS файлы
+[*.{css,scss}]
+indent_size = 2
+
+# Makefile (использует табы)
+[Makefile]
+indent_style = tab
