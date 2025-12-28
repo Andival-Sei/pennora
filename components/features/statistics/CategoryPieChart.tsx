@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import type { TooltipProps } from "recharts";
+import type { TooltipProps as RechartsTooltipProps } from "recharts";
 import { Loader2 } from "lucide-react";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchCategoryStatistics } from "@/lib/query/queries/statistics";
@@ -133,10 +133,18 @@ export function CategoryPieChart({
     );
   };
 
-  const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
+  const CustomTooltip = (
+    props: RechartsTooltipProps<number, string> & {
+      active?: boolean;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload?: readonly any[];
+    }
+  ) => {
+    const { active, payload } = props;
     if (!active || !payload?.length) return null;
 
-    const data = payload[0].payload as (typeof chartData)[0];
+    const data = (payload[0] as { payload?: (typeof chartData)[0] })
+      .payload as (typeof chartData)[0];
     return (
       <div className="bg-background border border-border rounded-lg px-3 py-2 shadow-lg">
         <div className="font-medium">{data.name}</div>
