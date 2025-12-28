@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/Andival-Sei/pennora/compare/v1.1.0...v1.1.1) (2025-12-28)
+
+### Bug Fixes
+
+- **ui:** исправить layout shift при открытии модальных окон ([0f97b7a](https://github.com/Andival-Sei/pennora/commit/0f97b7a860109bf0c17b97fe018c89f8228ffaac))
+
 # [1.1.0](https://github.com/Andival-Sei/pennora/compare/v1.0.0...v1.1.0) (2025-12-28)
 
 ### Features
