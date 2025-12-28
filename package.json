@@ -1,6 +1,6 @@
 {
   "name": "pennora",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "description": "Приложение для учёта личного и семейного бюджета с поддержкой офлайн-режима и синхронизации данных",
   "private": true,
   "license": "UNLICENSED",
