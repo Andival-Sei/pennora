@@ -43,7 +43,15 @@ vi.mock("next/navigation", () => ({
 
 // Мокируем мутацию
 vi.mock("@/lib/query/mutations/accounts", () => ({
+  useCreateAccount: vi.fn(() => ({
+    mutate: vi.fn(),
+    isPending: false,
+  })),
   useUpdateAccount: vi.fn(() => ({
+    mutate: vi.fn(),
+    isPending: false,
+  })),
+  useDeleteAccount: vi.fn(() => ({
     mutate: vi.fn(),
     isPending: false,
   })),
