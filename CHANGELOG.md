@@ -1,3 +1,9 @@
+# [1.2.0](https://github.com/Andival-Sei/pennora/compare/v1.1.1...v1.2.0) (2025-12-28)
+
+### Features
+
+- **pwa:** реализовать полноценный PWA функционал для Windows и Android ([a81ca72](https://github.com/Andival-Sei/pennora/commit/a81ca7278e6fe97d39971c9f2f2844c8d2689247))
+
 ## [1.1.1](https://github.com/Andival-Sei/pennora/compare/v1.1.0...v1.1.1) (2025-12-28)
 
 ### Bug Fixes
