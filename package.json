@@ -1,7 +1,31 @@
 {
   "name": "pennora",
-  "version": "0.1.0",
+  "version": "0.5.0",
+  "description": "Приложение для учёта личного и семейного бюджета с поддержкой офлайн-режима и синхронизации данных",
   "private": true,
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Andival-Sei/pennora.git"
+  },
+  "homepage": "https://github.com/Andival-Sei/pennora#readme",
+  "bugs": {
+    "url": "https://github.com/Andival-Sei/pennora/issues"
+  },
+  "keywords": [
+    "budget",
+    "finance",
+    "expense-tracker",
+    "offline",
+    "sync",
+    "nextjs",
+    "react",
+    "supabase",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=22.14.0"
+  },
   "scripts": {
     "dev": "next dev",
     "dev:turbo": "next dev --turbo",
