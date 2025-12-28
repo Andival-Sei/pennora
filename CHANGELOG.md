@@ -1,3 +1,9 @@
+## [1.1.2](https://github.com/Andival-Sei/pennora/compare/v1.1.1...v1.1.2) (2025-12-28)
+
+### Bug Fixes
+
+- **utils:** исправить ошибку TypeScript с msOverflowStyle ([9748f4e](https://github.com/Andival-Sei/pennora/commit/9748f4eccfbd17a83020624757a4176892bce840))
+
 ## [1.1.1](https://github.com/Andival-Sei/pennora/compare/v1.1.0...v1.1.1) (2025-12-28)
 
 ### Bug Fixes
