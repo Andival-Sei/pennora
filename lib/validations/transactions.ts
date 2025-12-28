@@ -17,6 +17,7 @@ export function createTransactionItemSchema(tErrors: TranslationFn) {
       .union([
         z.number().min(0.01, tErrors("validation.transactions.amountMin")),
         z.undefined(),
+        z.null(),
       ])
       .optional(),
     description: z.string().nullable().optional(),

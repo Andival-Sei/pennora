@@ -574,6 +574,7 @@ export const TransactionList = memo(function TransactionList({
           </DialogHeader>
           {editingTransaction && (
             <TransactionForm
+              key={editingTransaction.id}
               initialData={editingTransaction}
               onSuccess={() => {
                 setEditingTransaction(null);

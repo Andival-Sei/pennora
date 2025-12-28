@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { UseFormReturn, useFieldArray } from "react-hook-form";
+import { UseFormReturn, useFieldArray, useWatch } from "react-hook-form";
 import { Plus, X, Package } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -78,6 +78,12 @@ export function TransactionItemsField({
     name: "items",
   });
 
+  // Следим за изменениями items для реактивного обновления суммы
+  const items = useWatch({
+    control: form.control,
+    name: "items",
+  });
+
   // Фильтруем категории только для расходов
   const expenseCategories = categories.filter((cat) => cat.type === "expense");
 
@@ -92,40 +98,24 @@ export function TransactionItemsField({
   }, [append, fields.length]);
 
   // Вычисляем общую сумму позиций
-  const itemsTotal = fields.reduce((sum, _, index) => {
-    const amount = form.watch(`items.${index}.amount`);
-    return sum + (amount ?? 0);
+  const itemsTotal = (items || []).reduce((sum, item) => {
+    return sum + (item?.amount || 0);
   }, 0);
 
   // Обновляем общую сумму транзакции при изменении позиций
-  const updateTotalAmount = useCallback(() => {
-    const items = form.getValues("items");
-    const total =
-      items?.reduce((sum, item) => sum + (item.amount || 0), 0) ?? 0;
-    form.setValue("amount", total, { shouldValidate: true });
-  }, [form]);
+  useEffect(() => {
+    form.setValue("amount", itemsTotal, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }, [itemsTotal, form]);
 
-  // Удаление позиции с корректным пересчетом суммы
+  // Удаление позиции
   const handleRemove = useCallback(
     (index: number) => {
       const currentItems = form.getValues("items") || [];
-      // Фильтруем удаляемый элемент
       const newItems = currentItems.filter((_, i) => i !== index);
-      // Считаем новую сумму из оставшихся позиций
-      const newTotal = newItems.reduce(
-        (sum, item) => sum + (item.amount || 0),
-        0
-      );
-
-      // Синхронно обновляем items через setValue вместо remove,
-      // чтобы избежать race condition и проблем с валидацией
-      form.setValue("items", newItems, { shouldValidate: false });
-
-      // Обновляем сумму (не валидируем сразу, чтобы избежать ошибок валидации)
-      form.setValue("amount", newTotal, { shouldValidate: false });
-
-      // Валидируем форму после обновления всех значений
-      form.trigger(["items", "amount"]);
+      form.setValue("items", newItems, { shouldValidate: true });
     },
     [form]
   );
@@ -190,24 +180,24 @@ export function TransactionItemsField({
               className="overflow-hidden"
             >
               <Card className="border-border/50 shadow-sm transition-shadow duration-200 hover:shadow-md focus-within:shadow-md">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-start gap-3 sm:gap-4">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-start gap-3">
                     {/* Номер позиции */}
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                       {index + 1}
                     </div>
 
                     {/* Поля позиции */}
-                    <div className="flex-1 space-y-4">
+                    <div className="flex-1 space-y-3">
                       {/* Первый ряд: Описание и Сумма */}
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-3">
                         {/* Описание (название товара) */}
                         <div className="flex-1">
                           <FormField
                             control={form.control}
                             name={`items.${index}.description`}
                             render={({ field: descriptionField }) => (
-                              <FormItem className="space-y-1.5">
+                              <FormItem className="space-y-1">
                                 <FormLabel
                                   htmlFor={`items.${index}.description`}
                                   className="text-xs font-medium"
@@ -247,7 +237,7 @@ export function TransactionItemsField({
                             control={form.control}
                             name={`items.${index}.amount`}
                             render={({ field: amountField }) => (
-                              <FormItem className="space-y-1.5">
+                              <FormItem className="space-y-1">
                                 <FormLabel
                                   htmlFor={`items.${index}.amount`}
                                   className="text-xs font-medium text-muted-foreground"
@@ -261,24 +251,23 @@ export function TransactionItemsField({
                                     type="number"
                                     step="any"
                                     className="h-9 text-lg font-semibold transition-colors focus-visible:ring-2"
-                                    value={amountField.value ?? ""}
+                                    value={
+                                      amountField.value === undefined ||
+                                      amountField.value === null
+                                        ? ""
+                                        : amountField.value
+                                    }
                                     onChange={(e) => {
                                       const value = e.target.value;
-                                      if (value === "") {
-                                        amountField.onChange(
-                                          undefined as unknown as number
-                                        );
-                                      } else {
-                                        const numValue = Number(value);
-                                        if (!isNaN(numValue)) {
-                                          amountField.onChange(numValue);
-                                        } else {
-                                          amountField.onChange(
-                                            undefined as unknown as number
-                                          );
-                                        }
+                                      // Разрешаем пустую строку для возможности полного удаления
+                                      if (value === "" || value === "-") {
+                                        amountField.onChange(null);
+                                        return;
                                       }
-                                      setTimeout(updateTotalAmount, 0);
+                                      const numValue = Number(value);
+                                      if (!isNaN(numValue) && numValue >= 0) {
+                                        amountField.onChange(numValue);
+                                      }
                                     }}
                                     onBlur={amountField.onBlur}
                                     name={amountField.name}
@@ -302,14 +291,14 @@ export function TransactionItemsField({
                       </div>
 
                       {/* Разделитель */}
-                      <div className="border-t border-border/50" />
+                      <div className="border-t border-border/40" />
 
                       {/* Второй ряд: Категория */}
                       <FormField
                         control={form.control}
                         name={`items.${index}.category_id`}
                         render={({ field: categoryField }) => (
-                          <FormItem className="space-y-1.5">
+                          <FormItem className="space-y-1">
                             <FormLabel className="text-xs font-medium">
                               {t("items.category")}
                             </FormLabel>
@@ -343,7 +332,7 @@ export function TransactionItemsField({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-10 w-10 shrink-0 text-muted-foreground transition-all duration-200 hover:scale-110 hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/20"
+                      className="h-8 w-8 shrink-0 text-muted-foreground transition-all duration-200 hover:scale-110 hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/20"
                       onClick={() => handleRemove(index)}
                       aria-label={`${t("items.remove")} ${index + 1}`}
                     >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
@@ -166,17 +166,26 @@ export function TransactionForm({
   });
 
   // Переинициализируем форму при изменении initialData (для редактирования)
-  // Выносим сложное выражение в отдельную переменную для статической проверки зависимостей
-  const transactionId = TransactionService.isFullTransaction(initialData)
-    ? (initialData as { id: string }).id
-    : undefined;
+  // Используем ref для отслеживания предыдущего ID, чтобы избежать лишних сбросов
+  // при обновлении родительского компонента
+  const lastTransactionIdRef = useRef<string | undefined>(
+    TransactionService.isFullTransaction(initialData)
+      ? (initialData as { id: string }).id
+      : undefined
+  );
 
   useEffect(() => {
-    if (initialData && TransactionService.isFullTransaction(initialData)) {
+    const currentId = TransactionService.isFullTransaction(initialData)
+      ? (initialData as { id: string }).id
+      : undefined;
+
+    // Сбрасываем форму ТОЛЬКО если изменился ID транзакции (переключились на другую)
+    if (currentId !== lastTransactionIdRef.current) {
+      lastTransactionIdRef.current = currentId;
       const newValues = getInitialFormValues();
       form.reset(newValues);
     }
-  }, [transactionId, initialData, form, getInitialFormValues]);
+  }, [initialData, form, getInitialFormValues]);
 
   const isLoading = form.formState.isSubmitting;
   const transactionType = useWatch({
