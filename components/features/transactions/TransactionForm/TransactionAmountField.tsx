@@ -14,12 +14,16 @@ import type { TransactionFormValues } from "@/lib/validations/transactions";
 
 interface TransactionAmountFieldProps {
   form: UseFormReturn<TransactionFormValues>;
+  disabled?: boolean;
 }
 
 /**
  * Компонент поля ввода суммы транзакции
  */
-export function TransactionAmountField({ form }: TransactionAmountFieldProps) {
+export function TransactionAmountField({
+  form,
+  disabled,
+}: TransactionAmountFieldProps) {
   const t = useTranslations("transactions.form");
 
   return (
@@ -33,6 +37,7 @@ export function TransactionAmountField({ form }: TransactionAmountFieldProps) {
             <Input
               type="number"
               step="0.01"
+              disabled={disabled}
               {...field}
               value={field.value || ""}
               onChange={(e) => {

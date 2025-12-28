@@ -4,7 +4,14 @@ import { useState, useCallback, memo } from "react";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Edit2, Trash2, MoreVertical, X, Loader2 } from "lucide-react";
+import {
+  Edit2,
+  Trash2,
+  MoreVertical,
+  X,
+  Loader2,
+  ChevronDown,
+} from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -99,6 +106,7 @@ const TransactionRow = memo(function TransactionRow({
   onDelete,
   t,
 }: TransactionRowProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const iconKey = transaction.category?.icon ?? null;
   const hasItems = transaction.items && transaction.items.length > 1;
 
@@ -110,78 +118,150 @@ const TransactionRow = memo(function TransactionRow({
     onDelete(transaction.id);
   }, [onDelete, transaction.id]);
 
+  const handleToggleExpand = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
+
   return (
-    <TableRow>
-      <TableCell>{format(new Date(transaction.date), "dd.MM.yyyy")}</TableCell>
-      <TableCell>
-        {transaction.type === "transfer" ? (
-          <div className="flex items-center gap-2 text-blue-600">
-            <ArrowRight className="h-4 w-4" />
-            <span className="text-sm">
-              {t("list.transferFrom")} {getAccountName(transaction.account_id)}{" "}
-              → {t("list.transferTo")}{" "}
-              {getAccountName(transaction.to_account_id)}
-            </span>
-          </div>
-        ) : hasItems ? (
-          // Отображаем количество позиций для split transactions
-          <div className="flex items-center gap-2">
-            <LucideIcons.Package className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              {transaction.items!.length} {t("items.title")}
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <CategoryIcon
-              iconKey={iconKey}
-              className="h-4 w-4 text-muted-foreground"
-            />
-            <span>{transaction.category?.name || t("uncategorized")}</span>
-          </div>
+    <>
+      <TableRow>
+        <TableCell>
+          {format(new Date(transaction.date), "dd.MM.yyyy")}
+        </TableCell>
+        <TableCell>
+          {transaction.type === "transfer" ? (
+            <div className="flex items-center gap-2 text-blue-600">
+              <ArrowRight className="h-4 w-4" />
+              <span className="text-sm">
+                {t("list.transferFrom")}{" "}
+                {getAccountName(transaction.account_id)} →{" "}
+                {t("list.transferTo")}{" "}
+                {getAccountName(transaction.to_account_id)}
+              </span>
+            </div>
+          ) : hasItems ? (
+            // Отображаем позиции для split transactions с возможностью раскрытия
+            <button
+              type="button"
+              onClick={handleToggleExpand}
+              className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity group"
+            >
+              <LucideIcons.Package className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <span className="text-sm font-medium">
+                {transaction.items!.length} {t("items.title")}
+              </span>
+              <motion.span
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="ml-auto"
+              >
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </motion.span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <CategoryIcon
+                iconKey={iconKey}
+                className="h-4 w-4 text-muted-foreground"
+              />
+              <span>{transaction.category?.name || t("uncategorized")}</span>
+            </div>
+          )}
+        </TableCell>
+        <TableCell>
+          {transaction.description ||
+            (transaction.type === "transfer" ? "" : null)}
+        </TableCell>
+        <TableCell
+          className={cn(
+            "text-right font-medium whitespace-nowrap",
+            transaction.type === "income"
+              ? "text-green-600"
+              : transaction.type === "expense"
+                ? "text-red-600"
+                : "text-blue-600"
+          )}
+        >
+          {transaction.type === "transfer"
+            ? ""
+            : transaction.type === "income"
+              ? "+"
+              : "-"}
+          {formatCurrency(transaction.amount, transaction.currency)}
+        </TableCell>
+        <TableCell>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleEdit}>
+                <Edit2 className="mr-2 h-4 w-4" />
+                {t("actions.edit")}
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600" onClick={handleDelete}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t("actions.delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TableCell>
+      </TableRow>
+      {/* Раскрывающиеся позиции для split transactions */}
+      <AnimatePresence>
+        {hasItems && isExpanded && transaction.items && (
+          <TableRow>
+            <TableCell colSpan={5} className="p-0">
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="bg-muted/30 px-4 py-3"
+              >
+                <div className="space-y-0">
+                  {transaction.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center text-sm py-2 hover:bg-muted/50 rounded-md -mx-2 px-2"
+                    >
+                      {/* Spacer for Date */}
+                      <div className="w-[15%]" />
+
+                      {/* Category */}
+                      <div className="w-[25%] flex items-center gap-2 pr-4">
+                        <CategoryIcon
+                          iconKey={item.category?.icon ?? null}
+                          className="h-3 w-3 text-muted-foreground shrink-0"
+                        />
+                        <span className="text-muted-foreground truncate">
+                          {item.category?.name || t("uncategorized")}
+                        </span>
+                      </div>
+
+                      {/* Description */}
+                      <div className="w-[40%] text-muted-foreground truncate pr-4">
+                        {item.description}
+                      </div>
+
+                      {/* Amount */}
+                      <div className="w-[15%] text-right text-red-600 font-medium">
+                        -{formatCurrency(item.amount, transaction.currency)}
+                      </div>
+
+                      {/* Spacer for Actions */}
+                      <div className="w-[50px]" />
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </TableCell>
+          </TableRow>
         )}
-      </TableCell>
-      <TableCell>
-        {transaction.description ||
-          (transaction.type === "transfer" ? "" : null)}
-      </TableCell>
-      <TableCell
-        className={cn(
-          "text-right font-medium whitespace-nowrap",
-          transaction.type === "income"
-            ? "text-green-600"
-            : transaction.type === "expense"
-              ? "text-red-600"
-              : "text-blue-600"
-        )}
-      >
-        {transaction.type === "transfer"
-          ? ""
-          : transaction.type === "income"
-            ? "+"
-            : "-"}
-        {formatCurrency(transaction.amount, transaction.currency)}
-      </TableCell>
-      <TableCell>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleEdit}>
-              <Edit2 className="mr-2 h-4 w-4" />
-              {t("actions.edit")}
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600" onClick={handleDelete}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              {t("actions.delete")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </TableCell>
-    </TableRow>
+      </AnimatePresence>
+    </>
   );
 });
 
@@ -446,10 +526,12 @@ export const TransactionList = memo(function TransactionList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t("list.date")}</TableHead>
-              <TableHead>{t("list.category")}</TableHead>
-              <TableHead>{t("list.description")}</TableHead>
-              <TableHead className="text-right">{t("list.amount")}</TableHead>
+              <TableHead className="w-[15%]">{t("list.date")}</TableHead>
+              <TableHead className="w-[25%]">{t("list.category")}</TableHead>
+              <TableHead className="w-[40%]">{t("list.description")}</TableHead>
+              <TableHead className="text-right w-[15%]">
+                {t("list.amount")}
+              </TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>

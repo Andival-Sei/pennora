@@ -73,7 +73,7 @@ export function TransactionItemsField({
   const t = useTranslations("transactions");
 
   // Используем useFieldArray для управления массивом items
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append } = useFieldArray({
     control: form.control,
     name: "items",
   });
@@ -99,14 +99,36 @@ export function TransactionItemsField({
 
   // Обновляем общую сумму транзакции при изменении позиций
   const updateTotalAmount = useCallback(() => {
-    if (fields.length > 0) {
-      const total = fields.reduce((sum, _, index) => {
-        const amount = form.getValues(`items.${index}.amount`);
-        return sum + (amount ?? 0);
-      }, 0);
-      form.setValue("amount", total, { shouldValidate: true });
-    }
-  }, [fields, form]);
+    const items = form.getValues("items");
+    const total =
+      items?.reduce((sum, item) => sum + (item.amount || 0), 0) ?? 0;
+    form.setValue("amount", total, { shouldValidate: true });
+  }, [form]);
+
+  // Удаление позиции с корректным пересчетом суммы
+  const handleRemove = useCallback(
+    (index: number) => {
+      const currentItems = form.getValues("items") || [];
+      // Фильтруем удаляемый элемент
+      const newItems = currentItems.filter((_, i) => i !== index);
+      // Считаем новую сумму из оставшихся позиций
+      const newTotal = newItems.reduce(
+        (sum, item) => sum + (item.amount || 0),
+        0
+      );
+
+      // Синхронно обновляем items через setValue вместо remove,
+      // чтобы избежать race condition и проблем с валидацией
+      form.setValue("items", newItems, { shouldValidate: false });
+
+      // Обновляем сумму (не валидируем сразу, чтобы избежать ошибок валидации)
+      form.setValue("amount", newTotal, { shouldValidate: false });
+
+      // Валидируем форму после обновления всех значений
+      form.trigger(["items", "amount"]);
+    },
+    [form]
+  );
 
   // Если нет позиций, показываем кнопку добавления
   if (fields.length === 0) {
@@ -294,9 +316,15 @@ export function TransactionItemsField({
                             <FormControl>
                               <CascadingCategorySelect
                                 categories={expenseCategories}
-                                value={categoryField.value || null}
+                                value={
+                                  categoryField.value === null ||
+                                  categoryField.value === undefined ||
+                                  categoryField.value === ""
+                                    ? null
+                                    : categoryField.value
+                                }
                                 onChange={(value) => {
-                                  categoryField.onChange(value);
+                                  categoryField.onChange(value ?? null);
                                 }}
                                 type="expense"
                                 placeholder={t("form.none")}
@@ -316,11 +344,7 @@ export function TransactionItemsField({
                       variant="ghost"
                       size="icon"
                       className="h-10 w-10 shrink-0 text-muted-foreground transition-all duration-200 hover:scale-110 hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/20"
-                      onClick={() => {
-                        remove(index);
-                        // Обновляем общую сумму после удаления
-                        setTimeout(updateTotalAmount, 0);
-                      }}
+                      onClick={() => handleRemove(index)}
                       aria-label={`${t("items.remove")} ${index + 1}`}
                     >
                       <X className="h-4 w-4" />

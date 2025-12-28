@@ -188,79 +188,178 @@ function parsePaymentMethod(text: string): "cash" | "card" | null {
 }
 
 /**
- * Парсит список товаров из текста чека
+ * Проверяет, является ли строка служебной (не товаром)
  */
-function parseItems(text: string): Array<{ name: string; price: number }> {
-  const items: Array<{ name: string; price: number }> = [];
-  const lines = text.split("\n");
+function isServiceLine(line: string): boolean {
+  const trimmed = line.trim();
 
-  for (let i = 0; i < lines.length; i++) {
+  // Пустые строки
+  if (!trimmed) {
+    return true;
+  }
+
+  // Строки с количеством (1 шт. x, x 186.00, ×)
+  if (
+    trimmed.match(/^\d+\s*шт\.?\s*x?\s*\d*/i) ||
+    trimmed.match(/^\d+\s*x\s*\d+/i) ||
+    trimmed.match(/^x\s*\d+/i) ||
+    trimmed.match(/^×\s*\d+/i) ||
+    trimmed.match(/^\d+\s*шт\.?$/i)
+  ) {
+    return true;
+  }
+
+  // Служебные строки российских чеков
+  const servicePatterns = [
+    /^(ЧЕК|RECEIPT|КАССОВЫЙ|ФИСКАЛЬНЫЙ)/i,
+    /^(ИТОГ|ИТОГО|СУММА|К\s+ОПЛАТЕ|TOTAL)/i,
+    /^(ООО|ИП|OOO|IP)/i,
+    /^(ОПЛАТА|НАЛИЧНЫМИ|БЕЗНАЛИЧНЫМИ)/i,
+    /^(НДС|СТАВКА\s+НДС|ставка\s+\d+%)/i,
+    /^(СПОСОБ\s+РАСЧЕТА|Признак\s+предмета\s+расчета)/i,
+    /^(ЗАЧЕТ|ПРЕДОПЛАТ|АВАНС|АВАНСА)/i,
+    /^СУММА\s+ПО\s+ЧЕКУ/i,
+    /^СУММА\s+НДС\s+ЧЕКА/i,
+    /^Общая\s+стоимость\s+позиции/i, // Это служебная строка, не товар
+    /^=\s*\d+/i, // "= 858.00"
+    /^(ПОЛНЫЙ|ЧАСТИЧНЫЙ|АВАНСОВЫЙ)\s+РАСЧЕТ/i,
+    /^(Товар|Услуга|Работа)/i, // Признак предмета расчета
+  ];
+
+  return servicePatterns.some((pattern) => trimmed.match(pattern));
+}
+
+/**
+ * Проверяет, является ли строка маркером конца секции товаров
+ */
+function isEndOfItemsSection(line: string): boolean {
+  const trimmed = line.trim().toUpperCase();
+  return (
+    trimmed.startsWith("ИТОГ") ||
+    trimmed.startsWith("ИТОГО") ||
+    !!trimmed.match(/^СУММА\s+ПО\s+ЧЕКУ/i) ||
+    !!trimmed.match(/^ЗАЧЕТ/i) ||
+    !!trimmed.match(/^ПРЕДОПЛАТ/i) ||
+    !!trimmed.match(/^АВАНС/i)
+  );
+}
+
+/**
+ * Находит цену товара, начиная с указанного индекса
+ * Ищет в структуре: "Общая стоимость позиции..." -> следующая строка с ценой
+ */
+function findItemPrice(lines: string[], startIndex: number): number | null {
+  // Ищем строку "Общая стоимость позиции..."
+  // Ограничиваем поиск следующими 15 строками или до следующего товара
+  for (let i = startIndex; i < Math.min(startIndex + 15, lines.length); i++) {
     const line = lines[i].trim();
 
-    // Пропускаем служебные строки
-    if (
-      line.match(
-        /^(ЧЕК|RECEIPT|ИТОГО|СУММА|К\s+ОПЛАТЕ|TOTAL|ООО|ИП|ОПЛАТА|НАЛИЧНЫМИ|БЕЗНАЛИЧНЫМИ|НДС|СТАВКА|СПОСОБ|ПРИЗНАК)/i
-      )
-    ) {
-      continue;
+    // Если встретили следующий товар (новый номер), прекращаем поиск
+    if (i > startIndex && line.match(/^\d+:\s*/)) {
+      break;
     }
 
-    // Ищем строки с товарами в формате:
-    // 1: Название товара
-    // или
-    // Название товара    123.45
-    // или
-    // Общая стоимость позиции с учетом скидок и наценок 900.00
+    // Если встретили конец секции товаров, прекращаем поиск
+    if (isEndOfItemsSection(line)) {
+      break;
+    }
 
-    // Формат с номером: "1: Фонарь Эра GB-608..."
-    const numberedItemMatch = line.match(/^\d+:\s*(.+)/);
-    if (numberedItemMatch) {
-      const name = numberedItemMatch[1].trim();
-      // Ищем цену в следующей строке или в текущей
-      let price = 0;
+    // Ищем строку "Общая стоимость позиции..."
+    const hasTotalPrice = line.match(/Общая\s+стоимость\s+позиции/i);
+    if (hasTotalPrice) {
+      // Проверяем, есть ли цена в самой строке
+      const totalPriceMatch = line.match(
+        /Общая\s+стоимость\s+позиции[^:]*[:=]?\s*(\d+[.,]\d{2})/i
+      );
+      if (totalPriceMatch && totalPriceMatch[1]) {
+        const price = parseFloat(totalPriceMatch[1].replace(",", "."));
+        if (!isNaN(price) && price > 0) {
+          return price;
+        }
+      }
 
       // Проверяем следующую строку на наличие цены
       if (i + 1 < lines.length) {
         const nextLine = lines[i + 1].trim();
-        const priceMatch = nextLine.match(/(\d+[.,]\d{2})/);
+        const priceMatch = nextLine.match(/^(\d+[.,]\d{2})$/);
         if (priceMatch) {
-          price = parseFloat(priceMatch[1].replace(",", "."));
+          const price = parseFloat(priceMatch[1].replace(",", "."));
+          if (!isNaN(price) && price > 0) {
+            return price;
+          }
         }
       }
+    }
+  }
 
-      if (name.length > 0 && !name.match(/^(шт\.|x|×)/i)) {
-        items.push({ name, price });
-      }
+  return null;
+}
+
+/**
+ * Парсит список товаров из текста чека
+ * Поддерживает формат российских кассовых чеков с пронумерованными позициями
+ */
+function parseItems(text: string): Array<{ name: string; price: number }> {
+  const items: Array<{ name: string; price: number }> = [];
+  const lines = text.split("\n").map((line) => line.trim());
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Если встретили конец секции товаров, прекращаем обработку
+    if (isEndOfItemsSection(line)) {
+      break;
+    }
+
+    // Пропускаем служебные строки
+    if (isServiceLine(line)) {
       continue;
     }
 
-    // Формат: "Общая стоимость позиции с учетом скидок и наценок 900.00"
-    const totalPriceMatch = line.match(
-      /Общая\s+стоимость\s+позиции[^:]*[:=]?\s*(\d+[.,]\d{2})/i
-    );
-    if (totalPriceMatch && items.length > 0) {
-      // Обновляем цену последнего товара
-      const price = parseFloat(totalPriceMatch[1].replace(",", "."));
-      if (!isNaN(price) && price > 0) {
-        items[items.length - 1].price = price;
-      }
-      continue;
-    }
+    // Ищем формат с номером: "1: Название товара"
+    const numberedItemMatch = line.match(/^(\d+):\s*(.+)$/);
+    if (numberedItemMatch) {
+      const name = numberedItemMatch[2].trim();
 
-    // Формат: Название товара    123.45
-    const priceMatch = line.match(/(.+?)\s+(\d+[.,]\d{2})$/);
-    if (priceMatch) {
-      const name = priceMatch[1].trim();
-      const price = parseFloat(priceMatch[2].replace(",", "."));
-
-      // Пропускаем служебные строки с суммами
-      if (name.match(/^(ИТОГО|СУММА|НАЛИЧНЫМИ|БЕЗНАЛИЧНЫМИ|НДС|СТАВКА)/i)) {
+      // Пропускаем, если название пустое или это служебная строка
+      if (!name || isServiceLine(name)) {
         continue;
       }
 
-      if (name.length > 0 && !isNaN(price) && price > 0) {
+      // Ищем цену в следующих строках (в блоке "Общая стоимость позиции...")
+      const price = findItemPrice(lines, i + 1);
+
+      // Добавляем товар только если есть название и цена
+      if (name.length > 0 && price !== null && price > 0) {
         items.push({ name, price });
+      }
+
+      // Пропускаем строки до следующего товара или конца секции
+      // (чтобы не обрабатывать служебные строки этого товара повторно)
+      continue;
+    }
+
+    // Альтернативный формат: "Название товара    123.45" (цена в конце строки)
+    // Используем только если нет пронумерованных позиций
+    if (items.length === 0) {
+      const priceMatch = line.match(/^(.+?)\s+(\d+[.,]\d{2})$/);
+      if (priceMatch) {
+        const name = priceMatch[1].trim();
+        const price = parseFloat(priceMatch[2].replace(",", "."));
+
+        // Пропускаем служебные строки
+        if (isServiceLine(name)) {
+          continue;
+        }
+
+        if (
+          name.length > 0 &&
+          !isNaN(price) &&
+          price > 0 &&
+          !name.match(/^(ИТОГО|СУММА|НАЛИЧНЫМИ|БЕЗНАЛИЧНЫМИ|НДС|СТАВКА)/i)
+        ) {
+          items.push({ name, price });
+        }
       }
     }
   }

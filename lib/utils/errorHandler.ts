@@ -301,3 +301,93 @@ export function getDetailedErrorMessage(
 
   return baseMessage;
 }
+
+/**
+ * Форматирует ошибку для логирования, извлекая всю доступную информацию
+ * Правильно обрабатывает разные типы ошибок (Error, SupabaseError, и т.д.)
+ */
+export function formatErrorForLogging(error: unknown): Record<string, unknown> {
+  // Обработка Supabase ошибок
+  if (isSupabaseError(error)) {
+    return {
+      type: "SupabaseError",
+      code: error.code || null,
+      message: error.message || null,
+      details: error.details || null,
+      hint: error.hint || null,
+    };
+  }
+
+  // Обработка стандартных Error объектов
+  if (error instanceof Error) {
+    const result: Record<string, unknown> = {
+      type: "Error",
+      name: error.name || null,
+      message: error.message || null,
+    };
+
+    // Добавляем stack trace, если доступен
+    if (error.stack) {
+      result.stack = error.stack;
+    }
+
+    // Пытаемся извлечь дополнительные свойства
+    const errorObj = error as unknown as Record<string, unknown>;
+    for (const key in errorObj) {
+      if (key !== "name" && key !== "message" && key !== "stack") {
+        try {
+          result[key] = errorObj[key];
+        } catch {
+          // Игнорируем свойства, которые не могут быть сериализованы
+        }
+      }
+    }
+
+    return result;
+  }
+
+  // Обработка строк
+  if (typeof error === "string") {
+    return {
+      type: "string",
+      value: error,
+    };
+  }
+
+  // Обработка объектов
+  if (error && typeof error === "object") {
+    try {
+      const errorObj = error as Record<string, unknown>;
+      const result: Record<string, unknown> = {
+        type: "object",
+      };
+
+      for (const key in errorObj) {
+        try {
+          const value = errorObj[key];
+          // Рекурсивно форматируем вложенные ошибки
+          if (value instanceof Error || isSupabaseError(value)) {
+            result[key] = formatErrorForLogging(value);
+          } else {
+            result[key] = value;
+          }
+        } catch {
+          // Игнорируем свойства, которые не могут быть сериализованы
+        }
+      }
+
+      return result;
+    } catch {
+      return {
+        type: "object",
+        note: "Could not serialize error object",
+      };
+    }
+  }
+
+  // Для примитивных типов
+  return {
+    type: typeof error,
+    value: error,
+  };
+}

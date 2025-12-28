@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Select,
   SelectContent,
@@ -41,7 +41,13 @@ export function CascadingCategorySelect({
   isLoading = false,
 }: CascadingCategorySelectProps) {
   // Массив выбранных ID на каждом уровне (путь от корня до выбранной категории)
+  // Используется только для интерактивного выбора пользователем
   const [selectedPath, setSelectedPath] = useState<string[]>([]);
+  // Отслеживаем предыдущее значение value, чтобы определить, было ли оно изменено извне (редактирование)
+  // Используем useRef вместо useState, чтобы избежать вызова setState в эффекте
+  const previousValueRef = useRef<string | null | undefined>(value);
+  // Флаг, указывающий, что пользователь начал выбирать категорию вручную
+  const [isUserSelecting, setIsUserSelecting] = useState(false);
 
   // Фильтруем категории по типу если нужно
   const filteredCategories = useMemo(() => {
@@ -71,39 +77,76 @@ export function CascadingCategorySelect({
   };
 
   // Получаем путь к категории (массив ID от корня до категории)
-  const getCategoryPath = (categoryId: string): string[] => {
+  // Вынесено в useMemo для правильной работы с зависимостями
+  const computedPath = useMemo(() => {
+    if (!value) {
+      return [];
+    }
+
+    // Если категории еще не загружены, возвращаем пустой массив
+    // Путь будет пересчитан когда категории загрузятся
+    if (filteredCategories.length === 0) {
+      return [];
+    }
+
     const path: string[] = [];
-    let currentId: string | null = categoryId;
+    let currentId: string | null = value;
     const visited = new Set<string>(); // Защита от циклов
 
     while (currentId && !visited.has(currentId)) {
       visited.add(currentId);
-      const category = getCategoryById(currentId);
-      if (!category) break;
+      const category = filteredCategories.find((cat) => cat.id === currentId);
+      if (!category) {
+        // Если категория не найдена, прерываем построение пути
+        // Это может произойти если категория была удалена
+        break;
+      }
 
       path.unshift(category.id);
       currentId = category.parent_id || null;
     }
 
     return path;
-  };
+  }, [value, filteredCategories]);
 
-  // Инициализация пути при установке value
-  useEffect(() => {
-    if (value) {
-      const path = getCategoryPath(value);
-      setSelectedPath(path);
-    } else {
-      setSelectedPath([]);
+  // Вычисляем актуальный путь: если пользователь выбирает вручную - используем selectedPath,
+  // иначе используем computedPath (для случая редактирования или инициализации)
+  const actualPath = useMemo(() => {
+    if (isUserSelecting && selectedPath.length > 0) {
+      return selectedPath;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, filteredCategories.length]);
+    return computedPath;
+  }, [isUserSelecting, selectedPath, computedPath]);
+
+  // Сбрасываем флаг isUserSelecting когда value изменился извне (редактирование)
+  // Используем отдельный эффект только для обновления ref, без вызова setState
+  useEffect(() => {
+    const previousValue = previousValueRef.current;
+    if (value !== previousValue) {
+      previousValueRef.current = value;
+      // Используем setTimeout для отложенного обновления состояния вне эффекта
+      // Это позволяет избежать вызова setState синхронно в эффекте
+      const timeoutId = setTimeout(() => {
+        setIsUserSelecting(false);
+        if (computedPath.length > 0) {
+          setSelectedPath(computedPath);
+        }
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [value, computedPath]);
 
   // Обработка выбора категории на уровне
   const handleLevelChange = (levelIndex: number, categoryId: string) => {
+    // Пользователь начал выбирать категорию вручную
+    setIsUserSelecting(true);
+
+    // Используем actualPath для определения текущего пути (может быть computedPath или selectedPath)
+    const currentPath = actualPath;
+
     if (categoryId === "__none__") {
       // Пользователь выбрал "Не выбирать"
-      const newPath = selectedPath.slice(0, levelIndex);
+      const newPath = currentPath.slice(0, levelIndex);
       setSelectedPath(newPath);
 
       // Устанавливаем последнюю категорию из пути как значение
@@ -114,7 +157,7 @@ export function CascadingCategorySelect({
       }
     } else {
       // Пользователь выбрал категорию
-      const newPath = [...selectedPath.slice(0, levelIndex), categoryId];
+      const newPath = [...currentPath.slice(0, levelIndex), categoryId];
       setSelectedPath(newPath);
 
       // Проверяем, есть ли дочерние категории
@@ -131,6 +174,7 @@ export function CascadingCategorySelect({
   };
 
   // Получаем все уровни для отображения на основе текущего пути
+  // Использует actualPath который вычисляется на основе isUserSelecting и computedPath
   const getLevelsToRender = (): Array<{
     categories: Category[];
     levelIndex: number;
@@ -141,6 +185,9 @@ export function CascadingCategorySelect({
       levelIndex: number;
       parentId: string | null;
     }> = [];
+
+    // Используем actualPath который автоматически выбирает правильный путь
+    const pathToUse = actualPath;
 
     // Первый уровень - категории без родителя
     let currentParentId: string | null = null;
@@ -158,8 +205,8 @@ export function CascadingCategorySelect({
       });
 
       // Если есть выбранная категория на этом уровне, переходим к следующему
-      if (selectedPath[levelIndex]) {
-        currentParentId = selectedPath[levelIndex];
+      if (pathToUse[levelIndex]) {
+        currentParentId = pathToUse[levelIndex];
         levelIndex++;
       } else {
         break;
@@ -218,7 +265,8 @@ export function CascadingCategorySelect({
       <div className="space-y-3">
         <AnimatePresence mode="popLayout" initial={false}>
           {levels.map((level, idx) => {
-            const selectedCategoryId = selectedPath[level.levelIndex];
+            // Используем actualPath который автоматически выбирает правильный путь
+            const selectedCategoryId = actualPath[level.levelIndex];
             const isLastLevel = idx === levels.length - 1;
             const selectedCategory = selectedCategoryId
               ? getCategoryById(selectedCategoryId)
@@ -302,16 +350,18 @@ export function CascadingCategorySelect({
         {/* Показываем дополнительный уровень если выбран последний и есть дети */}
         <AnimatePresence initial={false}>
           {levels.length > 0 &&
-            selectedPath.length > 0 &&
             allowIntermediate &&
             (() => {
-              const lastSelectedId = selectedPath[selectedPath.length - 1];
+              // Используем actualPath который автоматически выбирает правильный путь
+              if (actualPath.length === 0) return null;
+
+              const lastSelectedId = actualPath[actualPath.length - 1];
               const children = getCategoriesAtLevel(lastSelectedId);
 
               // Показываем если это последний выбранный элемент и у него есть дети
               if (
                 children.length > 0 &&
-                selectedPath.length === levels[levels.length - 1].levelIndex + 1
+                actualPath.length === levels[levels.length - 1].levelIndex + 1
               ) {
                 return (
                   <motion.div
@@ -331,7 +381,7 @@ export function CascadingCategorySelect({
                     <Select
                       value="__none__"
                       onValueChange={(value) =>
-                        handleLevelChange(selectedPath.length, value)
+                        handleLevelChange(actualPath.length, value)
                       }
                     >
                       <SelectTrigger className="flex-1">

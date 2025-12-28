@@ -121,11 +121,12 @@ export function ExpenseDetailedForm({
     if (editData) {
       const base = TransactionService.getInitialFormValues(editData);
       // Преобразуем items из editData
+      // Важно: сохраняем category_id как есть (может быть null или UUID)
       const items =
         editData.items?.map((item, index) => ({
-          category_id: item.category_id || null,
+          category_id: item.category_id ?? null, // Используем ?? вместо || чтобы сохранить пустую строку как null
           amount: Number(item.amount) || 0,
-          description: item.description || null,
+          description: item.description ?? null,
           sort_order: item.sort_order ?? index,
         })) || [];
 
@@ -182,9 +183,11 @@ export function ExpenseDetailedForm({
     };
   };
 
+  const initialValues = getInitialValues();
+
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: getInitialValues(),
+    defaultValues: initialValues,
     mode: "onChange",
   });
 
@@ -193,11 +196,20 @@ export function ExpenseDetailedForm({
     name: "items",
   });
 
+  // Переинициализируем форму при изменении editData
+  useEffect(() => {
+    if (editData) {
+      const newValues = getInitialValues();
+      form.reset(newValues);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editData?.id]);
+
   const isLoading = form.formState.isSubmitting;
 
-  // Устанавливаем тип как expense при монтировании
+  // Устанавливаем тип как expense при монтировании и при редактировании
   useEffect(() => {
-    form.setValue("type", "expense");
+    form.setValue("type", "expense", { shouldValidate: false });
   }, [form]);
 
   // Вычисляем и обновляем общую сумму
@@ -261,7 +273,14 @@ export function ExpenseDetailedForm({
         );
 
       if (editData) {
-        await updateTransaction(editData.id, transactionData, items);
+        // Исключаем items из transactionData, так как это не колонка таблицы transactions
+        // items обрабатываются отдельно через updateTransactionWithItems
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { items: _items, ...transactionUpdate } = transactionData;
+        // Нормализуем UUID поля (преобразуем пустые строки в null)
+        const normalizedUpdate =
+          TransactionService.normalizeTransactionUUIDs(transactionUpdate);
+        await updateTransaction(editData.id, normalizedUpdate, items);
       } else {
         await addTransaction(transactionData);
       }
@@ -468,9 +487,15 @@ export function ExpenseDetailedForm({
                               <FormControl>
                                 <CascadingCategorySelect
                                   categories={expenseCategories}
-                                  value={categoryField.value || null}
+                                  value={
+                                    categoryField.value === null ||
+                                    categoryField.value === undefined ||
+                                    categoryField.value === ""
+                                      ? null
+                                      : categoryField.value
+                                  }
                                   onChange={(value) => {
-                                    categoryField.onChange(value);
+                                    categoryField.onChange(value ?? null);
                                   }}
                                   type="expense"
                                   placeholder={t("form.none")}

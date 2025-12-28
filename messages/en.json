@@ -232,7 +232,8 @@
         "amountMin": "Min 0.01",
         "accountRequired": "Please select an account",
         "toAccountDifferent": "Destination account must differ from source",
-        "itemsSumMismatch": "Items total must equal the transaction amount"
+        "itemsSumMismatch": "Items total must equal the transaction amount",
+        "categoryWithItems": "Transaction category should not be specified when items are present. Categories are specified for each item"
       },
       "generic": {
         "required": "This field is required",

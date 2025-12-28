@@ -94,7 +94,8 @@ export class TransactionService {
     );
 
     // Формируем данные транзакции
-    return {
+    // account_id обязателен по валидации, поэтому не может быть null
+    const transactionData = {
       amount: formValues.amount,
       type: formValues.type,
       category_id:
@@ -103,7 +104,7 @@ export class TransactionService {
         !formValues.category_id
           ? null
           : formValues.category_id,
-      account_id: formValues.account_id,
+      account_id: formValues.account_id, // Обязательное поле, не может быть null
       to_account_id:
         formValues.type === "transfer"
           ? formValues.to_account_id || null
@@ -113,6 +114,9 @@ export class TransactionService {
       currency,
       user_id: userId,
     };
+
+    // Нормализуем UUID поля (преобразуем пустые строки в null)
+    return this.normalizeTransactionUUIDs(transactionData);
   }
 
   /**
@@ -241,6 +245,38 @@ export class TransactionService {
   }
 
   /**
+   * Нормализует UUID поля - преобразует пустые строки в null
+   * @param transaction - Данные транзакции
+   * @returns Нормализованные данные транзакции
+   */
+  static normalizeTransactionUUIDs<T extends Record<string, unknown>>(
+    transaction: T
+  ): T {
+    const normalized = { ...transaction } as Record<string, unknown>;
+
+    // Поля, которые должны быть UUID или null
+    // account_id и user_id обязательны и не могут быть null
+    const uuidFields = ["to_account_id", "category_id"] as const;
+
+    for (const field of uuidFields) {
+      if (field in normalized) {
+        const value = normalized[field];
+        // Преобразуем пустые строки, undefined, "__none__" и другие невалидные значения в null
+        if (
+          value === "" ||
+          value === undefined ||
+          value === "__none__" ||
+          !value
+        ) {
+          normalized[field] = null;
+        }
+      }
+    }
+
+    return normalized as T;
+  }
+
+  /**
    * Подготавливает данные транзакции с позициями для сохранения
    * @param formValues - Значения формы
    * @param accounts - Массив всех счетов
@@ -264,16 +300,20 @@ export class TransactionService {
       defaultCurrency
     );
 
+    // Нормализуем UUID поля (преобразуем пустые строки в null)
+    const normalizedTransaction =
+      this.normalizeTransactionUUIDs(baseTransaction);
+
     // Если есть позиции для split transaction
     if (items && items.length > 0) {
       // Для split transaction сумма = сумма позиций
       const totalAmount = this.calculateTotalFromItems(items);
 
-      // Для split transaction category_id в header = null (категории в items)
+      // Для транзакций с позициями category_id всегда null (категории только у позиций)
       return {
-        ...baseTransaction,
+        ...normalizedTransaction,
         amount: totalAmount,
-        category_id: items.length > 1 ? null : items[0]?.category_id || null,
+        category_id: null, // Категории только у позиций
         items: items.map((item, index) => ({
           ...item,
           sort_order: index,
@@ -282,7 +322,7 @@ export class TransactionService {
     }
 
     // Обычная транзакция без позиций
-    return baseTransaction;
+    return normalizedTransaction;
   }
 
   /**

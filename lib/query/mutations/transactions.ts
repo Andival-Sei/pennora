@@ -12,7 +12,10 @@ import { queryKeys } from "../keys";
 import { invalidateTransactionRelated } from "../invalidation";
 import { queueManager } from "@/lib/sync/queueManager";
 import { isNetworkError } from "@/lib/utils/network";
-import { getErrorMessage } from "@/lib/utils/errorHandler";
+import {
+  getErrorMessage,
+  formatErrorForLogging,
+} from "@/lib/utils/errorHandler";
 import type {
   TransactionInsert,
   TransactionUpdate,
@@ -80,8 +83,10 @@ async function handleTransactionMutationError(
     });
   }
 
+  // Логируем ошибку с правильным форматированием
   console.error(`Error ${operationName} transaction:`, err);
-  console.error("Error details:", JSON.stringify(err, null, 2));
+  const errorDetails = formatErrorForLogging(err);
+  console.error("Error details:", JSON.stringify(errorDetails, null, 2));
 
   const tErrors = createErrorTranslator(t);
   const errorMessage = getErrorMessage(err, tErrors);
@@ -195,6 +200,28 @@ function transformTransactionData(
 }
 
 /**
+ * Нормализует category_id: пустые строки и невалидные значения преобразует в null
+ * Используется для items, чтобы избежать ошибки "invalid input syntax for type uuid"
+ */
+function normalizeItemCategoryId(
+  categoryId: string | null | undefined
+): string | null {
+  if (!categoryId || categoryId === "" || categoryId === "__none__") {
+    return null;
+  }
+  return categoryId;
+}
+
+/**
+ * Вычисляет общую сумму из позиций
+ * @param items - Массив позиций
+ * @returns Общая сумма всех позиций
+ */
+function calculateTotalFromItems(items: TransactionItemFormData[]): number {
+  return items.reduce((sum, item) => sum + (item.amount || 0), 0);
+}
+
+/**
  * Создает новую транзакцию (простую, без items)
  * Оптимизировано: использует конкретные поля вместо * для лучшей производительности
  */
@@ -241,9 +268,10 @@ async function createTransactionWithItems(
 
   // Если есть items, создаем их
   if (items && items.length > 0) {
+    // Нормализуем category_id для каждой позиции (пустые строки -> null)
     const itemsToInsert = items.map((item, index) => ({
       transaction_id: transaction.id,
-      category_id: item.category_id,
+      category_id: normalizeItemCategoryId(item.category_id),
       amount: item.amount,
       description: item.description || null,
       sort_order: item.sort_order ?? index,
@@ -301,6 +329,7 @@ async function updateTransaction(
 /**
  * Обновляет транзакцию с позициями
  * Удаляет существующие items и создает новые
+ * Принудительно устанавливает category_id транзакции в null, если есть позиции
  */
 async function updateTransactionWithItems(
   id: string,
@@ -309,10 +338,24 @@ async function updateTransactionWithItems(
 ): Promise<TransactionWithItems> {
   const supabase = createClient();
 
+  // Если указаны items, вычисляем сумму из позиций и устанавливаем category_id в null
+  // (категории только у позиций, сумма = сумма позиций)
+  const finalTransactionData = {
+    ...transactionData,
+    ...(items !== undefined
+      ? {
+          // Вычисляем сумму из позиций (для пустого массива сумма = 0)
+          amount: items.length > 0 ? calculateTotalFromItems(items) : 0,
+          // Если есть позиции, category_id должен быть null
+          ...(items.length > 0 ? { category_id: null } : {}),
+        }
+      : {}),
+  };
+
   // Обновляем транзакцию
   const { error: transactionError } = await supabase
     .from("transactions")
-    .update(transactionData)
+    .update(finalTransactionData)
     .eq("id", id);
 
   if (transactionError) {
@@ -333,9 +376,10 @@ async function updateTransactionWithItems(
 
     // Создаем новые items, если они есть
     if (items.length > 0) {
+      // Нормализуем category_id для каждой позиции (пустые строки -> null)
       const itemsToInsert = items.map((item, index) => ({
         transaction_id: id,
-        category_id: item.category_id,
+        category_id: normalizeItemCategoryId(item.category_id),
         amount: item.amount,
         description: item.description || null,
         sort_order: item.sort_order ?? index,

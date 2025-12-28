@@ -74,27 +74,20 @@ export function createTransactionFormSchema(tErrors: TranslationFn) {
     )
     .refine(
       (data) => {
-        // Если есть items для expense, проверяем что сумма items = amount
-        if (data.type === "expense" && data.items && data.items.length > 0) {
-          // Проверяем, что все позиции имеют валидный amount
-          const hasInvalidItems = data.items.some(
-            (item) => !item.amount || item.amount < 0.01
+        // Если есть items, category_id транзакции должен быть null или __none__
+        // (категории только у позиций)
+        if (data.items && data.items.length > 0) {
+          return (
+            !data.category_id ||
+            data.category_id === "__none__" ||
+            data.category_id === null
           );
-          if (hasInvalidItems) {
-            return false;
-          }
-          const itemsSum = data.items.reduce(
-            (sum, item) => sum + (item.amount || 0),
-            0
-          );
-          // Допускаем погрешность в 1 копейку
-          return Math.abs(data.amount - itemsSum) < 0.01;
         }
         return true;
       },
       {
-        message: tErrors("validation.transactions.itemsSumMismatch"),
-        path: ["items"],
+        message: tErrors("validation.transactions.categoryWithItems"),
+        path: ["category_id"],
       }
     );
 }
