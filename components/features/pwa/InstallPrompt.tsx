@@ -93,7 +93,8 @@ export function InstallPrompt() {
 
       if (outcome === "accepted") {
         console.log("Пользователь принял установку");
-        setIsInstalled(true);
+        // После установки приложение перезагрузится в standalone режиме
+        // поэтому просто скрываем промпт
         setIsVisible(false);
       } else {
         console.log("Пользователь отклонил установку");
