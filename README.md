@@ -188,6 +188,22 @@ git checkout -b feature/my-feature
 - **[MVP_CHECKLIST.md](./docs/MVP_CHECKLIST.md)** — чеклист для MVP
 - **[AGENTS.md](./docs/AGENTS.md)** — контекст для AI-ассистентов
 
+## Версионирование
+
+Проект использует [Semantic Versioning](https://semver.org/lang/ru/) и автоматическое создание релизов через [semantic-release](https://github.com/semantic-release/semantic-release).
+
+- **Версия** определяется автоматически на основе [Conventional Commits](docs/COMMIT_CONVENTION.md)
+- **CHANGELOG.md** генерируется автоматически при каждом релизе
+- **GitHub Releases** создаются автоматически при мердже в `main`
+
+Подробнее о процессе релизов: **[GIT_WORKFLOW.md](./docs/GIT_WORKFLOW.md#автоматические-релизы)**
+
+История изменений: **[CHANGELOG.md](./CHANGELOG.md)**
+
 ## Лицензия
 
-MIT
+All Rights Reserved. Проприетарное программное обеспечение.
+
+Это программное обеспечение является собственностью автора и защищено авторским правом.
+Использование, копирование, модификация и распространение запрещены без явного письменного
+разрешения правообладателя.

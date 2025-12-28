@@ -4,7 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { Home, Receipt, FolderTree, Settings, CreditCard } from "lucide-react";
+import {
+  Home,
+  Receipt,
+  FolderTree,
+  Settings,
+  CreditCard,
+  BarChart3,
+} from "lucide-react";
 
 const navItems = [
   {
@@ -21,6 +28,11 @@ const navItems = [
     href: "/dashboard/transactions",
     icon: Receipt,
     translationKey: "transactions",
+  },
+  {
+    href: "/dashboard/statistics",
+    icon: BarChart3,
+    translationKey: "statistics",
   },
   {
     href: "/dashboard/categories",

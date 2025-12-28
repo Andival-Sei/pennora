@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/db/supabase/server";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
 import { User } from "lucide-react";

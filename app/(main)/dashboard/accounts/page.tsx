@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useMemo, startTransition } from "react";
 import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +45,14 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/lib/currency/converter";
 import type { CurrencyCode } from "@/lib/currency/rates";
-import { useUpdateAccount } from "@/lib/query/mutations/accounts";
+import {
+  useCreateAccount,
+  useUpdateAccount,
+  useDeleteAccount,
+} from "@/lib/query/mutations/accounts";
+import { queryKeys } from "@/lib/query/keys";
+import { fetchAccounts } from "@/lib/query/queries/accounts";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 import {
   parseCardAccountName,
   parseCashAccountName,
@@ -101,25 +107,50 @@ interface Account {
 }
 
 export default function AccountsPage() {
-  const router = useRouter();
   const t = useTranslations();
   const tAccounts = useTranslations("accounts");
   const tOnboarding = useTranslations("onboarding");
   const tCommon = useTranslations("common");
 
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Загружаем счета через React Query
+  const {
+    data: accountsData = [],
+    isLoading: loading,
+    error: accountsError,
+  } = useQuery({
+    queryKey: queryKeys.accounts.list(),
+    queryFn: fetchAccounts,
+    staleTime: QUERY_STALE_TIME.ACCOUNTS,
+    gcTime: QUERY_GC_TIME.ACCOUNTS,
+  });
+
+  // Преобразуем данные для совместимости с существующим кодом
+  const accounts: Account[] = useMemo(
+    () =>
+      accountsData
+        .filter((acc) => !acc.is_archived)
+        .map((acc) => ({
+          id: acc.id,
+          name: acc.name,
+          type: acc.type,
+          currency: acc.currency as CurrencyCode,
+          balance: Number(acc.balance),
+        })),
+    [accountsData]
+  );
+
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [sourceType, setSourceType] = useState<SourceType>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
     null
   );
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  const createAccountMutation = useCreateAccount();
   const updateAccountMutation = useUpdateAccount();
+  const deleteAccountMutation = useDeleteAccount();
 
   const cardForm = useForm<CardFormData>({
     resolver: zodResolver(cardAccountSchema),
@@ -135,6 +166,17 @@ export default function AccountsPage() {
     defaultValues: {
       currency: "RUB",
     },
+  });
+
+  // Используем useWatch вместо watch() для совместимости с React Compiler
+  const cardBank = useWatch({ control: cardForm.control, name: "bank" });
+  const cardCurrency = useWatch({
+    control: cardForm.control,
+    name: "currency",
+  });
+  const cashCurrency = useWatch({
+    control: cashForm.control,
+    name: "currency",
   });
 
   // Определяем доступные валюты для наличных (те, которых еще нет)
@@ -155,16 +197,20 @@ export default function AccountsPage() {
   // Автоматически устанавливаем тип источника при открытии диалога
   useEffect(() => {
     if (isDialogOpen) {
-      if (hasAllCashCurrencies) {
-        // Если все валюты наличных уже есть, автоматически выбираем карту
-        setSourceType("card");
-      } else {
-        // Иначе сбрасываем выбор
-        setSourceType(null);
-      }
+      startTransition(() => {
+        if (hasAllCashCurrencies) {
+          // Если все валюты наличных уже есть, автоматически выбираем карту
+          setSourceType("card");
+        } else {
+          // Иначе сбрасываем выбор
+          setSourceType(null);
+        }
+      });
     } else {
       // При закрытии диалога сбрасываем формы и тип
-      setSourceType(null);
+      startTransition(() => {
+        setSourceType(null);
+      });
       cardForm.reset();
       cashForm.reset();
     }
@@ -181,79 +227,41 @@ export default function AccountsPage() {
           currency: editingAccount.currency,
           balance: editingAccount.balance.toString(),
         });
-        setSourceType("card");
+        startTransition(() => {
+          setSourceType("card");
+        });
       } else if (editingAccount.type === "cash") {
         const { currency } = parseCashAccountName(editingAccount.name);
         cashForm.reset({
           currency: (currency || editingAccount.currency) as CurrencyCode,
           balance: editingAccount.balance.toString(),
         });
-        setSourceType("cash");
+        startTransition(() => {
+          setSourceType("cash");
+        });
       }
     } else if (!isEditDialogOpen) {
       // При закрытии диалога редактирования сбрасываем формы
       cardForm.reset();
       cashForm.reset();
-      setSourceType(null);
-      setEditingAccount(null);
+      startTransition(() => {
+        setSourceType(null);
+        setEditingAccount(null);
+      });
     }
   }, [editingAccount, isEditDialogOpen, cardForm, cashForm]);
 
+  // Обработка ошибок загрузки
   useEffect(() => {
-    loadAccounts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function loadAccounts() {
-    setLoading(true);
-    setError(null);
-
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    const { data, error: accountsError } = await supabase
-      .from("accounts")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_archived", false)
-      .order("created_at", { ascending: true });
-
     if (accountsError) {
-      setError("errors.databaseError");
-    } else {
-      setAccounts(
-        (data || []).map((acc) => ({
-          id: acc.id,
-          name: acc.name,
-          type: acc.type,
-          currency: acc.currency as CurrencyCode,
-          balance: Number(acc.balance),
-        }))
-      );
+      startTransition(() => {
+        setError("errors.databaseError");
+      });
     }
-
-    setLoading(false);
-  }
+  }, [accountsError]);
 
   async function handleCardSubmit(data: CardFormData) {
     setError(null);
-
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
 
     const balance = parseFloat(data.balance.replace(",", "."));
 
@@ -262,37 +270,28 @@ export default function AccountsPage() {
     const accountName =
       data.bank === "other" ? data.name : `${data.name} (${bankName})`;
 
-    const { error: accountError } = await supabase.from("accounts").insert({
-      user_id: user.id,
-      name: accountName,
-      type: "card",
-      currency: data.currency,
-      balance: balance,
-    });
-
-    if (accountError) {
-      setError("errors.databaseError");
-      return;
-    }
-
-    // Закрываем диалог и обновляем список
-    setIsDialogOpen(false);
-    cardForm.reset();
-    await loadAccounts();
+    createAccountMutation.mutate(
+      {
+        name: accountName,
+        type: "card",
+        currency: data.currency,
+        balance: balance,
+      },
+      {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          cardForm.reset();
+        },
+        onError: (err) => {
+          console.error("Error creating account:", err);
+          setError("errors.databaseError");
+        },
+      }
+    );
   }
 
   async function handleCashSubmit(data: CashFormData) {
     setError(null);
-
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
 
     const balance = parseFloat(data.balance.replace(",", "."));
 
@@ -300,55 +299,38 @@ export default function AccountsPage() {
     const currencyName = tOnboarding(`currency.options.${data.currency}.name`);
     const accountName = `${tOnboarding("cash.defaultName")} (${currencyName})`;
 
-    const { error: accountError } = await supabase.from("accounts").insert({
-      user_id: user.id,
-      name: accountName,
-      type: "cash",
-      currency: data.currency,
-      balance: balance,
-    });
-
-    if (accountError) {
-      setError("errors.databaseError");
-      return;
-    }
-
-    // Закрываем диалог и обновляем список
-    setIsDialogOpen(false);
-    cashForm.reset();
-    await loadAccounts();
+    createAccountMutation.mutate(
+      {
+        name: accountName,
+        type: "cash",
+        currency: data.currency,
+        balance: balance,
+      },
+      {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          cashForm.reset();
+        },
+        onError: (err) => {
+          console.error("Error creating account:", err);
+          setError("errors.databaseError");
+        },
+      }
+    );
   }
 
   async function handleDelete(accountId: string) {
-    setDeletingId(accountId);
     setError(null);
 
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
-    // Архивируем счёт вместо удаления
-    const { error: deleteError } = await supabase
-      .from("accounts")
-      .update({ is_archived: true })
-      .eq("id", accountId)
-      .eq("user_id", user.id);
-
-    if (deleteError) {
-      setError("errors.databaseError");
-      setDeletingId(null);
-      return;
-    }
-
-    await loadAccounts();
-    setDeletingId(null);
-    setShowDeleteConfirm(null);
+    deleteAccountMutation.mutate(accountId, {
+      onSuccess: () => {
+        setShowDeleteConfirm(null);
+      },
+      onError: (err) => {
+        console.error("Error deleting account:", err);
+        setError("errors.databaseError");
+      },
+    });
   }
 
   async function handleCardEdit(data: CardFormData) {
@@ -376,7 +358,6 @@ export default function AccountsPage() {
         onSuccess: () => {
           setIsEditDialogOpen(false);
           setEditingAccount(null);
-          loadAccounts();
         },
         onError: (err) => {
           console.error("Error updating account:", err);
@@ -413,7 +394,6 @@ export default function AccountsPage() {
         onSuccess: () => {
           setIsEditDialogOpen(false);
           setEditingAccount(null);
-          loadAccounts();
         },
         onError: (err) => {
           console.error("Error updating account:", err);
@@ -529,7 +509,7 @@ export default function AccountsPage() {
                             {tOnboarding("card.bankLabel")}
                           </Label>
                           <Select
-                            value={cardForm.watch("bank")}
+                            value={cardBank || ""}
                             onValueChange={(value) =>
                               cardForm.setValue("bank", value)
                             }
@@ -582,7 +562,7 @@ export default function AccountsPage() {
                             {tAccounts("currency")}
                           </Label>
                           <Select
-                            value={cardForm.watch("currency")}
+                            value={cardCurrency || ""}
                             onValueChange={(value) =>
                               cardForm.setValue(
                                 "currency",
@@ -645,7 +625,7 @@ export default function AccountsPage() {
                             {tAccounts("currency")}
                           </Label>
                           <Select
-                            value={cashForm.watch("currency")}
+                            value={cashCurrency || ""}
                             onValueChange={(value) =>
                               cashForm.setValue(
                                 "currency",
@@ -780,10 +760,14 @@ export default function AccountsPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => setShowDeleteConfirm(account.id)}
-                              disabled={deletingId === account.id}
+                              disabled={
+                                deleteAccountMutation.isPending &&
+                                showDeleteConfirm === account.id
+                              }
                               className="text-destructive hover:text-destructive"
                             >
-                              {deletingId === account.id ? (
+                              {deleteAccountMutation.isPending &&
+                              showDeleteConfirm === account.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Trash2 className="h-4 w-4" />
@@ -821,7 +805,9 @@ export default function AccountsPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-              onClick={() => !deletingId && setShowDeleteConfirm(null)}
+              onClick={() =>
+                !deleteAccountMutation.isPending && setShowDeleteConfirm(null)
+              }
             />
 
             {/* Modal */}
@@ -842,7 +828,7 @@ export default function AccountsPage() {
                       {tAccounts("deleteTitle")}
                     </h3>
                   </div>
-                  {!deletingId && (
+                  {!deleteAccountMutation.isPending && (
                     <button
                       onClick={() => setShowDeleteConfirm(null)}
                       className="text-muted-foreground hover:text-foreground transition-colors"
@@ -860,16 +846,16 @@ export default function AccountsPage() {
                   <Button
                     variant="outline"
                     onClick={() => setShowDeleteConfirm(null)}
-                    disabled={deletingId !== null}
+                    disabled={deleteAccountMutation.isPending}
                   >
                     {tCommon("cancel")}
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleDelete(showDeleteConfirm)}
-                    disabled={deletingId !== null}
+                    disabled={deleteAccountMutation.isPending}
                   >
-                    {deletingId ? (
+                    {deleteAccountMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         {tCommon("loading")}
@@ -932,7 +918,7 @@ export default function AccountsPage() {
                       {tOnboarding("card.bankLabel")}
                     </Label>
                     <Select
-                      value={cardForm.watch("bank")}
+                      value={cardBank || ""}
                       onValueChange={(value) =>
                         cardForm.setValue("bank", value)
                       }
@@ -983,7 +969,7 @@ export default function AccountsPage() {
                       {tAccounts("currency")}
                     </Label>
                     <Select
-                      value={cardForm.watch("currency")}
+                      value={cardCurrency || ""}
                       onValueChange={(value) =>
                         cardForm.setValue("currency", value as CurrencyCode)
                       }
@@ -1040,7 +1026,7 @@ export default function AccountsPage() {
                       {tAccounts("currency")}
                     </Label>
                     <Select
-                      value={cashForm.watch("currency")}
+                      value={cashCurrency || ""}
                       onValueChange={(value) =>
                         cashForm.setValue("currency", value as CurrencyCode)
                       }

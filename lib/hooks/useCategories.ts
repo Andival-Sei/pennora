@@ -17,6 +17,7 @@ import type {
   CategoryInsert,
   CategoryUpdate,
 } from "@/lib/types/category";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 
 /**
  * Хук для работы с категориями
@@ -33,8 +34,8 @@ export function useCategories() {
   } = useQuery({
     queryKey: queryKeys.categories.list(),
     queryFn: fetchCategories,
-    staleTime: 10 * 60 * 1000, // 10 минут - данные редко меняются
-    gcTime: 24 * 60 * 60 * 1000, // 24 часа
+    staleTime: QUERY_STALE_TIME.CATEGORIES,
+    gcTime: QUERY_GC_TIME.CATEGORIES,
     // Персистентное кеширование будет настроено отдельно
   });
 

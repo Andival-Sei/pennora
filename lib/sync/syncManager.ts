@@ -4,7 +4,7 @@ import { createClient } from "@/lib/db/supabase/client";
 import { queueManager } from "./queueManager";
 import { useSyncStore } from "@/lib/stores/syncStore";
 import { queryClient } from "@/lib/query/client";
-import { queryKeys } from "@/lib/query/keys";
+import { invalidateAll } from "@/lib/query/invalidation";
 import type { SyncQueueItem, SyncTable } from "@/lib/db/indexeddb/models";
 import type { SyncResult } from "@/lib/types/sync";
 import { toast } from "sonner";
@@ -168,6 +168,8 @@ export class SyncManager {
 
   /**
    * Обрабатывает одну операцию
+   * Примечание: создаем клиент здесь, так как он нужен для каждой операции
+   * @supabase/ssr использует синглтон внутри, поэтому это эффективно
    */
   private async processItem(item: SyncQueueItem): Promise<boolean> {
     const supabase = createClient();
@@ -256,22 +258,11 @@ export class SyncManager {
 
   /**
    * Инвалидирует кеш TanStack Query после синхронизации
+   * Инвалидирует все связанные кеши, так как синхронизация может затрагивать
+   * любые данные (транзакции, категории, счета, статистику)
    */
   private invalidateCache(): void {
-    // Инвалидируем все списки транзакций
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.transactions.lists(),
-    });
-
-    // Инвалидируем категории
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.categories.all,
-    });
-
-    // Инвалидируем доступные месяцы/годы
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.transactions.availableMonths(),
-    });
+    invalidateAll(queryClient);
   }
 }
 

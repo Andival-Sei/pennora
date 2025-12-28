@@ -8,10 +8,11 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/motion";
 import { TransactionList } from "./TransactionList";
-import { ReceiptInputDialog } from "./ReceiptInputDialog";
+import { TransactionWizard } from "./TransactionWizard";
 import { MonthYearSelector } from "./MonthYearSelector";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchAvailableMonthsAndYears } from "@/lib/query/queries/transactions";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 
 export function TransactionPageContent() {
   const t = useTranslations("transactions");
@@ -29,8 +30,8 @@ export function TransactionPageContent() {
   const { data: availableData } = useQuery({
     queryKey: queryKeys.transactions.availableMonths(),
     queryFn: fetchAvailableMonthsAndYears,
-    staleTime: 5 * 60 * 1000, // 5 минут
-    gcTime: 30 * 60 * 1000, // 30 минут
+    staleTime: QUERY_STALE_TIME.AVAILABLE_MONTHS,
+    gcTime: QUERY_GC_TIME.AVAILABLE_MONTHS,
   });
 
   const availableMonths = useMemo(
@@ -39,18 +40,14 @@ export function TransactionPageContent() {
   );
   const availableYears = availableData?.years || [];
 
-  // Вычисляем начальное значение месяца
+  // Вычисляем начальное значение месяца - всегда используем текущий месяц/год
   const initialMonthFilter = useMemo(() => {
-    if (availableMonths.length > 0) {
-      return availableMonths[0];
-    }
-    // Если транзакций нет, используем текущий месяц/год
     const currentDate = new Date();
     return {
       month: currentDate.getMonth(),
       year: currentDate.getFullYear(),
     };
-  }, [availableMonths]);
+  }, []);
 
   const [monthFilter, setMonthFilter] = useState<{
     month: number;
@@ -80,7 +77,7 @@ export function TransactionPageContent() {
                 <Plus className="mr-2 h-4 w-4" />
                 {t("add")}
               </Button>
-              <ReceiptInputDialog
+              <TransactionWizard
                 open={open}
                 onOpenChange={setOpen}
                 onSuccess={() => {

@@ -11,6 +11,37 @@ const nextConfig: NextConfig = {
     // Используем оптимизированный SWC минификатор
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
   },
+  // Конфигурация webpack для исключения модулей из клиентского/серверного бандла
+  webpack: (config, { isServer, webpack }) => {
+    if (isServer) {
+      // Исключаем pdfjs-dist из серверного бандла, так как он использует браузерные API
+      config.externals = config.externals || [];
+      config.externals.push("pdfjs-dist");
+    } else {
+      // Исключаем eml-parser и html-pdf из клиентского бандла, так как они требуют Node.js модули
+      config.resolve = config.resolve || {};
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        child_process: false,
+        fs: false,
+        path: false,
+        stream: false,
+      };
+      // Исключаем eml-parser и html-pdf из клиентского бандла
+      config.externals = config.externals || [];
+      config.externals.push("eml-parser");
+      config.externals.push("html-pdf");
+
+      // Добавляем плагин для игнорирования этих модулей в клиентском бандле
+      config.plugins = config.plugins || [];
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /^(eml-parser|html-pdf)$/,
+        })
+      );
+    }
+    return config;
+  },
   // Оптимизация изображений для Vercel
   images: {
     // Форматы изображений для оптимизации

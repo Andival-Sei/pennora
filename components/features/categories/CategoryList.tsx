@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Plus, Loader2, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CategoryTree } from "./CategoryTree";
@@ -38,43 +38,51 @@ export function CategoryList() {
     useState<CategoryWithChildren | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const tree = buildTree();
+  // Мемоизируем дерево категорий
+  // buildTree уже возвращает мемоизированное дерево из хука
+  const tree = useMemo(() => buildTree(), [buildTree]);
 
-  const handleCreate = async (data: CategoryFormData) => {
-    const result = await createCategory({
-      name: data.name,
-      type: data.type,
-      parent_id: data.parent_id || null,
-      icon: data.icon || null,
-      color: data.color || null,
-    });
-    if (result) {
-      setIsFormOpen(false);
-    }
-    return result;
-  };
-
-  const handleEdit = async (data: CategoryFormData) => {
-    if (!editingCategory) return null;
-    const result = await updateCategory(editingCategory.id, {
-      name: data.name,
-      type: data.type,
-      parent_id: data.parent_id || null,
-      icon: data.icon || null,
-      color: data.color || null,
-    });
-    if (result) {
-      setEditingCategory(null);
+  const handleCreate = useCallback(
+    async (data: CategoryFormData) => {
+      const result = await createCategory({
+        name: data.name,
+        type: data.type,
+        parent_id: data.parent_id || null,
+        icon: data.icon || null,
+        color: data.color || null,
+      });
+      if (result) {
+        setIsFormOpen(false);
+      }
       return result;
-    }
-    return null;
-  };
+    },
+    [createCategory]
+  );
 
-  const handleDeleteClick = (category: CategoryWithChildren) => {
+  const handleEdit = useCallback(
+    async (data: CategoryFormData) => {
+      if (!editingCategory) return null;
+      const result = await updateCategory(editingCategory.id, {
+        name: data.name,
+        type: data.type,
+        parent_id: data.parent_id || null,
+        icon: data.icon || null,
+        color: data.color || null,
+      });
+      if (result) {
+        setEditingCategory(null);
+        return result;
+      }
+      return null;
+    },
+    [editingCategory, updateCategory]
+  );
+
+  const handleDeleteClick = useCallback((category: CategoryWithChildren) => {
     setDeletingCategory(category);
-  };
+  }, []);
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (!deletingCategory) return;
     setIsDeleting(true);
     try {
@@ -85,11 +93,31 @@ export function CategoryList() {
     } finally {
       setIsDeleting(false);
     }
-  };
+  }, [deletingCategory, deleteCategory]);
 
-  const handleEditClick = (category: CategoryWithChildren) => {
+  const handleEditClick = useCallback((category: CategoryWithChildren) => {
     setEditingCategory(category);
-  };
+  }, []);
+
+  const handleOpenForm = useCallback(() => {
+    setIsFormOpen(true);
+  }, []);
+
+  const handleCloseForm = useCallback(() => {
+    setIsFormOpen(false);
+  }, []);
+
+  const handleCloseEditForm = useCallback((open: boolean) => {
+    if (!open) {
+      setEditingCategory(null);
+    }
+  }, []);
+
+  const handleCloseDeleteModal = useCallback(() => {
+    if (!isDeleting) {
+      setDeletingCategory(null);
+    }
+  }, [isDeleting]);
 
   if (loading) {
     return (
@@ -119,7 +147,7 @@ export function CategoryList() {
             {t("categories.description")}
           </p>
         </div>
-        <Button onClick={() => setIsFormOpen(true)}>
+        <Button onClick={handleOpenForm}>
           <Plus className="h-4 w-4" />
           {t("categories.add")}
         </Button>
@@ -131,6 +159,7 @@ export function CategoryList() {
           tree={tree}
           onEdit={handleEditClick}
           onDelete={handleDeleteClick}
+          allCategories={categories}
         />
       ) : (
         <div className="rounded-lg border border-dashed p-12 text-center">
@@ -138,7 +167,7 @@ export function CategoryList() {
           <p className="mt-2 text-sm text-muted-foreground">
             {t("categories.emptyDescription")}
           </p>
-          <Button onClick={() => setIsFormOpen(true)} className="mt-4">
+          <Button onClick={handleOpenForm} className="mt-4">
             <Plus className="h-4 w-4" />
             {t("categories.addFirst")}
           </Button>
@@ -148,7 +177,7 @@ export function CategoryList() {
       {/* Форма создания */}
       <CategoryForm
         open={isFormOpen}
-        onOpenChange={setIsFormOpen}
+        onOpenChange={handleCloseForm}
         parentCategories={categories}
         onSubmit={handleCreate}
       />
@@ -156,7 +185,7 @@ export function CategoryList() {
       {/* Форма редактирования */}
       <CategoryForm
         open={!!editingCategory}
-        onOpenChange={(open) => !open && setEditingCategory(null)}
+        onOpenChange={handleCloseEditForm}
         category={editingCategory as Category | null}
         parentCategories={categories}
         onSubmit={handleEdit}
@@ -172,7 +201,7 @@ export function CategoryList() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-              onClick={() => !isDeleting && setDeletingCategory(null)}
+              onClick={handleCloseDeleteModal}
             />
 
             {/* Modal */}
@@ -195,7 +224,7 @@ export function CategoryList() {
                   </div>
                   {!isDeleting && (
                     <button
-                      onClick={() => setDeletingCategory(null)}
+                      onClick={handleCloseDeleteModal}
                       className="text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <X className="h-5 w-5" />
@@ -212,7 +241,7 @@ export function CategoryList() {
                 <div className="flex gap-3 justify-end">
                   <Button
                     variant="outline"
-                    onClick={() => setDeletingCategory(null)}
+                    onClick={handleCloseDeleteModal}
                     disabled={isDeleting}
                   >
                     {t("common.cancel")}

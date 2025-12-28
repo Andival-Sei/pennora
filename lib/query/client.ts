@@ -1,6 +1,11 @@
 "use client";
 
 import { QueryClient } from "@tanstack/react-query";
+import {
+  QUERY_STALE_TIME,
+  QUERY_GC_TIME,
+  QUERY_RETRY,
+} from "@/lib/constants/query";
 
 /**
  * Конфигурация QueryClient для React Query
@@ -9,13 +14,13 @@ import { QueryClient } from "@tanstack/react-query";
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Время, в течение которого данные считаются свежими (5 минут)
+      // Время, в течение которого данные считаются свежими
       // Пока данные свежие, React Query не будет делать повторные запросы
-      staleTime: 5 * 60 * 1000, // 5 минут
+      staleTime: QUERY_STALE_TIME.DEFAULT,
 
-      // Время жизни кеша после того, как данные стали stale (30 минут)
+      // Время жизни кеша после того, как данные стали stale
       // После этого времени данные будут удалены из кеша
-      gcTime: 30 * 60 * 1000, // 30 минут (было cacheTime в v4)
+      gcTime: QUERY_GC_TIME.DEFAULT,
 
       // Обновлять данные при возврате фокуса на вкладку
       refetchOnWindowFocus: true,
@@ -27,14 +32,14 @@ export const queryClient = new QueryClient({
       refetchOnMount: false,
 
       // Количество попыток повтора при ошибке
-      retry: 2,
+      retry: QUERY_RETRY.QUERIES,
 
       // Интервал между попытками повтора (экспоненциальный backoff)
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
       // Количество попыток повтора при ошибке мутации
-      retry: 1,
+      retry: QUERY_RETRY.MUTATIONS,
     },
   },
 });

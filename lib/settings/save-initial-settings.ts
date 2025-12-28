@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/db/supabase/server";
 import type { Locale } from "@/i18n/request";
 
 /**

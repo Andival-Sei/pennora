@@ -19,6 +19,7 @@
     "dashboard": "Главная",
     "accounts": "Счета",
     "transactions": "Транзакции",
+    "statistics": "Статистика",
     "categories": "Категории",
     "budgets": "Бюджеты",
     "settings": "Настройки"
@@ -95,7 +96,8 @@
       "links": {
         "title": "Ссылки",
         "privacy": "Политика конфиденциальности",
-        "terms": "Условия использования"
+        "terms": "Условия использования",
+        "license": "Лицензия"
       },
       "contact": {
         "title": "Обратная связь",
@@ -229,9 +231,11 @@
     "sameEmail": "Новый email совпадает с текущим",
     "validation": {
       "transactions": {
-        "amountMin": "Сумма должна быть больше 0",
+        "amountMin": "Минимум 0.01",
         "accountRequired": "Выберите счет",
-        "toAccountDifferent": "Целевой счёт должен отличаться от исходного"
+        "toAccountDifferent": "Целевой счёт должен отличаться от исходного",
+        "itemsSumMismatch": "Сумма позиций должна равняться общей сумме транзакции",
+        "categoryWithItems": "Категория транзакции не должна быть указана при наличии позиций. Категории указываются у каждой позиции"
       },
       "generic": {
         "required": "Это поле обязательно",
@@ -395,6 +399,34 @@
     "noTransactions": "Транзакций пока нет",
     "deleteConfirm": "Вы уверены, что хотите удалить эту транзакцию?",
     "uncategorized": "Без категории",
+    "wizard": {
+      "title": "Новая транзакция",
+      "description": "Создайте новую транзакцию",
+      "steps": {
+        "type": "Выберите тип",
+        "expenseMode": "Тип расхода",
+        "inputMethod": "Способ ввода",
+        "formIncome": "Новый доход",
+        "formExpenseSimple": "Новый расход",
+        "formExpenseDetailed": "Чек с позициями",
+        "formTransfer": "Новый перевод"
+      },
+      "types": {
+        "income": "Доход",
+        "incomeDesc": "Зарплата, подарки, возвраты",
+        "expense": "Расход",
+        "expenseDesc": "Покупки, оплата услуг",
+        "transfer": "Перевод",
+        "transferDesc": "Между своими счетами"
+      },
+      "expenseMode": {
+        "simple": "Простая покупка",
+        "simpleDesc": "Одна категория, одна сумма",
+        "detailed": "Чек с позициями",
+        "detailedDesc": "Несколько товаров с разными категориями"
+      },
+      "needsTwoAccounts": "Нужно 2+ счёта"
+    },
     "list": {
       "date": "Дата",
       "category": "Категория",
@@ -434,6 +466,23 @@
       "toAccountPlaceholder": "Выберите целевой счёт",
       "toAccountError": "Выберите целевой счёт",
       "toAccountSameError": "Целевой счёт должен отличаться от исходного"
+    },
+    "items": {
+      "title": "Позиции",
+      "add": "Добавить позицию",
+      "remove": "Удалить позицию",
+      "category": "Категория",
+      "amount": "Сумма",
+      "description": "Название",
+      "descriptionPlaceholder": "Например: Молоко 3.2%",
+      "total": "Итого",
+      "count": "{count} позиций",
+      "countOne": "{count} позиция",
+      "countFew": "{count} позиции",
+      "expand": "Показать позиции",
+      "collapse": "Скрыть позиции",
+      "empty": "Нет позиций",
+      "addFirst": "Добавьте первую позицию"
     }
   },
   "categories": {
@@ -663,6 +712,97 @@
         "title": "Контакты",
         "content": "Если у вас есть вопросы об условиях использования, свяжитесь с нами:"
       }
+    }
+  },
+  "license": {
+    "title": "Лицензия",
+    "description": "Проприетарная лицензия для Pennora",
+    "lastUpdated": "Последнее обновление: 15 января 2025",
+    "sections": {
+      "overview": {
+        "title": "Обзор",
+        "content": "Pennora — это проприетарное программное обеспечение. Все права на это программное обеспечение и связанные файлы документации защищены. Использование, копирование, изменение или распространение программного обеспечения запрещено без явного письменного разрешения правообладателя."
+      },
+      "licenseType": {
+        "title": "Тип лицензии",
+        "content": "Это программное обеспечение лицензировано под проприетарной лицензией (Все права защищены). Следующие действия запрещены без явного письменного разрешения:",
+        "items": {
+          "use": "Использовать программное обеспечение для любых целей",
+          "modify": "Изменять или адаптировать программное обеспечение",
+          "distribute": "Распространять, публиковать или передавать программное обеспечение",
+          "commercial": "Использовать программное обеспечение в любых коммерческих или некоммерческих проектах"
+        }
+      },
+      "conditions": {
+        "title": "Условия использования",
+        "content": "Используя это программное обеспечение, вы соглашаетесь со следующими условиями:",
+        "items": {
+          "copyright": "Вы должны соблюдать все уведомления об авторских правах и ограничения",
+          "license": "Вы не можете удалять или изменять любые уведомления об авторских правах или информацию о лицензии"
+        }
+      },
+      "warranty": {
+        "title": "Отказ от гарантий",
+        "content": "ПРОГРАММНОЕ ОБЕСПЕЧЕНИЕ ПРЕДОСТАВЛЯЕТСЯ «КАК ЕСТЬ», БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ, ЯВНЫХ ИЛИ ПОДРАЗУМЕВАЕМЫХ, ВКЛЮЧАЯ, НО НЕ ОГРАНИЧИВАЯСЬ ГАРАНТИЯМИ ТОВАРНОЙ ПРИГОДНОСТИ, ПРИГОДНОСТИ ДЛЯ КОНКРЕТНОЙ ЦЕЛИ И НЕНАРУШЕНИЯ ПРАВ. НИ ПРИ КАКИХ ОБСТОЯТЕЛЬСТВАХ АВТОРЫ ИЛИ ПРАВООБЛАДАТЕЛИ НЕ НЕСУТ ОТВЕТСТВЕННОСТИ ЗА ЛЮБЫЕ ПРЕТЕНЗИИ, УЩЕРБ ИЛИ ИНЫЕ ОБЯЗАТЕЛЬСТВА."
+      },
+      "fullText": {
+        "title": "Полный текст лицензии",
+        "content": "Copyright (c) 2025 Pennora\nAll Rights Reserved.\n\nThis software and associated documentation files (the \"Software\") are proprietary.\nYou may not use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, or permit persons to whom the Software is furnished to do so,\nwithout explicit written permission from the copyright holder.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,\nINCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A\nPARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT\nHOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION\nOF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\nSOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n---\n\nThird-Party Libraries\n\nThis Software includes third-party libraries that are subject to their respective\nopen-source licenses (primarily MIT and Apache 2.0). These licenses permit the use\nof such libraries in proprietary software."
+      },
+      "contact": {
+        "title": "Контакты",
+        "content": "Если у вас есть вопросы о лицензии или вы хотите получить разрешение на использование этого программного обеспечения, свяжитесь с нами:"
+      }
+    }
+  },
+  "statistics": {
+    "title": "Статистика",
+    "tabs": {
+      "overview": "Обзор",
+      "trends": "Тренды",
+      "categories": "Категории"
+    },
+    "filters": {
+      "period": "Период",
+      "thisMonth": "Этот месяц",
+      "lastMonth": "Прошлый месяц",
+      "last3Months": "3 месяца",
+      "last6Months": "6 месяцев",
+      "thisYear": "Этот год",
+      "custom": "Произвольный",
+      "type": "Тип",
+      "income": "Доходы",
+      "expense": "Расходы",
+      "all": "Все",
+      "categoryLevel": "Уровень",
+      "topOnly": "Верхние",
+      "allCategories": "Все",
+      "hierarchy": "Иерархия"
+    },
+    "charts": {
+      "noData": "Нет данных за выбранный период",
+      "total": "Всего",
+      "percentage": "Процент"
+    },
+    "overview": {
+      "income": "Доходы",
+      "expense": "Расходы",
+      "balance": "Баланс",
+      "vsPrevious": "к прошлому периоду",
+      "topCategories": "Расходы по категориям"
+    },
+    "trends": {
+      "groupBy": "Группировать",
+      "byDay": "По дням",
+      "byWeek": "По неделям",
+      "byMonth": "По месяцам"
+    },
+    "categories": {
+      "category": "Категория",
+      "amount": "Сумма",
+      "percentage": "Доля",
+      "transactions": "Транзакций",
+      "showDetails": "Показать детали"
     }
   }
 }

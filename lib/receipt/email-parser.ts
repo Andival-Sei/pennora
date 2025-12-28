@@ -1,10 +1,16 @@
 /**
  * Сервис для извлечения вложений из EML файлов
  * Ищет чеки (PDF или изображения) во вложениях
+ *
+ * ВАЖНО: Использует только API route для парсинга, так как eml-parser
+ * требует Node.js модули (child_process), которые недоступны в браузере
  */
 
 import type { ReceiptFile } from "./types";
 import { getFileType } from "./ocr";
+
+// Серверный парсер НЕ импортируется здесь, чтобы избежать попадания в клиентский бандл
+// Используется только в тестах напрямую через прямой импорт
 
 /**
  * Извлекает вложения из EML файла через API route
@@ -85,6 +91,10 @@ export async function extractReceiptsFromEmail(
   const fileType = getFileType(file);
 
   if (fileType === "eml") {
+    // В браузере всегда используем API route
+    // В Node.js (тесты) можем использовать прямую функцию
+    // В браузере и на сервере всегда используем API route
+    // В тестах серверный модуль используется напрямую (см. __tests__)
     const attachments = await extractAttachmentsFromEmailAPI(file);
     return attachments.map((attachment) => {
       // Для текстовых файлов используем тип "text", иначе определяем тип

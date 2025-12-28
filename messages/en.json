@@ -19,6 +19,7 @@
     "dashboard": "Dashboard",
     "accounts": "Accounts",
     "transactions": "Transactions",
+    "statistics": "Statistics",
     "categories": "Categories",
     "budgets": "Budgets",
     "settings": "Settings"
@@ -95,7 +96,8 @@
       "links": {
         "title": "Links",
         "privacy": "Privacy Policy",
-        "terms": "Terms of Service"
+        "terms": "Terms of Service",
+        "license": "License"
       },
       "contact": {
         "title": "Contact",
@@ -229,9 +231,11 @@
     "sameEmail": "New email is the same as current email",
     "validation": {
       "transactions": {
-        "amountMin": "Amount must be greater than 0",
+        "amountMin": "Min 0.01",
         "accountRequired": "Please select an account",
-        "toAccountDifferent": "Destination account must differ from source"
+        "toAccountDifferent": "Destination account must differ from source",
+        "itemsSumMismatch": "Items total must equal the transaction amount",
+        "categoryWithItems": "Transaction category should not be specified when items are present. Categories are specified for each item"
       },
       "generic": {
         "required": "This field is required",
@@ -395,6 +399,34 @@
     "noTransactions": "No transactions yet",
     "deleteConfirm": "Are you sure you want to delete this transaction?",
     "uncategorized": "Uncategorized",
+    "wizard": {
+      "title": "New Transaction",
+      "description": "Create a new transaction",
+      "steps": {
+        "type": "Choose Type",
+        "expenseMode": "Expense Type",
+        "inputMethod": "Input Method",
+        "formIncome": "New Income",
+        "formExpenseSimple": "New Expense",
+        "formExpenseDetailed": "Receipt with Items",
+        "formTransfer": "New Transfer"
+      },
+      "types": {
+        "income": "Income",
+        "incomeDesc": "Salary, gifts, refunds",
+        "expense": "Expense",
+        "expenseDesc": "Purchases, services",
+        "transfer": "Transfer",
+        "transferDesc": "Between your accounts"
+      },
+      "expenseMode": {
+        "simple": "Simple Purchase",
+        "simpleDesc": "One category, one amount",
+        "detailed": "Receipt with Items",
+        "detailedDesc": "Multiple items with different categories"
+      },
+      "needsTwoAccounts": "Need 2+ accounts"
+    },
     "list": {
       "date": "Date",
       "category": "Category",
@@ -434,6 +466,23 @@
       "toAccountPlaceholder": "Select destination account",
       "toAccountError": "Select destination account",
       "toAccountSameError": "Destination account must differ from source"
+    },
+    "items": {
+      "title": "Items",
+      "add": "Add item",
+      "remove": "Remove item",
+      "category": "Category",
+      "amount": "Amount",
+      "description": "Description",
+      "descriptionPlaceholder": "e.g., Milk 3.2%",
+      "total": "Total",
+      "count": "{count} items",
+      "countOne": "{count} item",
+      "countFew": "{count} items",
+      "expand": "Show items",
+      "collapse": "Hide items",
+      "empty": "No items",
+      "addFirst": "Add your first item"
     }
   },
   "categories": {
@@ -663,6 +712,97 @@
         "title": "Contact",
         "content": "If you have questions about the terms of service, please contact us:"
       }
+    }
+  },
+  "license": {
+    "title": "License",
+    "description": "Proprietary License for Pennora",
+    "lastUpdated": "Last updated: January 15, 2025",
+    "sections": {
+      "overview": {
+        "title": "Overview",
+        "content": "Pennora is proprietary software. All rights to this software and associated documentation files are reserved. This software may not be used, copied, modified, or distributed without explicit written permission from the copyright holder."
+      },
+      "licenseType": {
+        "title": "License Type",
+        "content": "This software is licensed under a proprietary license (All Rights Reserved). The following activities are prohibited without explicit written permission:",
+        "items": {
+          "use": "Use the software for any purpose",
+          "modify": "Modify or adapt the software",
+          "distribute": "Distribute, publish, or sublicense the software",
+          "commercial": "Use the software in any commercial or non-commercial projects"
+        }
+      },
+      "conditions": {
+        "title": "Terms and Conditions",
+        "content": "By using this software, you agree to the following conditions:",
+        "items": {
+          "copyright": "You must respect all copyright notices and restrictions",
+          "license": "You may not remove or alter any copyright notices or license information"
+        }
+      },
+      "warranty": {
+        "title": "Warranty Disclaimer",
+        "content": "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY."
+      },
+      "fullText": {
+        "title": "Full License Text",
+        "content": "Copyright (c) 2025 Pennora\nAll Rights Reserved.\n\nThis software and associated documentation files (the \"Software\") are proprietary.\nYou may not use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, or permit persons to whom the Software is furnished to do so,\nwithout explicit written permission from the copyright holder.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,\nINCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A\nPARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT\nHOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION\nOF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\nSOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n---\n\nThird-Party Libraries\n\nThis Software includes third-party libraries that are subject to their respective\nopen-source licenses (primarily MIT and Apache 2.0). These licenses permit the use\nof such libraries in proprietary software."
+      },
+      "contact": {
+        "title": "Contact",
+        "content": "If you have questions about the license or wish to obtain permission to use this software, please contact us:"
+      }
+    }
+  },
+  "statistics": {
+    "title": "Statistics",
+    "tabs": {
+      "overview": "Overview",
+      "trends": "Trends",
+      "categories": "Categories"
+    },
+    "filters": {
+      "period": "Period",
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "last3Months": "3 months",
+      "last6Months": "6 months",
+      "thisYear": "This year",
+      "custom": "Custom",
+      "type": "Type",
+      "income": "Income",
+      "expense": "Expenses",
+      "all": "All",
+      "categoryLevel": "Level",
+      "topOnly": "Top level",
+      "allCategories": "All",
+      "hierarchy": "Hierarchy"
+    },
+    "charts": {
+      "noData": "No data for selected period",
+      "total": "Total",
+      "percentage": "Percentage"
+    },
+    "overview": {
+      "income": "Income",
+      "expense": "Expenses",
+      "balance": "Balance",
+      "vsPrevious": "vs previous period",
+      "topCategories": "Expenses by category"
+    },
+    "trends": {
+      "groupBy": "Group by",
+      "byDay": "By day",
+      "byWeek": "By week",
+      "byMonth": "By month"
+    },
+    "categories": {
+      "category": "Category",
+      "amount": "Amount",
+      "percentage": "Share",
+      "transactions": "Transactions",
+      "showDetails": "Show details"
     }
   }
 }

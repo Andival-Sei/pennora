@@ -48,4 +48,16 @@ export const indexedDBStorage = {
       throw error;
     }
   },
+  /**
+   * Очищает весь кэш из IndexedDB
+   * Используется при выходе из аккаунта для удаления всех данных предыдущего пользователя
+   */
+  clear: async (): Promise<void> => {
+    try {
+      await db.cache.clear();
+    } catch (error) {
+      console.error("Error clearing IndexedDB cache:", error);
+      throw error;
+    }
+  },
 };

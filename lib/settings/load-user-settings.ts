@@ -2,7 +2,7 @@
  * Утилита для загрузки настроек пользователя из БД
  */
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/db/supabase/server";
 import type { Locale } from "@/i18n/request";
 import type { CurrencyCode } from "@/lib/currency/rates";
 

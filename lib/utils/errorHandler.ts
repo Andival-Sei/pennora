@@ -19,7 +19,12 @@ export interface SupabaseError {
  */
 export function isSupabaseError(error: unknown): error is SupabaseError {
   if (!error || typeof error !== "object") return false;
-  return "code" in error || "message" in error;
+  return (
+    "code" in error ||
+    "message" in error ||
+    "details" in error ||
+    "hint" in error
+  );
 }
 
 /**
@@ -57,15 +62,112 @@ function getSupabaseErrorTranslationKey(error: unknown): string | null {
 }
 
 /**
- * Определяет тип ошибки и возвращает ключ перевода
+ * Маппинг ошибок Supabase Auth на ключи локализации
  */
-function getErrorTranslationKey(error: unknown): string {
-  // Проверяем сетевые ошибки
+const authErrorMap: Record<string, string> = {
+  // Вход
+  "Invalid login credentials": "errors.invalidCredentials",
+  "Email not confirmed": "errors.emailNotConfirmed",
+  "Invalid email or password": "errors.invalidCredentials",
+
+  // Регистрация
+  "User already registered": "errors.userAlreadyExists",
+  "Password should be at least 6 characters": "errors.passwordTooShort",
+  "Unable to validate email address: invalid format": "errors.invalidEmail",
+  "Signup requires a valid password": "errors.passwordRequired",
+
+  // Общие
+  "Email rate limit exceeded": "errors.rateLimitExceeded",
+  "For security purposes, you can only request this once every 60 seconds":
+    "errors.rateLimitExceeded",
+  "Database error saving new user": "errors.databaseError",
+
+  // Сеть
+  "fetch failed": "errors.networkError",
+  "Failed to fetch": "errors.networkError",
+};
+
+/**
+ * Получает сообщение об ошибке из различных типов ошибок
+ */
+function getErrorMessageString(error: unknown): string {
+  if (isSupabaseError(error)) {
+    return getSupabaseErrorMessage(error);
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return "";
+}
+
+/**
+ * Проверяет, является ли ошибка ошибкой аутентификации
+ */
+function isAuthError(error: unknown): boolean {
+  const message = getErrorMessageString(error);
+  if (!message) return false;
+
+  // Проверяем точное совпадение
+  if (authErrorMap[message]) {
+    return true;
+  }
+
+  // Проверяем частичное совпадение
+  const lowerMessage = message.toLowerCase();
+  for (const [key] of Object.entries(authErrorMap)) {
+    if (lowerMessage.includes(key.toLowerCase())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Преобразует ошибку аутентификации в ключ перевода
+ */
+function getAuthErrorTranslationKey(error: unknown): string | null {
+  if (!isAuthError(error)) return null;
+
+  const message = getErrorMessageString(error);
+  if (!message) return null;
+
+  // Точное совпадение
+  if (authErrorMap[message]) {
+    return authErrorMap[message];
+  }
+
+  // Частичное совпадение
+  const lowerMessage = message.toLowerCase();
+  for (const [key, value] of Object.entries(authErrorMap)) {
+    if (lowerMessage.includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Определяет тип ошибки и возвращает ключ перевода
+ * Приоритет: сетевые ошибки > ошибки аутентификации > общие ошибки Supabase > стандартные ошибки
+ */
+export function getErrorTranslationKey(error: unknown): string {
+  // Проверяем сетевые ошибки (высший приоритет)
   if (isNetworkError(error)) {
     if (typeof navigator !== "undefined" && !navigator.onLine) {
-      return "network.offline";
+      return "errors.network.offline";
     }
-    return "network.failed";
+    return "errors.network.failed";
+  }
+
+  // Проверяем ошибки аутентификации (перед общими ошибками Supabase)
+  const authKey = getAuthErrorTranslationKey(error);
+  if (authKey) {
+    return authKey;
   }
 
   // Проверяем ошибки Supabase
@@ -77,25 +179,25 @@ function getErrorTranslationKey(error: unknown): string {
     // Проверяем сообщение на наличие ключевых слов
     const message = getSupabaseErrorMessage(error).toLowerCase();
     if (message.includes("network") || message.includes("connection")) {
-      return "network.failed";
+      return "errors.network.failed";
     }
     if (message.includes("timeout")) {
-      return "network.timeout";
+      return "errors.network.timeout";
     }
     if (
       message.includes("unauthorized") ||
       message.includes("not authenticated")
     ) {
-      return "mutations.unauthorized";
+      return "errors.mutations.unauthorized";
     }
     if (message.includes("forbidden") || message.includes("permission")) {
-      return "mutations.forbidden";
+      return "errors.mutations.forbidden";
     }
     if (message.includes("not found") || message.includes("does not exist")) {
-      return "mutations.notFound";
+      return "errors.mutations.notFound";
     }
     if (message.includes("conflict") || message.includes("duplicate")) {
-      return "mutations.conflict";
+      return "errors.mutations.conflict";
     }
   }
 
@@ -103,17 +205,17 @@ function getErrorTranslationKey(error: unknown): string {
   if (error instanceof Error) {
     const message = error.message.toLowerCase();
     if (message.includes("network") || message.includes("fetch")) {
-      return "network.failed";
+      return "errors.network.failed";
     }
     if (message.includes("timeout")) {
-      return "network.timeout";
+      return "errors.network.timeout";
     }
     if (message.includes("unauthorized")) {
-      return "mutations.unauthorized";
+      return "errors.mutations.unauthorized";
     }
   }
 
-  return "unknown";
+  return "errors.unknown";
 }
 
 /**
@@ -134,11 +236,16 @@ export function getErrorMessage(
 
   const translationKey = getErrorTranslationKey(error);
 
+  // Убираем префикс "errors." если он есть, так как t уже в контексте "errors"
+  const keyWithoutPrefix = translationKey.startsWith("errors.")
+    ? translationKey.slice(7) // Убираем "errors."
+    : translationKey;
+
   try {
-    const message = t(translationKey);
+    const message = t(keyWithoutPrefix);
     // Если сообщение совпадает с ключом, значит перевод не найден
-    if (message === translationKey) {
-      console.warn(`Translation key not found: ${translationKey}`);
+    if (message === keyWithoutPrefix || message === translationKey) {
+      console.warn(`Translation key not found: ${keyWithoutPrefix}`);
       // Пытаемся получить оригинальное сообщение об ошибке
       if (error instanceof Error) {
         return error.message || "Произошла неизвестная ошибка";
@@ -193,4 +300,94 @@ export function getDetailedErrorMessage(
   }
 
   return baseMessage;
+}
+
+/**
+ * Форматирует ошибку для логирования, извлекая всю доступную информацию
+ * Правильно обрабатывает разные типы ошибок (Error, SupabaseError, и т.д.)
+ */
+export function formatErrorForLogging(error: unknown): Record<string, unknown> {
+  // Обработка Supabase ошибок
+  if (isSupabaseError(error)) {
+    return {
+      type: "SupabaseError",
+      code: error.code || null,
+      message: error.message || null,
+      details: error.details || null,
+      hint: error.hint || null,
+    };
+  }
+
+  // Обработка стандартных Error объектов
+  if (error instanceof Error) {
+    const result: Record<string, unknown> = {
+      type: "Error",
+      name: error.name || null,
+      message: error.message || null,
+    };
+
+    // Добавляем stack trace, если доступен
+    if (error.stack) {
+      result.stack = error.stack;
+    }
+
+    // Пытаемся извлечь дополнительные свойства
+    const errorObj = error as unknown as Record<string, unknown>;
+    for (const key in errorObj) {
+      if (key !== "name" && key !== "message" && key !== "stack") {
+        try {
+          result[key] = errorObj[key];
+        } catch {
+          // Игнорируем свойства, которые не могут быть сериализованы
+        }
+      }
+    }
+
+    return result;
+  }
+
+  // Обработка строк
+  if (typeof error === "string") {
+    return {
+      type: "string",
+      value: error,
+    };
+  }
+
+  // Обработка объектов
+  if (error && typeof error === "object") {
+    try {
+      const errorObj = error as Record<string, unknown>;
+      const result: Record<string, unknown> = {
+        type: "object",
+      };
+
+      for (const key in errorObj) {
+        try {
+          const value = errorObj[key];
+          // Рекурсивно форматируем вложенные ошибки
+          if (value instanceof Error || isSupabaseError(value)) {
+            result[key] = formatErrorForLogging(value);
+          } else {
+            result[key] = value;
+          }
+        } catch {
+          // Игнорируем свойства, которые не могут быть сериализованы
+        }
+      }
+
+      return result;
+    } catch {
+      return {
+        type: "object",
+        note: "Could not serialize error object",
+      };
+    }
+  }
+
+  // Для примитивных типов
+  return {
+    type: typeof error,
+    value: error,
+  };
 }

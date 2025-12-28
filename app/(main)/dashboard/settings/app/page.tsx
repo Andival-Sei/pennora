@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useTheme } from "@/providers";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/db/supabase/client";
 import { setLocale } from "@/i18n/actions";
-import { signOut } from "@/app/(auth)/actions";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import { useUnsavedChanges } from "./handle-unsaved-changes";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { FadeIn } from "@/components/motion";
 import { ResponsiveContainer } from "@/components/layout";
-import { Check, Loader2, Monitor, Moon, Sun, LogOut } from "lucide-react";
+import { Check, Loader2, Monitor, Moon, Sun, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CurrencyCode } from "@/lib/currency/rates";
 import type { Locale } from "@/i18n/request";
@@ -205,17 +205,13 @@ export default function AppSettingsPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <FadeIn>
-        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-          <ResponsiveContainer className="flex items-center justify-between py-4">
-            <h1 className="text-xl font-bold text-foreground">
-              {tApp("title")}
-            </h1>
-          </ResponsiveContainer>
-        </header>
-      </FadeIn>
-
       <ResponsiveContainer className="py-8 space-y-6">
+        <FadeIn delay={0.1}>
+          <div className="flex items-center gap-3 mb-6">
+            <Settings className="h-8 w-8 text-primary" />
+            <h2 className="text-2xl sm:text-3xl font-bold">{tApp("title")}</h2>
+          </div>
+        </FadeIn>
         {/* Навигация по разделам */}
         <FadeIn delay={0.05}>
           <div className="flex gap-2 mb-6">
@@ -349,12 +345,9 @@ export default function AppSettingsPage() {
               <CardDescription>{tApp("logoutDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={signOut}>
-                <Button variant="destructive" type="submit">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  {tAuth("logout")}
-                </Button>
-              </form>
+              <LogoutButton variant="destructive">
+                {tAuth("logout")}
+              </LogoutButton>
             </CardContent>
           </Card>
         </FadeIn>

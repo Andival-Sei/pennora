@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/db/supabase/client";
+import { getClientUser } from "@/lib/db/supabase/auth-client";
 import type {
   Category,
   CategoryWithChildren,
@@ -7,21 +8,21 @@ import type {
 
 /**
  * Загружает все категории пользователя (неархивированные)
+ * Оптимизировано: использует конкретные поля вместо * для лучшей производительности
  */
 export async function fetchCategories(): Promise<Category[]> {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getClientUser();
   if (!user) {
     throw new Error("User not authenticated");
   }
 
+  const supabase = createClient();
+
   const { data, error } = await supabase
     .from("categories")
-    .select("*")
+    .select(
+      "id, user_id, name, type, icon, color, parent_id, sort_order, is_archived, is_system, created_at, updated_at"
+    )
     .eq("user_id", user.id)
     .eq("is_archived", false)
     .order("sort_order", { ascending: true })

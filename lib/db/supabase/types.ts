@@ -329,6 +329,54 @@ export type Database = {
           },
         ];
       };
+      transaction_items: {
+        Row: {
+          id: string;
+          transaction_id: string;
+          category_id: string | null;
+          amount: number;
+          description: string | null;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          transaction_id: string;
+          category_id?: string | null;
+          amount: number;
+          description?: string | null;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          transaction_id?: string;
+          category_id?: string | null;
+          amount?: number;
+          description?: string | null;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "transaction_items_transaction_id_fkey";
+            columns: ["transaction_id"];
+            isOneToOne: false;
+            referencedRelation: "transactions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transaction_items_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -363,6 +411,8 @@ export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
 export type Budget = Database["public"]["Tables"]["budgets"]["Row"];
 export type BudgetMember =
   Database["public"]["Tables"]["budget_members"]["Row"];
+export type TransactionItem =
+  Database["public"]["Tables"]["transaction_items"]["Row"];
 
 // Типы для вставки
 export type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
@@ -372,6 +422,8 @@ export type CategoryInsert =
 export type TransactionInsert =
   Database["public"]["Tables"]["transactions"]["Insert"];
 export type BudgetInsert = Database["public"]["Tables"]["budgets"]["Insert"];
+export type TransactionItemInsert =
+  Database["public"]["Tables"]["transaction_items"]["Insert"];
 
 // Типы для обновления
 export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
@@ -381,6 +433,8 @@ export type CategoryUpdate =
 export type TransactionUpdate =
   Database["public"]["Tables"]["transactions"]["Update"];
 export type BudgetUpdate = Database["public"]["Tables"]["budgets"]["Update"];
+export type TransactionItemUpdate =
+  Database["public"]["Tables"]["transaction_items"]["Update"];
 
 // Enums
 export type AccountType = Database["public"]["Enums"]["account_type"];

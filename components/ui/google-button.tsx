@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/db/supabase/client";
 import { Button } from "@/components/ui/button";
 import { getAppUrl } from "@/lib/utils";
 import { useState } from "react";

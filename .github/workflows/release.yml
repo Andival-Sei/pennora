@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    branches:
+      - main
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    # Запускается только после успешного прохождения CI
+    if: github.event.workflow_run.conclusion == 'success'
+    permissions:
+      contents: write # для создания Git тегов и релизов
+      issues: write # для комментирования в issues
+      pull-requests: write # для комментирования в PR
+      id-token: write # для npm trusted publishing (OIDC)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # полная история коммитов для анализа
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm release

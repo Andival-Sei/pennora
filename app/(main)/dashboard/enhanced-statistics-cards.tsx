@@ -23,6 +23,7 @@ import {
 } from "@/lib/query/queries/transactions";
 import type { CurrencyCode } from "@/lib/currency/rates";
 import { cn } from "@/lib/utils";
+import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 
 interface EnhancedStatisticsCardsProps {
   displayCurrency: CurrencyCode;
@@ -53,8 +54,8 @@ export function EnhancedStatisticsCards({
       queryKey: queryKeys.statistics.monthly(currentMonth, currentYear),
       queryFn: () =>
         fetchMonthlyStatistics({ month: currentMonth, year: currentYear }),
-      staleTime: 2 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
+      staleTime: QUERY_STALE_TIME.TRANSACTIONS,
+      gcTime: QUERY_GC_TIME.TRANSACTIONS,
       refetchOnWindowFocus: true,
     });
 
@@ -64,8 +65,8 @@ export function EnhancedStatisticsCards({
       queryKey: queryKeys.statistics.monthly(previousMonth, previousYear),
       queryFn: () =>
         fetchMonthlyStatistics({ month: previousMonth, year: previousYear }),
-      staleTime: 2 * 60 * 1000,
-      gcTime: 15 * 60 * 1000,
+      staleTime: QUERY_STALE_TIME.TRANSACTIONS,
+      gcTime: QUERY_GC_TIME.TRANSACTIONS,
       refetchOnWindowFocus: true,
     });
 
@@ -74,6 +75,7 @@ export function EnhancedStatisticsCards({
   const [convertedBalance, setConvertedBalance] = useState<number | null>(null);
   const [previousIncome, setPreviousIncome] = useState<number | null>(null);
   const [previousExpense, setPreviousExpense] = useState<number | null>(null);
+  const [previousBalance, setPreviousBalance] = useState<number | null>(null);
   const [converting, setConverting] = useState(false);
 
   // Конвертируем суммы текущего месяца
@@ -144,6 +146,7 @@ export function EnhancedStatisticsCards({
       if (!previousStats || previousStats.transactions.length === 0) {
         setPreviousIncome(0);
         setPreviousExpense(0);
+        setPreviousBalance(0);
         return;
       }
 
@@ -173,8 +176,12 @@ export function EnhancedStatisticsCards({
             ? await convertMultipleCurrencies(expenseAmounts, displayCurrency)
             : 0;
 
+        const convertedBalanceValue =
+          convertedIncomeValue - convertedExpenseValue;
+
         setPreviousIncome(convertedIncomeValue);
         setPreviousExpense(convertedExpenseValue);
+        setPreviousBalance(convertedBalanceValue);
       } catch (error) {
         console.error("Error converting previous statistics:", error);
         if (
@@ -184,9 +191,11 @@ export function EnhancedStatisticsCards({
         ) {
           setPreviousIncome(previousStats.income);
           setPreviousExpense(previousStats.expense);
+          setPreviousBalance(previousStats.balance);
         } else {
           setPreviousIncome(0);
           setPreviousExpense(0);
+          setPreviousBalance(0);
         }
       }
     }
@@ -206,6 +215,12 @@ export function EnhancedStatisticsCards({
     previousExpense !== 0 &&
     convertedExpense !== null
       ? ((convertedExpense - previousExpense) / previousExpense) * 100
+      : null;
+  const balanceChange =
+    previousBalance !== null &&
+    previousBalance !== 0 &&
+    convertedBalance !== null
+      ? ((convertedBalance - previousBalance) / Math.abs(previousBalance)) * 100
       : null;
 
   if (isLoadingData) {
@@ -242,26 +257,28 @@ export function EnhancedStatisticsCards({
                 ? formatCurrency(convertedIncome, displayCurrency)
                 : formatCurrency(0, displayCurrency)}
             </div>
-            {incomeChange !== null && (
-              <div
-                className={cn(
-                  "flex items-center gap-1 text-xs",
-                  incomeChange >= 0
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-red-600 dark:text-red-400"
-                )}
-              >
-                {incomeChange >= 0 ? (
-                  <TrendingUp className="h-3 w-3" />
-                ) : (
-                  <TrendingDown className="h-3 w-3" />
-                )}
-                <span>
-                  {incomeChange >= 0 ? "+" : ""}
-                  {incomeChange.toFixed(1)}% {t.vsPreviousMonth}
-                </span>
-              </div>
-            )}
+            <div className="min-h-[20px] flex items-center">
+              {incomeChange !== null && (
+                <div
+                  className={cn(
+                    "flex items-center gap-1 text-xs",
+                    incomeChange >= 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-red-600 dark:text-red-400"
+                  )}
+                >
+                  {incomeChange >= 0 ? (
+                    <TrendingUp className="h-3 w-3" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3" />
+                  )}
+                  <span>
+                    {incomeChange >= 0 ? "+" : ""}
+                    {incomeChange.toFixed(1)}% {t.vsPreviousMonth}
+                  </span>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </FadeIn>
@@ -280,26 +297,28 @@ export function EnhancedStatisticsCards({
                 ? formatCurrency(convertedExpense, displayCurrency)
                 : formatCurrency(0, displayCurrency)}
             </div>
-            {expenseChange !== null && (
-              <div
-                className={cn(
-                  "flex items-center gap-1 text-xs",
-                  expenseChange <= 0
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-red-600 dark:text-red-400"
-                )}
-              >
-                {expenseChange <= 0 ? (
-                  <TrendingDown className="h-3 w-3" />
-                ) : (
-                  <TrendingUp className="h-3 w-3" />
-                )}
-                <span>
-                  {expenseChange >= 0 ? "+" : ""}
-                  {expenseChange.toFixed(1)}% {t.vsPreviousMonth}
-                </span>
-              </div>
-            )}
+            <div className="min-h-[20px] flex items-center">
+              {expenseChange !== null && (
+                <div
+                  className={cn(
+                    "flex items-center gap-1 text-xs",
+                    expenseChange <= 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-red-600 dark:text-red-400"
+                  )}
+                >
+                  {expenseChange <= 0 ? (
+                    <TrendingDown className="h-3 w-3" />
+                  ) : (
+                    <TrendingUp className="h-3 w-3" />
+                  )}
+                  <span>
+                    {expenseChange >= 0 ? "+" : ""}
+                    {expenseChange.toFixed(1)}% {t.vsPreviousMonth}
+                  </span>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </FadeIn>
@@ -331,6 +350,28 @@ export function EnhancedStatisticsCards({
               {convertedBalance !== null
                 ? formatCurrency(convertedBalance, displayCurrency)
                 : formatCurrency(0, displayCurrency)}
+            </div>
+            <div className="min-h-[20px] flex items-center">
+              {balanceChange !== null && (
+                <div
+                  className={cn(
+                    "flex items-center gap-1 text-xs",
+                    balanceChange >= 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-red-600 dark:text-red-400"
+                  )}
+                >
+                  {balanceChange >= 0 ? (
+                    <TrendingUp className="h-3 w-3" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3" />
+                  )}
+                  <span>
+                    {balanceChange >= 0 ? "+" : ""}
+                    {balanceChange.toFixed(1)}% {t.vsPreviousMonth}
+                  </span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

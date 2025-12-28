@@ -2,9 +2,11 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/db/supabase/client";
+import { getClientUser } from "@/lib/db/supabase/auth-client";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { queryKeys } from "../keys";
+import { invalidateCategoryRelated } from "../invalidation";
 import { queueManager } from "@/lib/sync/queueManager";
 import { isNetworkError } from "@/lib/utils/network";
 import { getErrorMessage } from "@/lib/utils/errorHandler";
@@ -16,19 +18,17 @@ import type {
 
 /**
  * Создает новую категорию
+ * Оптимизировано: использует getClientUser() для получения пользователя
  */
 async function createCategory(
   category: Omit<CategoryInsert, "user_id">
 ): Promise<Category> {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getClientUser();
   if (!user) {
     throw new Error("User not authenticated");
   }
+
+  const supabase = createClient();
 
   // Если sort_order не указан, получаем максимальный и добавляем 1
   if (category.sort_order === undefined) {
@@ -47,7 +47,9 @@ async function createCategory(
   const { data, error } = await supabase
     .from("categories")
     .insert({ ...category, user_id: user.id })
-    .select()
+    .select(
+      "id, user_id, name, type, icon, color, parent_id, sort_order, is_archived, is_system, created_at, updated_at"
+    )
     .single();
 
   if (error) {
@@ -59,27 +61,27 @@ async function createCategory(
 
 /**
  * Обновляет существующую категорию
+ * Оптимизировано: использует getClientUser() и конкретные поля
  */
 async function updateCategory(
   id: string,
   updates: CategoryUpdate
 ): Promise<Category> {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getClientUser();
   if (!user) {
     throw new Error("User not authenticated");
   }
+
+  const supabase = createClient();
 
   const { data, error } = await supabase
     .from("categories")
     .update(updates)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select()
+    .select(
+      "id, user_id, name, type, icon, color, parent_id, sort_order, is_archived, is_system, created_at, updated_at"
+    )
     .single();
 
   if (error) {
@@ -92,17 +94,15 @@ async function updateCategory(
 /**
  * Удаляет категорию (архивирует)
  * Запрещает удаление системных категорий
+ * Оптимизировано: использует getClientUser()
  */
 async function deleteCategory(id: string): Promise<void> {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getClientUser();
   if (!user) {
     throw new Error("User not authenticated");
   }
+
+  const supabase = createClient();
 
   // Проверяем, является ли категория системной
   const { data: category, error: fetchError } = await supabase
@@ -196,9 +196,7 @@ export function useCreateCategory() {
       toast.success(t("categories.success.created"));
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.categories.all,
-      });
+      invalidateCategoryRelated(queryClient);
     },
   });
 }
@@ -270,9 +268,7 @@ export function useUpdateCategory() {
       toast.success(t("categories.success.updated"));
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.categories.all,
-      });
+      invalidateCategoryRelated(queryClient);
     },
   });
 }
@@ -344,9 +340,7 @@ export function useDeleteCategory() {
       toast.success(t("categories.success.deleted"));
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.categories.all,
-      });
+      invalidateCategoryRelated(queryClient);
     },
   });
 }

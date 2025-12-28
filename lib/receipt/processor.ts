@@ -83,6 +83,7 @@ export async function processReceipt(
         : parsedData.date || new Date(),
       amount: fnsData?.amount || parsedData.amount || 0,
       description: parsedData.description || null,
+      merchant: parsedData.merchant || null,
       paymentMethod: parsedData.paymentMethod || null,
       items: parsedData.items,
     };
@@ -189,6 +190,7 @@ export async function processEmailFile(
           date: parsedData.date || new Date(),
           amount: parsedData.amount || 0,
           description: parsedData.description || null,
+          merchant: parsedData.merchant || null,
           paymentMethod: parsedData.paymentMethod || null,
           items: parsedData.items,
         };

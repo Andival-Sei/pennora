@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useTheme } from "@/providers";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/db/supabase/client";
 
 /**
  * Компонент для инициализации темы из настроек пользователя

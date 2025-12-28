@@ -44,3 +44,8 @@ next-env.d.ts
 
 # supabase
 supabase/.temp/
+
+# test receipts - исключаем тестовые файлы чеков, но сохраняем структуру папок
+__tests__/fixtures/receipts/images/*.png
+__tests__/fixtures/receipts/eml/*.eml
+__tests__/fixtures/receipts/pdf/*.pdf
