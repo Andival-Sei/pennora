@@ -69,6 +69,7 @@ export function useSync() {
 
   /**
    * Запускает синхронизацию вручную
+   * Использует Background Sync API если доступен, иначе обычную синхронизацию
    */
   const syncNow = async () => {
     if (!isOnline()) {
@@ -77,6 +78,31 @@ export function useSync() {
     if (isSyncing) {
       return; // Уже идет синхронизация
     }
+
+    // Пытаемся использовать Background Sync API
+    if ("serviceWorker" in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        // Отправляем сообщение Service Worker для запуска синхронизации
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: "SYNC_NOW",
+          });
+        }
+        // Также регистрируем Background Sync если доступен
+        if (registration.sync) {
+          await registration.sync.register("sync-data");
+        }
+        // Запускаем синхронизацию сразу (не ждем Background Sync)
+        return syncManager.syncAll();
+      } catch (error) {
+        console.error("Background Sync failed, using regular sync:", error);
+        // Fallback на обычную синхронизацию
+        return syncManager.syncAll();
+      }
+    }
+
+    // Обычная синхронизация если Background Sync недоступен
     return syncManager.syncAll();
   };
 

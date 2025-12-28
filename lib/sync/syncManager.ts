@@ -18,7 +18,7 @@ export class SyncManager {
 
   /**
    * Инициализация менеджера синхронизации
-   * Настраивает слушатели событий сети
+   * Настраивает слушатели событий сети и Background Sync API
    */
   initialize(): void {
     if (typeof window === "undefined") return;
@@ -41,6 +41,32 @@ export class SyncManager {
 
     // Проверяем начальный статус
     updateOnlineStatus();
+
+    // Регистрируем Background Sync для автоматической синхронизации
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        // Регистрируем периодическую синхронизацию через Background Sync
+        if (registration.sync) {
+          registration.sync
+            .register("sync-data")
+            .then(() => {
+              console.log("Background Sync registered");
+            })
+            .catch((err: unknown) => {
+              console.error("Background Sync registration failed:", err);
+            });
+        }
+      });
+    }
+
+    // Обработка запросов синхронизации от Service Worker
+    window.addEventListener("sw-sync-request", () => {
+      if (navigator.onLine && !this.syncInProgress) {
+        this.syncAll().catch((err) => {
+          console.error("Error during SW sync request:", err);
+        });
+      }
+    });
 
     // Периодическая синхронизация (каждые 5 минут, если онлайн)
     setInterval(
