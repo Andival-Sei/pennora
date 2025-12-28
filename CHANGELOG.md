@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/Andival-Sei/pennora/compare/v1.2.0...v1.2.1) (2025-12-28)
+
+### Bug Fixes
+
+- **pwa:** исправить ошибку TypeScript в InstallPrompt ([b536cb1](https://github.com/Andival-Sei/pennora/commit/b536cb1f57215d172f0e6a7908247ec36e7c5af4))
+
 # [1.2.0](https://github.com/Andival-Sei/pennora/compare/v1.1.1...v1.2.0) (2025-12-28)
 
 ### Features
