@@ -1,3 +1,9 @@
+# [1.1.0](https://github.com/Andival-Sei/pennora/compare/v1.0.0...v1.1.0) (2025-12-28)
+
+### Features
+
+- **categories:** разделение категории "Фрукты и ягоды" на "Фрукты" и "Ягоды", добавление подкатегории "Туалетная бумага" ([0d7e461](https://github.com/Andival-Sei/pennora/commit/0d7e4611e01f160a645c5ea4c01cbb8f7b7c4f5e))
+
 # 1.0.0 (2025-12-28)
 
 ### Bug Fixes
