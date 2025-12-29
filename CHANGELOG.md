@@ -1,3 +1,9 @@
+# [1.3.0](https://github.com/Andival-Sei/pennora/compare/v1.2.2...v1.3.0) (2025-12-29)
+
+### Features
+
+- добавить компонент ErrorBoundary для обработки ошибок рендеринга ([3566e19](https://github.com/Andival-Sei/pennora/commit/3566e1930bbfbf754a7eb82ccf76a09d883745ce))
+
 ## [1.1.1](https://github.com/Andival-Sei/pennora/compare/v1.1.0...v1.1.1) (2025-12-28)
 
 ### Bug Fixes
