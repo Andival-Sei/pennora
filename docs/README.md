@@ -51,6 +51,7 @@
 Планы, чеклисты и аналитика проекта:
 
 - **[Roadmap](./meta/roadmap.md)** — план развития проекта
+- **[Планирование](./meta/PLANNING.md)** — планирование будущих функций
 - **[MVP Checklist](./meta/mvp-checklist.md)** — чеклист для MVP
 - **[Анализ проекта](./meta/comprehensive-analysis.md)** — комплексный анализ состояния проекта
 - **[Контекст для AI](./meta/agents.md)** — информация для AI-ассистентов
@@ -80,6 +81,7 @@ docs/
 │   └── ...
 └── meta/                  # Мета-документация
     ├── roadmap.md
+    ├── PLANNING.md
     ├── mvp-checklist.md
     └── ...
 ```
