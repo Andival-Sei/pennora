@@ -229,6 +229,10 @@
     "cannotUnlinkOnly": "Cannot unlink the only login method",
     "invalidCode": "Invalid verification code",
     "sameEmail": "New email is the same as current email",
+    "boundary": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Please try reloading the page or retrying the action."
+    },
     "validation": {
       "transactions": {
         "amountMin": "Min 0.01",
