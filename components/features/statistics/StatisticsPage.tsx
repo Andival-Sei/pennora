@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FadeIn } from "@/components/motion";
@@ -12,9 +13,34 @@ import type { CurrencyCode } from "@/lib/currency/rates";
 import type { TrendPeriod } from "@/lib/types/statistics";
 
 import { StatisticsFiltersComponent } from "./StatisticsFilters";
-import { OverviewTab } from "./OverviewTab";
-import { TrendsTab } from "./TrendsTab";
-import { CategoriesTab } from "./CategoriesTab";
+import { StatisticsTabLoading } from "./StatisticsTabLoading";
+
+// Lazy load компоненты статистики для уменьшения initial bundle size
+// Используем ssr: false, так как recharts требует браузерные API
+const OverviewTab = dynamic(
+  () => import("./OverviewTab").then((mod) => ({ default: mod.OverviewTab })),
+  {
+    ssr: false,
+    loading: () => <StatisticsTabLoading />,
+  }
+);
+
+const TrendsTab = dynamic(
+  () => import("./TrendsTab").then((mod) => ({ default: mod.TrendsTab })),
+  {
+    ssr: false,
+    loading: () => <StatisticsTabLoading />,
+  }
+);
+
+const CategoriesTab = dynamic(
+  () =>
+    import("./CategoriesTab").then((mod) => ({ default: mod.CategoriesTab })),
+  {
+    ssr: false,
+    loading: () => <StatisticsTabLoading />,
+  }
+);
 
 interface StatisticsPageProps {
   displayCurrency: CurrencyCode;

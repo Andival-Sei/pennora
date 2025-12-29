@@ -3,13 +3,26 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/motion";
 import { TransactionList } from "./TransactionList";
-import { TransactionWizard } from "./TransactionWizard";
 import { MonthYearSelector } from "./MonthYearSelector";
+import { TransactionWizardLoading } from "./TransactionWizardLoading";
+
+// Lazy load TransactionWizard для уменьшения initial bundle size
+const TransactionWizard = dynamic(
+  () =>
+    import("./TransactionWizard").then((mod) => ({
+      default: mod.TransactionWizard,
+    })),
+  {
+    ssr: false,
+    loading: () => <TransactionWizardLoading />,
+  }
+);
 import { queryKeys } from "@/lib/query/keys";
 import { fetchAvailableMonthsAndYears } from "@/lib/query/queries/transactions";
 import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
