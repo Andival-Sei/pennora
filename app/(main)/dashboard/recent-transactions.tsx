@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/motion";
 import { queryKeys } from "@/lib/query/keys";
-import { fetchTransactions } from "@/lib/query/queries/transactions";
+import { fetchRecentTransactions } from "@/lib/query/queries/transactions";
 import { fetchAccounts } from "@/lib/query/queries/accounts";
 import { formatCurrency } from "@/lib/currency/formatter";
 import { cn } from "@/lib/utils";
@@ -277,11 +277,10 @@ export const RecentTransactions = memo(function RecentTransactions() {
 
   // Загружаем последние 5 транзакций
   const { data: transactions = [], isLoading } = useQuery({
-    queryKey: queryKeys.transactions.list(),
-    queryFn: () => fetchTransactions(),
+    queryKey: queryKeys.transactions.recent(5),
+    queryFn: () => fetchRecentTransactions(5),
     staleTime: QUERY_STALE_TIME.TRANSACTIONS,
     gcTime: QUERY_GC_TIME.TRANSACTIONS,
-    select: (data: TransactionWithItems[]) => data.slice(0, 5),
   });
 
   // Загружаем счета для отображения названий
