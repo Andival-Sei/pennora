@@ -1,3 +1,9 @@
+## [1.3.2](https://github.com/Andival-Sei/pennora/compare/v1.3.1...v1.3.2) (2025-12-29)
+
+### Performance Improvements
+
+- **bundle:** добавить lazy loading для тяжелых компонентов ([6503487](https://github.com/Andival-Sei/pennora/commit/6503487a88222c014df76e573ca6c52a02ab4d2b))
+
 ## [1.3.1](https://github.com/Andival-Sei/pennora/compare/v1.3.0...v1.3.1) (2025-12-29)
 
 ### Performance Improvements
