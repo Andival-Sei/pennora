@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/Andival-Sei/pennora/compare/v1.3.0...v1.3.1) (2025-12-29)
+
+### Performance Improvements
+
+- **dashboard:** оптимизировать загрузку последних транзакций на главной ([84e01c9](https://github.com/Andival-Sei/pennora/commit/84e01c942efe46a878bfcaae737b04e0d1ed9e1c))
+
 # [1.3.0](https://github.com/Andival-Sei/pennora/compare/v1.2.2...v1.3.0) (2025-12-29)
 
 ### Features
