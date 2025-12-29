@@ -1,8 +1,14 @@
-## [1.2.2](https://github.com/Andival-Sei/pennora/compare/v1.2.1...v1.2.2) (2025-12-28)
+## [1.1.1](https://github.com/Andival-Sei/pennora/compare/v1.1.0...v1.1.1) (2025-12-28)
 
 ### Bug Fixes
 
-- **utils:** исправить ошибку TypeScript с msOverflowStyle ([9748f4e](https://github.com/Andival-Sei/pennora/commit/9748f4eccfbd17a83020624757a4176892bce840))
+- **ui:** исправить layout shift при открытии модальных окон ([0f97b7a](https://github.com/Andival-Sei/pennora/commit/0f97b7a860109bf0c17b97fe018c89f8228ffaac))
+
+# [1.1.0](https://github.com/Andival-Sei/pennora/compare/v1.0.0...v1.1.0) (2025-12-28)
+
+### Features
+
+- **categories:** разделение категории "Фрукты и ягоды" на "Фрукты" и "Ягоды", добавление подкатегории "Туалетная бумага" ([0d7e461](https://github.com/Andival-Sei/pennora/commit/0d7e4611e01f160a645c5ea4c01cbb8f7b7c4f5e))
 
 # 1.0.0 (2025-12-28)
 
