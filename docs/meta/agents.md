@@ -162,7 +162,7 @@ pnpm format:check  # Проверка форматирования
 
 **ВАЖНО:** Все данные, которые загружаются из Supabase или других источников, должны кешироваться через TanStack Query.
 
-**См. подробную документацию:** [`docs/CACHING.md`](./CACHING.md)
+**См. подробную документацию:** [`docs/concepts/caching.md`](../concepts/caching.md)
 
 **Основные правила:**
 
@@ -197,7 +197,7 @@ pnpm format:check  # Проверка форматирования
 - Автоматическая синхронизация при восстановлении сети
 - Оптимистичные обновления UI через TanStack Query
 
-**Документация:** [`docs/OFFLINE_SYNC.md`](./OFFLINE_SYNC.md)
+**Документация:** [`docs/concepts/offline-sync.md`](../concepts/offline-sync.md)
 
 **Основные компоненты:**
 
@@ -222,7 +222,7 @@ pnpm format:check  # Проверка форматирования
 - Supabase Realtime для обновлений в реальном времени
 - Ручное разрешение конфликтов через UI
 
-**Документация:** [`docs/OFFLINE_SYNC.md`](./OFFLINE_SYNC.md)
+**Документация:** [`docs/concepts/offline-sync.md`](../concepts/offline-sync.md)
 
 ### Мультивалютность
 

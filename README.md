@@ -83,7 +83,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Подробнее о настройке базы данных: **[DATABASE.md](./docs/DATABASE.md)**
+Подробнее о настройке базы данных: **[Database Reference](./docs/reference/database.md)**
 
 ## Разработка
 
@@ -143,7 +143,7 @@ pennora/
 └── __tests__/           # Тесты
 ```
 
-Подробнее о структуре: **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)**
+Подробнее о структуре: **[Architecture](./docs/concepts/architecture.md)**
 
 ## Git Workflow
 
@@ -160,7 +160,7 @@ git checkout -b feature/my-feature
 # После разработки - создать PR в develop
 ```
 
-Подробная документация: **[GIT_WORKFLOW.md](./docs/GIT_WORKFLOW.md)**
+Подробная документация: **[Git Workflow](./docs/processes/git-workflow.md)**
 
 **Pre-commit hooks:**
 
@@ -169,34 +169,25 @@ git checkout -b feature/my-feature
 
 ## Документация
 
-Подробная документация доступна в папке [`docs/`](./docs/):
+Подробная документация доступна в папке [`docs/`](./docs/). См. **[README документации](./docs/README.md)** для навигации.
 
-### Основная документация
+### Быстрый доступ
 
-- **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — общая архитектура проекта
-- **[DATABASE.md](./docs/DATABASE.md)** — структура базы данных и миграции
-- **[CACHING.md](./docs/CACHING.md)** — система кеширования через TanStack Query
-- **[OFFLINE_SYNC.md](./docs/OFFLINE_SYNC.md)** — офлайн-режим и синхронизация данных
-- **[RECEIPTS.md](./docs/RECEIPTS.md)** — обработка чеков (OCR, PDF, EML)
-- **[CATEGORIES.md](./docs/CATEGORIES.md)** — система категорий
-- **[DEFAULT_CATEGORIES.md](./docs/DEFAULT_CATEGORIES.md)** — категории по умолчанию
-
-### Процессы разработки
-
-- **[GIT_WORKFLOW.md](./docs/GIT_WORKFLOW.md)** — Git workflow и процесс разработки
-- **[COMMIT_CONVENTION.md](./docs/COMMIT_CONVENTION.md)** — соглашение о коммитах
-- **[MVP_CHECKLIST.md](./docs/MVP_CHECKLIST.md)** — чеклист для MVP
-- **[AGENTS.md](./docs/AGENTS.md)** — контекст для AI-ассистентов
+- **[Архитектура](./docs/concepts/architecture.md)** — общая архитектура проекта
+- **[База данных](./docs/reference/database.md)** — структура БД и миграции
+- **[Кеширование](./docs/concepts/caching.md)** — система кеширования через TanStack Query
+- **[Офлайн-режим](./docs/concepts/offline-sync.md)** — офлайн-режим и синхронизация данных
+- **[Git Workflow](./docs/processes/git-workflow.md)** — процесс разработки
 
 ## Версионирование
 
 Проект использует [Semantic Versioning](https://semver.org/lang/ru/) и автоматическое создание релизов через [semantic-release](https://github.com/semantic-release/semantic-release).
 
-- **Версия** определяется автоматически на основе [Conventional Commits](docs/COMMIT_CONVENTION.md)
+- **Версия** определяется автоматически на основе [Conventional Commits](./docs/processes/commit-convention.md)
 - **CHANGELOG.md** генерируется автоматически при каждом релизе
 - **GitHub Releases** создаются автоматически при мердже в `main`
 
-Подробнее о процессе релизов: **[GIT_WORKFLOW.md](./docs/GIT_WORKFLOW.md#автоматические-релизы)**
+Подробнее о процессе релизов: **[Git Workflow](./docs/processes/git-workflow.md#автоматические-релизы)**
 
 История изменений: **[CHANGELOG.md](./CHANGELOG.md)**
 
