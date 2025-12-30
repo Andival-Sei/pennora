@@ -242,7 +242,7 @@ pennora/
 
 ### Кеширование (TanStack Query)
 
-- **Документация**: [`docs/CACHING.md`](./CACHING.md) — подробное описание системы кеширования
+- **Документация**: [`docs/concepts/caching.md`](./caching.md) — подробное описание системы кеширования
 - **Конфигурация**: `lib/query/client.ts` — настройки QueryClient
 - **Константы**: `lib/constants/query.ts` — централизованные константы для staleTime, gcTime, retry
 - **Провайдер**: `lib/query/provider.tsx` — QueryClientProvider для всего приложения
@@ -285,7 +285,7 @@ pennora/
   - `database.ts` — база данных Dexie для очереди синхронизации
   - `models.ts` — типы для очереди операций
 - **Интеграция**: Работает совместно с TanStack Query для офлайн-доступа
-- **Документация**: [`docs/OFFLINE_SYNC.md`](./OFFLINE_SYNC.md) — подробное описание офлайн-режима
+- **Документация**: [`docs/concepts/offline-sync.md`](./offline-sync.md) — подробное описание офлайн-режима
 
 ### Синхронизация
 
@@ -300,7 +300,7 @@ pennora/
 ### TanStack Query (Серверное состояние)
 
 - **Назначение**: Кеширование и управление серверным состоянием
-- **Документация**: [`docs/CACHING.md`](./CACHING.md)
+- **Документация**: [`docs/concepts/caching.md`](./caching.md)
 - **Использование**: Все данные из Supabase кешируются через TanStack Query
 - **Особенности**:
   - Автоматическое кеширование при переходах между вкладками
@@ -361,7 +361,7 @@ pennora/
 
 - **Миграции**: `supabase/migrations/`
 - **Seed данные**: `supabase/seed.sql`
-- **Документация БД**: `docs/DATABASE.md`
+- **Документация БД**: `docs/reference/database.md`
 
 ## Слой сервисов
 
@@ -470,7 +470,7 @@ const form = useForm({
 - **Модуль**: `lib/receipt/` — обработка чеков с OCR и парсингом
 - **Компоненты**: `components/features/transactions/Receipt*.tsx` — UI компоненты для работы с чеками
 - **API**: `app/api/receipts/parse-email/` — серверный API для парсинга EML файлов
-- **Документация**: [`docs/RECEIPTS.md`](./RECEIPTS.md) — подробное описание функционала обработки чеков
+- **Документация**: [`docs/concepts/receipts.md`](./receipts.md) — подробное описание функционала обработки чеков
 
 **Поддерживаемые форматы:**
 
@@ -522,8 +522,8 @@ const form = useForm({
 
 ## Документация
 
-- **Архитектура**: [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) (этот файл)
-- **Кеширование**: [`docs/CACHING.md`](./CACHING.md) — подробное описание системы кеширования через TanStack Query
-- **Офлайн и синхронизация**: [`docs/OFFLINE_SYNC.md`](./OFFLINE_SYNC.md) — подробное описание офлайн-режима и синхронизации данных
-- **Обработка чеков**: [`docs/RECEIPTS.md`](./RECEIPTS.md) — подробное описание функционала обработки чеков
-- **Для AI-агентов**: [`docs/AGENTS.md`](./AGENTS.md) — контекст для AI-ассистентов
+- **Архитектура**: [`docs/concepts/architecture.md`](./architecture.md) (этот файл)
+- **Кеширование**: [`docs/concepts/caching.md`](./caching.md) — подробное описание системы кеширования через TanStack Query
+- **Офлайн и синхронизация**: [`docs/concepts/offline-sync.md`](./offline-sync.md) — подробное описание офлайн-режима и синхронизации данных
+- **Обработка чеков**: [`docs/concepts/receipts.md`](./receipts.md) — подробное описание функционала обработки чеков
+- **Для AI-агентов**: [`docs/meta/agents.md`](../meta/agents.md) — контекст для AI-ассистентов

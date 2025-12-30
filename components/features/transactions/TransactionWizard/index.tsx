@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 
 import {
   Dialog,
@@ -19,9 +20,41 @@ import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { matchCategoryByDescription } from "@/lib/receipt/category-matcher";
 import type { ReceiptProcessingResult } from "@/lib/receipt/types";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 
-import { ReceiptUploader } from "../ReceiptUploader";
-import { ReceiptCamera } from "../ReceiptCamera";
+// Lazy load компоненты обработки чеков для уменьшения initial bundle size
+// Загружаются только при выборе соответствующего метода ввода
+const ReceiptUploader = dynamic(
+  () =>
+    import("../ReceiptUploader").then((mod) => ({
+      default: mod.ReceiptUploader,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4">
+        <LoadingSkeleton width="100%" height="200px" rounded="lg" />
+        <LoadingSkeleton width="100%" height="40px" rounded="md" />
+      </div>
+    ),
+  }
+);
+
+const ReceiptCamera = dynamic(
+  () =>
+    import("../ReceiptCamera").then((mod) => ({
+      default: mod.ReceiptCamera,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4">
+        <LoadingSkeleton width="100%" height="300px" rounded="lg" />
+        <LoadingSkeleton width="100%" height="40px" rounded="md" />
+      </div>
+    ),
+  }
+);
 import {
   IncomeForm,
   ExpenseSimpleForm,

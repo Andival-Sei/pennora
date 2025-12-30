@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import bundleAnalyzer from "@next/bundle-analyzer";
 
 const nextConfig: NextConfig = {
   // Отключаем TypeScript проверку при сборке для ускорения (проверка выполняется отдельно)
@@ -123,5 +124,9 @@ const nextConfig: NextConfig = {
   },
 };
 
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
+
 const withNextIntl = createNextIntlPlugin();
-export default withNextIntl(nextConfig);
+export default withBundleAnalyzer(withNextIntl(nextConfig));

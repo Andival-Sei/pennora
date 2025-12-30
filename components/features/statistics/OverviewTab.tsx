@@ -3,6 +3,7 @@
 import { memo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import dynamic from "next/dynamic";
 import { Loader2, TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { queryKeys } from "@/lib/query/keys";
@@ -11,8 +12,24 @@ import { QUERY_STALE_TIME, QUERY_GC_TIME } from "@/lib/constants/query";
 import { formatCurrency } from "@/lib/currency/converter";
 import type { CurrencyCode } from "@/lib/currency/rates";
 import { cn } from "@/lib/utils";
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 
-import { CategoryPieChart } from "./CategoryPieChart";
+// Lazy load CategoryPieChart для уменьшения initial bundle size
+// Используем ssr: false, так как recharts требует браузерные API
+const CategoryPieChart = dynamic(
+  () =>
+    import("./CategoryPieChart").then((mod) => ({
+      default: mod.CategoryPieChart,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-80 flex items-center justify-center">
+        <LoadingSkeleton width="100%" height="100%" rounded="lg" />
+      </div>
+    ),
+  }
+);
 
 interface OverviewTabProps {
   dateRange: { from: Date; to: Date };

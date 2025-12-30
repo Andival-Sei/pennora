@@ -127,6 +127,116 @@ export async function fetchTransactions(filters?: {
 }
 
 /**
+ * Загружает последние N транзакций пользователя
+ * Оптимизировано: использует limit на уровне БД для минимизации данных
+ * Включает позиции (items) для split transactions
+ */
+export async function fetchRecentTransactions(
+  limit: number = 5
+): Promise<TransactionWithItems[]> {
+  const user = await getClientUser();
+  if (!user) {
+    throw new Error("Пользователь не авторизован");
+  }
+
+  const supabase = createClient();
+
+  const query = supabase
+    .from("transactions")
+    .select(
+      `
+      id,
+      user_id,
+      account_id,
+      category_id,
+      to_account_id,
+      type,
+      amount,
+      currency,
+      exchange_rate,
+      description,
+      date,
+      created_at,
+      updated_at,
+      category:categories(
+        id,
+        user_id,
+        name,
+        type,
+        icon,
+        color,
+        parent_id,
+        sort_order,
+        is_archived,
+        is_system,
+        created_at,
+        updated_at
+      ),
+      items:transaction_items(
+        id,
+        transaction_id,
+        category_id,
+        amount,
+        description,
+        sort_order,
+        created_at,
+        updated_at,
+        category:categories(
+          id,
+          user_id,
+          name,
+          type,
+          icon,
+          color,
+          parent_id,
+          sort_order,
+          is_archived,
+          is_system,
+          created_at,
+          updated_at
+        )
+      )
+    `
+    )
+    .eq("user_id", user.id)
+    .order("date", { ascending: false })
+    .limit(limit);
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  // Преобразуем данные в нужный формат
+  return (data || []).map((item) => {
+    // Преобразуем category из массива в объект или null
+    const category = Array.isArray(item.category)
+      ? item.category[0] || null
+      : item.category || null;
+
+    // Преобразуем items с их категориями
+    const mappedItems = (item.items || []).map(
+      (i: Record<string, unknown>) => ({
+        ...i,
+        sort_order: (i.sort_order as number) ?? 0,
+        category: Array.isArray(i.category)
+          ? (i.category as Record<string, unknown>[])[0] || null
+          : i.category || null,
+      })
+    );
+
+    const items = mappedItems.sort((a, b) => a.sort_order - b.sort_order);
+
+    return {
+      ...item,
+      category,
+      items,
+    };
+  }) as TransactionWithItems[];
+}
+
+/**
  * Загружает транзакции без items (для обратной совместимости)
  */
 export async function fetchTransactionsSimple(filters?: {

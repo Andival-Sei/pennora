@@ -2,11 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Plus, Wallet, Receipt, FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/motion";
 import { useTranslations } from "next-intl";
-import { TransactionWizard } from "@/components/features/transactions/TransactionWizard";
+import { TransactionWizardLoading } from "@/components/features/transactions/TransactionWizardLoading";
+
+// Lazy load TransactionWizard для уменьшения initial bundle size
+const TransactionWizard = dynamic(
+  () =>
+    import("@/components/features/transactions/TransactionWizard").then(
+      (mod) => ({ default: mod.TransactionWizard })
+    ),
+  {
+    ssr: false,
+    loading: () => <TransactionWizardLoading />,
+  }
+);
 
 export function QuickActions() {
   const t = useTranslations("dashboard");

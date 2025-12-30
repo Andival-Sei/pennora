@@ -1,8 +1,32 @@
-## [1.2.2](https://github.com/Andival-Sei/pennora/compare/v1.2.1...v1.2.2) (2025-12-28)
+## [1.3.2](https://github.com/Andival-Sei/pennora/compare/v1.3.1...v1.3.2) (2025-12-29)
+
+### Performance Improvements
+
+- **bundle:** добавить lazy loading для тяжелых компонентов ([6503487](https://github.com/Andival-Sei/pennora/commit/6503487a88222c014df76e573ca6c52a02ab4d2b))
+
+## [1.3.1](https://github.com/Andival-Sei/pennora/compare/v1.3.0...v1.3.1) (2025-12-29)
+
+### Performance Improvements
+
+- **dashboard:** оптимизировать загрузку последних транзакций на главной ([84e01c9](https://github.com/Andival-Sei/pennora/commit/84e01c942efe46a878bfcaae737b04e0d1ed9e1c))
+
+# [1.3.0](https://github.com/Andival-Sei/pennora/compare/v1.2.2...v1.3.0) (2025-12-29)
+
+### Features
+
+- добавить компонент ErrorBoundary для обработки ошибок рендеринга ([3566e19](https://github.com/Andival-Sei/pennora/commit/3566e1930bbfbf754a7eb82ccf76a09d883745ce))
+
+## [1.1.1](https://github.com/Andival-Sei/pennora/compare/v1.1.0...v1.1.1) (2025-12-28)
 
 ### Bug Fixes
 
-- **utils:** исправить ошибку TypeScript с msOverflowStyle ([9748f4e](https://github.com/Andival-Sei/pennora/commit/9748f4eccfbd17a83020624757a4176892bce840))
+- **ui:** исправить layout shift при открытии модальных окон ([0f97b7a](https://github.com/Andival-Sei/pennora/commit/0f97b7a860109bf0c17b97fe018c89f8228ffaac))
+
+# [1.1.0](https://github.com/Andival-Sei/pennora/compare/v1.0.0...v1.1.0) (2025-12-28)
+
+### Features
+
+- **categories:** разделение категории "Фрукты и ягоды" на "Фрукты" и "Ягоды", добавление подкатегории "Туалетная бумага" ([0d7e461](https://github.com/Andival-Sei/pennora/commit/0d7e4611e01f160a645c5ea4c01cbb8f7b7c4f5e))
 
 # 1.0.0 (2025-12-28)
 

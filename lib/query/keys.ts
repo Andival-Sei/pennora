@@ -13,6 +13,8 @@ export const queryKeys = {
       [...queryKeys.transactions.all, "detail", id] as const,
     availableMonths: () =>
       [...queryKeys.transactions.all, "availableMonths"] as const,
+    recent: (limit?: number) =>
+      [...queryKeys.transactions.all, "recent", limit] as const,
   },
   categories: {
     all: ["categories"] as const,
