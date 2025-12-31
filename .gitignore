@@ -25,6 +25,7 @@
 *.pem
 .supercode
 .cursor
+.mcp.json
 
 # debug
 npm-debug.log*
