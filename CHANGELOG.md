@@ -1,3 +1,9 @@
+# [1.4.0](https://github.com/Andival-Sei/pennora/compare/v1.3.2...v1.4.0) (2025-12-31)
+
+### Features
+
+- **monitoring:** интегрировать Sentry для отслеживания ошибок ([4476db4](https://github.com/Andival-Sei/pennora/commit/4476db4cedc55a47aa24b396310264824ada0278))
+
 ## [1.3.2](https://github.com/Andival-Sei/pennora/compare/v1.3.1...v1.3.2) (2025-12-29)
 
 ### Performance Improvements
