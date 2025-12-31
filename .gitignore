@@ -26,6 +26,7 @@
 .supercode
 .cursor
 .mcp.json
+.claude
 
 # debug
 npm-debug.log*

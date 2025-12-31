@@ -33,10 +33,11 @@
 
 ### Установлено (дополнительно)
 
-| Технология                              | Версия  | Назначение                         |
-| --------------------------------------- | ------- | ---------------------------------- |
-| Dexie                                   | 4.2.1   | IndexedDB для офлайн-работы        |
-| @tanstack/query-async-storage-persister | 5.90.14 | Персистентность для TanStack Query |
+| Технология                              | Версия  | Назначение                             |
+| --------------------------------------- | ------- | -------------------------------------- |
+| Dexie                                   | 4.2.1   | IndexedDB для офлайн-работы            |
+| @tanstack/query-async-storage-persister | 5.90.14 | Персистентность для TanStack Query     |
+| @sentry/nextjs                          | 10.32.1 | Мониторинг ошибок и производительности |
 
 ### Планируется
 
@@ -90,6 +91,8 @@ pennora/
 │   ├── sync/             # Синхронизация
 │   │   ├── syncManager.ts    # Менеджер синхронизации
 │   │   └── queueManager.ts   # Менеджер очереди
+│   ├── monitoring/       # Мониторинг ошибок
+│   │   └── sentry.ts     # Утилиты для Sentry
 │   ├── stores/           # Zustand stores
 │   │   └── syncStore.ts  # Store для синхронизации
 │   ├── hooks/            # React хуки
@@ -236,3 +239,42 @@ pnpm format:check  # Проверка форматирования
 - Роли: owner, editor, viewer
 - Row Level Security (RLS) в Supabase
 - Приглашения по email
+
+### Мониторинг ошибок (Sentry)
+
+**Реализовано:**
+
+- Интеграция Sentry для Next.js 16 App Router
+- Отслеживание ошибок из Error Boundary
+- Отслеживание ошибок из TanStack Query (queries и mutations)
+- Автоматическая установка контекста пользователя
+- Фильтрация сетевых ошибок (не отправляются ожидаемые офлайн-ошибки)
+- Конфигурация для client, server и edge runtime
+
+**Конфигурационные файлы:**
+
+- `sentry.client.config.ts` — клиентская конфигурация
+- `sentry.server.config.ts` — серверная конфигурация
+- `sentry.edge.config.ts` — edge конфигурация
+- `instrument.ts` — регистрация конфигураций
+
+**Основные компоненты:**
+
+- `lib/monitoring/sentry.ts` — утилиты для работы с Sentry
+- Интеграция в `app/(main)/layout.tsx` через ErrorBoundary
+- Интеграция в `lib/query/client.ts` через глобальные обработчики ошибок
+- Установка контекста пользователя в `lib/query/provider.tsx`
+
+**Переменные окружения:**
+
+- `NEXT_PUBLIC_SENTRY_DSN` — публичный DSN для Sentry (обязательно для production)
+- `SENTRY_ORG` — организация Sentry (опционально, для загрузки source maps)
+- `SENTRY_PROJECT` — проект Sentry (опционально, для загрузки source maps)
+- `SENTRY_AUTH_TOKEN` — токен для загрузки source maps (только в CI)
+
+**Особенности:**
+
+- В development режиме ошибки не отправляются, если DSN не установлен
+- Сетевые ошибки (ожидаемые в офлайн-режиме) не отправляются в Sentry
+- Контекст пользователя устанавливается автоматически при авторизации
+- Sample rate: 10% в production, 100% в development
