@@ -8,6 +8,10 @@ import { invalidateAll } from "@/lib/query/invalidation";
 import type { SyncQueueItem, SyncTable } from "@/lib/db/indexeddb/models";
 import type { SyncResult } from "@/lib/types/sync";
 import { toast } from "sonner";
+import { createModuleLogger } from "@/lib/utils/logger";
+import { isNetworkError } from "@/lib/utils/network";
+
+const logger = createModuleLogger("sync");
 
 /**
  * Менеджер синхронизации данных
@@ -31,7 +35,7 @@ export class SyncManager {
       // Автоматически запускаем синхронизацию при восстановлении сети
       if (isOnline) {
         this.syncAll().catch((err) => {
-          console.error("Error during auto-sync:", err);
+          logger.error(err, { isExpectedError: isNetworkError(err) });
         });
       }
     };
@@ -47,7 +51,7 @@ export class SyncManager {
       () => {
         if (navigator.onLine && !this.syncInProgress) {
           this.syncAll().catch((err) => {
-            console.error("Error during periodic sync:", err);
+            logger.error(err, { isExpectedError: isNetworkError(err) });
           });
         }
       },
@@ -87,7 +91,7 @@ export class SyncManager {
 
       return result;
     } catch (error) {
-      console.error("Error during sync:", error);
+      logger.error(error, { isExpectedError: isNetworkError(error) });
       useSyncStore.getState().setStatus("error");
       toast.error("Sync error");
       return {
@@ -145,7 +149,9 @@ export class SyncManager {
         const item = batch[index];
         if (settled.status === "fulfilled" && settled.value) {
           result.success++;
-          queueManager.remove(item.id).catch(console.error);
+          queueManager
+            .remove(item.id)
+            .catch((e) => logger.error(e, { isExpectedError: true }));
         } else {
           result.failed++;
           const error =
@@ -153,7 +159,9 @@ export class SyncManager {
               ? settled.reason?.message || String(settled.reason)
               : "Unknown error";
           result.errors.push({ operationId: item.id, error });
-          queueManager.markFailed(item.id, error).catch(console.error);
+          queueManager
+            .markFailed(item.id, error)
+            .catch((e) => logger.error(e, { isExpectedError: true }));
         }
       });
     }
@@ -190,10 +198,9 @@ export class SyncManager {
       }
       return true;
     } catch (error) {
-      console.error(
-        `Error processing ${item.operation} for ${item.table}:`,
-        error
-      );
+      logger.error(error, {
+        extra: { operation: item.operation, table: item.table },
+      });
       throw error;
     }
   }

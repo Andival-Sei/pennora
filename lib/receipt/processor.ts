@@ -12,6 +12,9 @@ import { extractTextFromFile, getFileType } from "./ocr";
 import { readQRCodeFromFile, parseFNSQRCode } from "./qr-reader";
 import { parseReceiptText } from "./parser";
 import { extractReceiptsFromEmail } from "./email-parser";
+import { createModuleLogger } from "@/lib/utils/logger";
+
+const logger = createModuleLogger("receipt");
 
 /**
  * Обрабатывает чек из файла
@@ -113,7 +116,7 @@ export async function processReceipt(
       qrData: qrData || undefined,
     };
   } catch (error) {
-    console.error("Ошибка при обработке чека:", error);
+    logger.error(error);
     return {
       success: false,
       error:
@@ -224,7 +227,7 @@ export async function processEmailFile(
 
     return results;
   } catch (error) {
-    console.error("Ошибка при обработке email файла:", error);
+    logger.error(error);
     return [
       {
         success: false,

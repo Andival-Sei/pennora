@@ -14,6 +14,7 @@ pnpm lint             # ESLint check
 pnpm lint:fix         # Auto-fix ESLint issues
 pnpm format           # Format with Prettier
 pnpm format:check     # Check formatting
+pnpm typecheck        # TypeScript type check
 pnpm check:all        # Format + lint + typecheck + build
 
 # Testing (Vitest)

@@ -16,18 +16,18 @@ Pennora — трекер личного/семейного бюджета с off
 
 > Цель: Устранить технический долг и подготовить проект к production
 
-### 1.1 Логирование и мониторинг
+### 1.1 Логирование и мониторинг ✅
 
 **Проблема:** В коде 50+ мест с console.log/error, которые попадают в production.
 
 **Задачи:**
 
-- [ ] Заменить все `console.error` в `lib/sync/syncManager.ts` на `captureError()` из Sentry
-- [ ] Заменить все `console.error` в `lib/utils/errorHandler.ts` на Sentry
-- [ ] Заменить `console.log/error` в `app/(main)/dashboard/accounts/page.tsx`
-- [ ] Заменить `console.error` в `lib/db/indexeddb/persister.ts`
-- [ ] Создать утилиту `lib/utils/logger.ts` с условным логированием (только в dev)
-- [ ] Удалить отладочные console.log в `lib/receipt/processor.ts`
+- [x] Заменить все `console.error` в `lib/sync/syncManager.ts` на `captureError()` из Sentry
+- [x] Заменить все `console.error` в `lib/utils/errorHandler.ts` на Sentry
+- [x] Заменить `console.log/error` в `app/(main)/dashboard/accounts/page.tsx`
+- [x] Заменить `console.error` в `lib/db/indexeddb/persister.ts`
+- [x] Создать утилиту `lib/utils/logger.ts` с условным логированием (только в dev)
+- [x] Удалить отладочные console.log в `lib/receipt/processor.ts`
 
 **Результат:** Чистая консоль в production, все ошибки в Sentry
 

@@ -3,6 +3,9 @@
  */
 
 import { isNetworkError } from "./network";
+import { createModuleLogger } from "./logger";
+
+const logger = createModuleLogger("errorHandler");
 
 /**
  * Типы ошибок Supabase
@@ -229,11 +232,6 @@ export function getErrorMessage(
   error: unknown,
   t: (key: string) => string
 ): string {
-  // Логируем ошибку для отладки
-  if (process.env.NODE_ENV === "development") {
-    console.log("getErrorMessage called with:", error);
-  }
-
   const translationKey = getErrorTranslationKey(error);
 
   // Убираем префикс "errors." если он есть, так как t уже в контексте "errors"
@@ -245,7 +243,9 @@ export function getErrorMessage(
     const message = t(keyWithoutPrefix);
     // Если сообщение совпадает с ключом, значит перевод не найден
     if (message === keyWithoutPrefix || message === translationKey) {
-      console.warn(`Translation key not found: ${keyWithoutPrefix}`);
+      logger.warn(`Translation key not found: ${keyWithoutPrefix}`, {
+        module: "i18n",
+      });
       // Пытаемся получить оригинальное сообщение об ошибке
       if (error instanceof Error) {
         return error.message || "Произошла неизвестная ошибка";
@@ -257,7 +257,7 @@ export function getErrorMessage(
     }
     return message;
   } catch (e) {
-    console.error("Error translating error message:", e);
+    logger.error(e, { extra: { originalError: error } });
     // Fallback на оригинальное сообщение
     if (error instanceof Error) {
       return error.message || "Произошла неизвестная ошибка";

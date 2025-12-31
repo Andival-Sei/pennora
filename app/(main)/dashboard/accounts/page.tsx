@@ -59,6 +59,9 @@ import {
   formatCardAccountName,
   formatCashAccountName,
 } from "@/lib/utils/accountParser";
+import { createModuleLogger } from "@/lib/utils/logger";
+
+const logger = createModuleLogger("accounts");
 
 // Схемы валидации
 const cardAccountSchema = z.object({
@@ -283,7 +286,7 @@ export default function AccountsPage() {
           cardForm.reset();
         },
         onError: (err) => {
-          console.error("Error creating account:", err);
+          logger.error(err, { sendToSentry: false });
           setError("errors.databaseError");
         },
       }
@@ -312,7 +315,7 @@ export default function AccountsPage() {
           cashForm.reset();
         },
         onError: (err) => {
-          console.error("Error creating account:", err);
+          logger.error(err, { sendToSentry: false });
           setError("errors.databaseError");
         },
       }
@@ -327,7 +330,7 @@ export default function AccountsPage() {
         setShowDeleteConfirm(null);
       },
       onError: (err) => {
-        console.error("Error deleting account:", err);
+        logger.error(err, { sendToSentry: false });
         setError("errors.databaseError");
       },
     });
@@ -360,7 +363,7 @@ export default function AccountsPage() {
           setEditingAccount(null);
         },
         onError: (err) => {
-          console.error("Error updating account:", err);
+          logger.error(err, { sendToSentry: false });
           setError("errors.databaseError");
         },
       }
@@ -396,7 +399,7 @@ export default function AccountsPage() {
           setEditingAccount(null);
         },
         onError: (err) => {
-          console.error("Error updating account:", err);
+          logger.error(err, { sendToSentry: false });
           setError("errors.databaseError");
         },
       }

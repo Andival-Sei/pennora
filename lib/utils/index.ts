@@ -1,6 +1,9 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+export { logger, createModuleLogger } from "./logger";
+export type { Logger, LogContext, LogLevel } from "./logger";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

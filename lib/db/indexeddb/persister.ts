@@ -1,6 +1,9 @@
 "use client";
 
 import Dexie, { Table } from "dexie";
+import { createModuleLogger } from "@/lib/utils/logger";
+
+const logger = createModuleLogger("indexeddb");
 
 /**
  * База данных для кеша TanStack Query в IndexedDB
@@ -28,7 +31,7 @@ export const indexedDBStorage = {
       const item = await db.cache.get(key);
       return item?.value ?? null;
     } catch (error) {
-      console.error("Error reading from IndexedDB:", error);
+      logger.error(error, { isExpectedError: true });
       return null;
     }
   },
@@ -36,7 +39,7 @@ export const indexedDBStorage = {
     try {
       await db.cache.put({ key, value });
     } catch (error) {
-      console.error("Error writing to IndexedDB:", error);
+      logger.error(error);
       throw error;
     }
   },
@@ -44,7 +47,7 @@ export const indexedDBStorage = {
     try {
       await db.cache.delete(key);
     } catch (error) {
-      console.error("Error removing from IndexedDB:", error);
+      logger.error(error);
       throw error;
     }
   },
@@ -56,7 +59,7 @@ export const indexedDBStorage = {
     try {
       await db.cache.clear();
     } catch (error) {
-      console.error("Error clearing IndexedDB cache:", error);
+      logger.error(error);
       throw error;
     }
   },
