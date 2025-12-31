@@ -14,9 +14,13 @@
 
 ### Опциональные
 
-| Переменная | Описание                           | По умолчанию  |
-| ---------- | ---------------------------------- | ------------- |
-| `NODE_ENV` | Окружение (development/production) | `development` |
+| Переменная               | Описание                                      | По умолчанию  |
+| ------------------------ | --------------------------------------------- | ------------- |
+| `NODE_ENV`               | Окружение (development/production)            | `development` |
+| `NEXT_PUBLIC_SENTRY_DSN` | DSN для Sentry (мониторинг ошибок)            | -             |
+| `SENTRY_ORG`             | Организация Sentry (для загрузки source maps) | -             |
+| `SENTRY_PROJECT`         | Проект Sentry (для загрузки source maps)      | -             |
+| `SENTRY_AUTH_TOKEN`      | Токен для загрузки source maps (только в CI)  | -             |
 
 ## Конфигурация Next.js
 

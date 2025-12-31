@@ -8,6 +8,8 @@ import { setupPersistCache } from "./persist";
 import { syncManager } from "@/lib/sync/syncManager";
 import { queueManager } from "@/lib/sync/queueManager";
 import { useSyncStore } from "@/lib/stores/syncStore";
+import { setUserContext, clearUserContext } from "@/lib/monitoring/sentry";
+import { getClientUser } from "@/lib/db/supabase/auth-client";
 import type { ReactNode } from "react";
 
 interface QueryProviderProps {
@@ -40,6 +42,35 @@ export function QueryProvider({ children }: QueryProviderProps) {
     // Обновляем сразу и затем каждые 30 секунд
     updatePendingCount();
     const interval = setInterval(updatePendingCount, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Устанавливаем контекст пользователя в Sentry
+  useEffect(() => {
+    async function setupSentryUser() {
+      try {
+        const user = await getClientUser();
+        if (user) {
+          setUserContext({
+            id: user.id,
+            email: user.email || undefined,
+            username: user.email || undefined,
+          });
+        } else {
+          clearUserContext();
+        }
+      } catch (error) {
+        // Игнорируем ошибки при получении пользователя (может быть не авторизован)
+        console.debug("Failed to setup Sentry user context:", error);
+      }
+    }
+
+    setupSentryUser();
+
+    // Подписываемся на изменения аутентификации через события
+    // Supabase автоматически обновляет сессию, поэтому мы периодически проверяем
+    const interval = setInterval(setupSentryUser, 60000); // Проверяем каждую минуту
 
     return () => clearInterval(interval);
   }, []);

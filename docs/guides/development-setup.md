@@ -150,10 +150,28 @@ pnpm format
 Создайте `.env.local`:
 
 ```env
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Next.js
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Sentry (опционально для разработки)
+NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
 ```
+
+### Настройка Sentry (опционально)
+
+Для мониторинга ошибок в production рекомендуется настроить Sentry:
+
+1. Создайте проект в [Sentry](https://sentry.io)
+2. Получите DSN из настроек проекта
+3. Добавьте `NEXT_PUBLIC_SENTRY_DSN` в переменные окружения
+
+В development режиме Sentry работает, но не отправляет ошибки, если DSN не установлен.
+
+Подробнее см. [Configuration Reference](../reference/configuration.md).
 
 ### Типы переменных
 

@@ -53,7 +53,6 @@ function ErrorBoundaryFallback({
   resetError,
 }: ErrorBoundaryFallbackProps) {
   const t = useTranslations("errors.boundary");
-  const tErrors = useTranslations("errors");
 
   return (
     <div className="container mx-auto px-4 py-8">

@@ -1,17 +1,66 @@
 "use client";
 
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryCache, MutationCache } from "@tanstack/react-query";
 import {
   QUERY_STALE_TIME,
   QUERY_GC_TIME,
   QUERY_RETRY,
 } from "@/lib/constants/query";
+import { captureError } from "@/lib/monitoring/sentry";
+import { isNetworkError } from "@/lib/utils/network";
 
 /**
  * Конфигурация QueryClient для React Query
  * Настройки оптимизированы для баланса между свежестью данных и производительностью
  */
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      // Не отправляем сетевые ошибки (ожидаемые в офлайн-режиме)
+      if (isNetworkError(error)) {
+        return;
+      }
+
+      captureError(error, {
+        extra: {
+          queryKey: query.queryKey,
+          queryHash: query.queryHash,
+        },
+        tags: {
+          errorType: "react-query-query",
+        },
+        contexts: {
+          query: {
+            key: query.queryKey,
+            hash: query.queryHash,
+            state: query.state.status,
+          },
+        },
+      });
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) => {
+      // Не отправляем сетевые ошибки (ожидаемые в офлайн-режиме)
+      if (isNetworkError(error)) {
+        return;
+      }
+
+      captureError(error, {
+        extra: {
+          mutationKey: mutation.options.mutationKey,
+        },
+        tags: {
+          errorType: "react-query-mutation",
+        },
+        contexts: {
+          mutation: {
+            key: mutation.options.mutationKey,
+          },
+        },
+      });
+    },
+  }),
   defaultOptions: {
     queries: {
       // Время, в течение которого данные считаются свежими

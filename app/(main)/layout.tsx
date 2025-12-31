@@ -2,11 +2,13 @@
 
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
+import type { ErrorInfo } from "react";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { QueryProvider } from "@/lib/query/provider";
 import { SyncStatus } from "@/components/features/sync/SyncStatus";
 import { useSyncStatusVisible } from "@/lib/hooks/useSync";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { captureError } from "@/lib/monitoring/sentry";
 
 export default function MainLayout({
   children,
@@ -17,17 +19,29 @@ export default function MainLayout({
   const isOnboarding = pathname?.includes("/onboarding");
   const isSyncStatusVisible = useSyncStatusVisible();
 
+  // Обработчик ошибок для ErrorBoundary
+  const handleError = (error: Error, errorInfo: ErrorInfo) => {
+    captureError(error, {
+      extra: {
+        componentStack: errorInfo.componentStack,
+      },
+      tags: {
+        errorBoundary: "main-layout",
+      },
+    });
+  };
+
   // Не показываем навигацию на странице онбординга
   if (isOnboarding) {
     return (
-      <ErrorBoundary>
+      <ErrorBoundary onError={handleError}>
         <QueryProvider>{children}</QueryProvider>
       </ErrorBoundary>
     );
   }
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary onError={handleError}>
       <QueryProvider>
         {/* Статус синхронизации в верхней части экрана */}
         <AnimatePresence>

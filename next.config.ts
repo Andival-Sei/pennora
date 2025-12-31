@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import bundleAnalyzer from "@next/bundle-analyzer";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   // Отключаем TypeScript проверку при сборке для ускорения (проверка выполняется отдельно)
@@ -129,4 +130,19 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 const withNextIntl = createNextIntlPlugin();
-export default withBundleAnalyzer(withNextIntl(nextConfig));
+
+// Сначала применяем next-intl и bundle analyzer, затем Sentry
+const configWithPlugins = withBundleAnalyzer(withNextIntl(nextConfig));
+
+// Оборачиваем в withSentryConfig для интеграции Sentry
+export default withSentryConfig(configWithPlugins, {
+  // Организация и проект для загрузки source maps (опционально)
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Только выводить логи загрузки source maps в CI
+  silent: !process.env.CI,
+
+  // Настройки для загрузки source maps
+  widenClientFileUpload: true,
+});
