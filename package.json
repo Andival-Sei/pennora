@@ -46,6 +46,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:bench": "vitest bench",
+    "test:coverage": "vitest run --coverage",
+    "test:coverage:ui": "vitest --ui --coverage",
+    "test:coverage:open": "open coverage/index.html || xdg-open coverage/index.html || start coverage/index.html",
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run",
     "prepare": "husky || true"
@@ -110,6 +113,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.2",
+    "@vitest/coverage-v8": "^4.0.16",
     "@vitest/ui": "^4.0.16",
     "canvas": "^3.2.0",
     "cross-env": "^10.1.0",

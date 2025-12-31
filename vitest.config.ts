@@ -12,6 +12,37 @@ export default defineConfig({
     setupFiles: ["./__tests__/setup.ts"],
     include: ["**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
     exclude: ["**/node_modules/**", "**/.next/**", "**/dist/**"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html", "lcov"],
+      exclude: [
+        "node_modules/**",
+        ".next/**",
+        "dist/**",
+        "**/*.d.ts",
+        "**/*.config.*",
+        "**/mockData",
+        "**/__tests__/**",
+        "**/*.test.*",
+        "**/*.spec.*",
+        "coverage/**",
+        ".eslintrc.cjs",
+        "next-env.d.ts",
+        "app/**/layout.tsx", // Исключаем layout файлы (обычно простые обертки)
+        "app/**/loading.tsx", // Исключаем loading компоненты
+        "app/**/error.tsx", // Исключаем error компоненты
+        "middleware.ts", // Исключаем middleware (сложно тестировать)
+        "i18n.ts", // Исключаем i18n конфигурацию
+      ],
+      thresholds: {
+        // Текущие пороги (2025-12-30): начинаем с 25%, цель - 70%
+        // Постепенно повышаем пороги по мере добавления тестов
+        lines: 25,
+        functions: 25,
+        branches: 20,
+        statements: 25,
+      },
+    },
   },
   resolve: {
     alias: {
