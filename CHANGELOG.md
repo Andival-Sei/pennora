@@ -1,3 +1,9 @@
+## [1.4.2](https://github.com/Andival-Sei/pennora/compare/v1.4.1...v1.4.2) (2026-01-01)
+
+### Bug Fixes
+
+- **tests:** исправить типизацию моков в syncManager тестах ([effef42](https://github.com/Andival-Sei/pennora/commit/effef428a8d81d4c52d77c09c597f75f9df923a9))
+
 ## [1.4.1](https://github.com/Andival-Sei/pennora/compare/v1.4.0...v1.4.1) (2025-12-31)
 
 # [1.4.0](https://github.com/Andival-Sei/pennora/compare/v1.3.2...v1.4.0) (2025-12-31)
