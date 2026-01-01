@@ -97,11 +97,12 @@ export function createQueryWrapper(queryClient?: QueryClient) {
       children
     );
     // Обёртка с NextIntlClientProvider
-    return React.createElement(
-      NextIntlClientProvider,
-      { locale: "ru", messages: mockMutationMessages },
-      queryProviderElement
-    );
+    // eslint-disable-next-line react/no-children-prop
+    return React.createElement(NextIntlClientProvider, {
+      locale: "ru",
+      messages: mockMutationMessages,
+      children: queryProviderElement,
+    });
   }
 
   return { Wrapper, queryClient: client };
