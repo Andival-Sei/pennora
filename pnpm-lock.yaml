@@ -51,14 +51,14 @@ importers:
         specifier: ^0.1.1
         version: 0.1.1(tailwindcss@4.1.18)
       "@tanstack/query-async-storage-persister":
-        specifier: ^5.90.15
-        version: 5.90.15
+        specifier: ^5.90.18
+        version: 5.90.18
       "@tanstack/react-query":
-        specifier: ^5.90.13
-        version: 5.90.13(react@19.2.3)
+        specifier: ^5.90.16
+        version: 5.90.16(react@19.2.3)
       "@tanstack/react-query-devtools":
-        specifier: ^5.91.1
-        version: 5.91.1(@tanstack/react-query@5.90.13(react@19.2.3))(react@19.2.3)
+        specifier: ^5.91.2
+        version: 5.91.2(@tanstack/react-query@5.90.16(react@19.2.3))(react@19.2.3)
       "@vercel/analytics":
         specifier: ^1.6.1
         version: 1.6.1(next@16.1.1(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
@@ -99,8 +99,8 @@ importers:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       pdfjs-dist:
-        specifier: ^5.4.449
-        version: 5.4.449
+        specifier: ^5.4.530
+        version: 5.4.530
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -157,11 +157,11 @@ importers:
         specifier: ^4
         version: 4.1.18
       "@tanstack/query-sync-storage-persister":
-        specifier: ^5.90.15
-        version: 5.90.15
+        specifier: ^5.90.18
+        version: 5.90.18
       "@tanstack/react-query-persist-client":
-        specifier: ^5.90.15
-        version: 5.90.15(@tanstack/react-query@5.90.13(react@19.2.3))(react@19.2.3)
+        specifier: ^5.90.18
+        version: 5.90.18(@tanstack/react-query@5.90.16(react@19.2.3))(react@19.2.3)
       "@testing-library/jest-dom":
         specifier: ^6.6.3
         version: 6.9.1
@@ -3368,58 +3368,58 @@ packages:
         integrity: sha512-Ce0GFnzAOuPyfV5SxjXGn0CubwGcuDB0zcdaPuCSzAa/2vII24JTkH+I6jcbXLb1ctjZMZZI6OjDaLPJQL1S0g==,
       }
 
-  "@tanstack/query-async-storage-persister@5.90.15":
+  "@tanstack/query-async-storage-persister@5.90.18":
     resolution:
       {
-        integrity: sha512-4GPDExLZBnzr/mpUEqkcFZ4SYOKduFK70P8SX4VbJOcaRsuG7RLgFpgTntZAUcwi00gZtbCAsjKE0jXGFsFsYQ==,
+        integrity: sha512-vCZHpodK3N7MQuRGi79YB/+steiAJnCWD78VbVl79+ysoFHsbD85UX+x40uTicXxml5E2kmxn7Yb4Kbwh6TpLQ==,
       }
 
-  "@tanstack/query-core@5.90.13":
+  "@tanstack/query-core@5.90.16":
     resolution:
       {
-        integrity: sha512-3VzxSkv4ojPPHu0WfOwZ/W5CuN7evAXPzQS+Py2glGxk59Wp+k2T/wgRfrgXAcX1kCTvD9RYUcVEHkMXkEN5jw==,
+        integrity: sha512-MvtWckSVufs/ja463/K4PyJeqT+HMlJWtw6PrCpywznd2NSgO3m4KwO9RqbFqGg6iDE8vVMFWMeQI4Io3eEYww==,
       }
 
-  "@tanstack/query-devtools@5.91.1":
+  "@tanstack/query-devtools@5.92.0":
     resolution:
       {
-        integrity: sha512-l8bxjk6BMsCaVQH6NzQEE/bEgFy1hAs5qbgXl0xhzezlaQbPk6Mgz9BqEg2vTLPOHD8N4k+w/gdgCbEzecGyNg==,
+        integrity: sha512-N8D27KH1vEpVacvZgJL27xC6yPFUy0Zkezn5gnB3L3gRCxlDeSuiya7fKge8Y91uMTnC8aSxBQhcK6ocY7alpQ==,
       }
 
-  "@tanstack/query-persist-client-core@5.91.12":
+  "@tanstack/query-persist-client-core@5.91.15":
     resolution:
       {
-        integrity: sha512-1B6EK9m8jRe+Z2hcZBI5DaFvftUiDJ3GfEhzrS/BCasKrQqI8trma8euCZoxTaL+p8P/siSb10A5HU9D2saOhw==,
+        integrity: sha512-vnPSfQVo41EKJN8v20nkhWNZPyB1dMJIy5icOvCGzcCJzsmRefYY1owtr63ICOcjOiPPTuNEfPsdjdBhkzYnmA==,
       }
 
-  "@tanstack/query-sync-storage-persister@5.90.15":
+  "@tanstack/query-sync-storage-persister@5.90.18":
     resolution:
       {
-        integrity: sha512-MEu27mfGpG3Qf00LVKPcLwFUvyGLb2HHrybFzdIwO/a3toHhZ/nA3Y/64/FtvwDfi8QIccqWochnpAiltW44Xg==,
+        integrity: sha512-tKngFopz/TuAe7LBDg7IOhWPh9blxdQ6QG/vVL2dFzRmlPNcSo4WdCSONqSDioJkcyTwh1YCSlcikmJ1WnSb3Q==,
       }
 
-  "@tanstack/react-query-devtools@5.91.1":
+  "@tanstack/react-query-devtools@5.91.2":
     resolution:
       {
-        integrity: sha512-tRnJYwEbH0kAOuToy8Ew7bJw1lX3AjkkgSlf/vzb+NpnqmHPdWM+lA2DSdGQSLi1SU0PDRrrCI1vnZnci96CsQ==,
-      }
-    peerDependencies:
-      "@tanstack/react-query": ^5.90.10
-      react: ^18 || ^19
-
-  "@tanstack/react-query-persist-client@5.90.15":
-    resolution:
-      {
-        integrity: sha512-tOSmOFu9qpgBP3JVCSIayEsws5lllOIgLfYUO592b1qApEgBojyNf9tjVRXfUmsveOtSvsEdAdjCrsDP7VWNfQ==,
+        integrity: sha512-ZJ1503ay5fFeEYFUdo7LMNFzZryi6B0Cacrgr2h1JRkvikK1khgIq6Nq2EcblqEdIlgB/r7XDW8f8DQ89RuUgg==,
       }
     peerDependencies:
-      "@tanstack/react-query": ^5.90.13
+      "@tanstack/react-query": ^5.90.14
       react: ^18 || ^19
 
-  "@tanstack/react-query@5.90.13":
+  "@tanstack/react-query-persist-client@5.90.18":
     resolution:
       {
-        integrity: sha512-i6DY9wnghE0ghHJfDrnnFNatn4CNBzMZv4xPzKB7Lb9zMAoImAxPKoGK9gLOm79aopDa07p6ytlFFWotvwj3DQ==,
+        integrity: sha512-ToVRTVpjzTrd9S/p7JIvGdLs+Xtz9aDMM/7+TQGSV9notY8Jt64irfAAAkZ05syftLKS+3KPgyKAnHcVeKVbWQ==,
+      }
+    peerDependencies:
+      "@tanstack/react-query": ^5.90.16
+      react: ^18 || ^19
+
+  "@tanstack/react-query@5.90.16":
+    resolution:
+      {
+        integrity: sha512-bpMGOmV4OPmif7TNMteU/Ehf/hoC0Kf98PDc0F4BZkFrEapRMEqI/V6YS0lyzwSV6PQpY1y4xxArUIfBW5LVxQ==,
       }
     peerDependencies:
       react: ^18 || ^19
@@ -8358,10 +8358,10 @@ packages:
         integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==,
       }
 
-  pdfjs-dist@5.4.449:
+  pdfjs-dist@5.4.530:
     resolution:
       {
-        integrity: sha512-CegnUaT0QwAyQMS+7o2POr4wWUNNe8VaKKlcuoRHeYo98cVnqPpwOXNSx6Trl6szH02JrRcsPgletV6GmF3LtQ==,
+        integrity: sha512-r1hWsSIGGmyYUAHR26zSXkxYWLXLMd6AwqcaFYG9YUZ0GBf5GvcjJSeo512tabM4GYFhxhl5pMCmPr7Q72Rq2Q==,
       }
     engines: { node: ">=20.16.0 || >=22.3.0" }
 
@@ -12551,39 +12551,39 @@ snapshots:
       postcss: 8.5.6
       tailwindcss: 4.1.18
 
-  "@tanstack/query-async-storage-persister@5.90.15":
+  "@tanstack/query-async-storage-persister@5.90.18":
     dependencies:
-      "@tanstack/query-core": 5.90.13
-      "@tanstack/query-persist-client-core": 5.91.12
+      "@tanstack/query-core": 5.90.16
+      "@tanstack/query-persist-client-core": 5.91.15
 
-  "@tanstack/query-core@5.90.13": {}
+  "@tanstack/query-core@5.90.16": {}
 
-  "@tanstack/query-devtools@5.91.1": {}
+  "@tanstack/query-devtools@5.92.0": {}
 
-  "@tanstack/query-persist-client-core@5.91.12":
+  "@tanstack/query-persist-client-core@5.91.15":
     dependencies:
-      "@tanstack/query-core": 5.90.13
+      "@tanstack/query-core": 5.90.16
 
-  "@tanstack/query-sync-storage-persister@5.90.15":
+  "@tanstack/query-sync-storage-persister@5.90.18":
     dependencies:
-      "@tanstack/query-core": 5.90.13
-      "@tanstack/query-persist-client-core": 5.91.12
+      "@tanstack/query-core": 5.90.16
+      "@tanstack/query-persist-client-core": 5.91.15
 
-  "@tanstack/react-query-devtools@5.91.1(@tanstack/react-query@5.90.13(react@19.2.3))(react@19.2.3)":
+  "@tanstack/react-query-devtools@5.91.2(@tanstack/react-query@5.90.16(react@19.2.3))(react@19.2.3)":
     dependencies:
-      "@tanstack/query-devtools": 5.91.1
-      "@tanstack/react-query": 5.90.13(react@19.2.3)
+      "@tanstack/query-devtools": 5.92.0
+      "@tanstack/react-query": 5.90.16(react@19.2.3)
       react: 19.2.3
 
-  "@tanstack/react-query-persist-client@5.90.15(@tanstack/react-query@5.90.13(react@19.2.3))(react@19.2.3)":
+  "@tanstack/react-query-persist-client@5.90.18(@tanstack/react-query@5.90.16(react@19.2.3))(react@19.2.3)":
     dependencies:
-      "@tanstack/query-persist-client-core": 5.91.12
-      "@tanstack/react-query": 5.90.13(react@19.2.3)
+      "@tanstack/query-persist-client-core": 5.91.15
+      "@tanstack/react-query": 5.90.16(react@19.2.3)
       react: 19.2.3
 
-  "@tanstack/react-query@5.90.13(react@19.2.3)":
+  "@tanstack/react-query@5.90.16(react@19.2.3)":
     dependencies:
-      "@tanstack/query-core": 5.90.13
+      "@tanstack/query-core": 5.90.16
       react: 19.2.3
 
   "@testing-library/dom@10.4.1":
@@ -15592,7 +15592,7 @@ snapshots:
 
   pathe@2.0.3: {}
 
-  pdfjs-dist@5.4.449:
+  pdfjs-dist@5.4.530:
     optionalDependencies:
       "@napi-rs/canvas": 0.1.86
 
