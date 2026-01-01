@@ -80,10 +80,10 @@ import { createModuleLogger } from "@/lib/utils/logger";
 
 // Типизированные моки
 const mockedQueueManager = vi.mocked(queueManager);
-const mockedCreateClient = vi.mocked(createClient);
-const mockedUseSyncStore = vi.mocked(useSyncStore);
+const mockedCreateClient = createClient as Mock;
 const mockedInvalidateAll = vi.mocked(invalidateAll);
 const mockedIsNetworkError = vi.mocked(isNetworkError);
+const mockedGetState = useSyncStore.getState as Mock;
 
 describe("SyncManager", () => {
   let manager: SyncManager;
@@ -119,7 +119,7 @@ describe("SyncManager", () => {
       setLastSyncResult: vi.fn(),
       setPendingOperations: vi.fn(),
     };
-    mockedUseSyncStore.getState.mockReturnValue(mockStoreState);
+    mockedGetState.mockReturnValue(mockStoreState);
 
     // Настраиваем Supabase mock
     mockEq = vi.fn(() => Promise.resolve({ error: null }));
@@ -131,9 +131,7 @@ describe("SyncManager", () => {
       update: mockUpdate,
       delete: mockDelete,
     }));
-    mockedCreateClient.mockReturnValue({ from: mockFrom } as ReturnType<
-      typeof createClient
-    >);
+    mockedCreateClient.mockReturnValue({ from: mockFrom });
 
     // Настраиваем queueManager mock
     mockedQueueManager.getAll.mockResolvedValue([]);
