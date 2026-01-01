@@ -4,6 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import type { TooltipProps as RechartsTooltipProps } from "recharts";
+import type {
+  Payload,
+  ValueType,
+  NameType,
+} from "recharts/types/component/DefaultTooltipContent";
 import { Loader2 } from "lucide-react";
 import { queryKeys } from "@/lib/query/keys";
 import { fetchCategoryStatistics } from "@/lib/query/queries/statistics";
@@ -136,8 +141,7 @@ export function CategoryPieChart({
   const CustomTooltip = (
     props: RechartsTooltipProps<number, string> & {
       active?: boolean;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      payload?: readonly any[];
+      payload?: ReadonlyArray<Payload<ValueType, NameType>>;
     }
   ) => {
     const { active, payload } = props;

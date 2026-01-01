@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/db/supabase/client";
 import { Button } from "@/components/ui/button";
 import { getAppUrl } from "@/lib/utils";
+import { logger } from "@/lib/utils/logger";
 import { useState } from "react";
 
 interface GoogleButtonProps {
@@ -29,7 +30,7 @@ export function GoogleButton({ children, className }: GoogleButtonProps) {
     });
 
     if (error) {
-      console.error("Ошибка при входе через Google:", error);
+      logger.error(error, { module: "google-auth" });
       setLoading(false);
       // TODO: Показать пользователю сообщение об ошибке
       return;

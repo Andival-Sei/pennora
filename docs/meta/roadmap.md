@@ -47,15 +47,22 @@ Pennora — трекер личного/семейного бюджета с off
 
 **Цель:** 50% покрытия к концу фазы
 
-### 1.3 Типизация
+### 1.3 Типизация ✅
 
 **Проблема:** 4 места с `any` в production коде
 
 **Задачи:**
 
-- [ ] Исправить типизацию в `components/ui/chart.tsx` (заменить `any` на `unknown` + type guards)
-- [ ] Исправить типизацию в `components/ui/google-button.tsx`
-- [ ] Провести аудит оставшихся `eslint-disable` комментариев
+- [x] Исправить типизацию в `components/ui/chart.tsx` (использованы типы Recharts + type guards)
+- [x] Исправить типизацию в `components/ui/google-button.tsx` (заменён console.error на logger)
+- [x] Исправить типизацию в `components/features/statistics/CategoryPieChart.tsx`
+- [x] Провести аудит оставшихся `eslint-disable` комментариев
+
+**Результат аудита eslint-disable:**
+
+- Production код: 7 комментариев `@typescript-eslint/no-explicit-any` удалено
+- `react-hooks/exhaustive-deps`: все 7 комментариев обоснованы (инициализация, предотвращение циклов)
+- Тестовый код и скрипты: допустимо, не влияет на production
 
 ---
 
@@ -368,4 +375,4 @@ Pennora — трекер личного/семейного бюджета с off
 
 ---
 
-**Последнее обновление:** 2026-01-01
+**Последнее обновление:** 2026-01-01 (Фаза 1.3 завершена)

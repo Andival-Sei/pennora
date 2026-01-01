@@ -2,8 +2,23 @@
 
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
+import type {
+  Payload,
+  ValueType,
+  NameType,
+} from "recharts/types/component/DefaultTooltipContent";
 
 import { cn } from "@/lib/utils";
+
+// Type guard для безопасного доступа к payload.fill
+function hasPayloadFill(payload: unknown): payload is { fill: string } {
+  return (
+    typeof payload === "object" &&
+    payload !== null &&
+    "fill" in payload &&
+    typeof (payload as { fill: unknown }).fill === "string"
+  );
+}
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
@@ -114,10 +129,8 @@ type TooltipContentProps = Omit<
     nameKey?: string;
     labelKey?: string;
     active?: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    payload?: readonly any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    label?: any;
+    payload?: ReadonlyArray<Payload<ValueType, NameType>>;
+    label?: React.ReactNode;
   };
 
 const ChartTooltipContent = React.forwardRef<
@@ -160,8 +173,7 @@ const ChartTooltipContent = React.forwardRef<
       if (labelFormatter) {
         return (
           <div className={cn("font-medium", labelClassName)}>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {labelFormatter(value, payload as any)}
+            {labelFormatter(value, payload)}
           </div>
         );
       }
@@ -197,33 +209,24 @@ const ChartTooltipContent = React.forwardRef<
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {payload.map((item: any, index: number) => {
+          {payload.map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`;
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
             const indicatorColor =
               color ||
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (item.payload as any)?.fill ||
+              (hasPayloadFill(item.payload) ? item.payload.fill : undefined) ||
               item.color;
 
             return (
               <div
-                key={item.dataKey}
+                key={String(item.dataKey)}
                 className={cn(
                   "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                   indicator === "dot" && "items-center"
                 )}
               >
                 {formatter && item?.value !== undefined && item.name ? (
-                  formatter(
-                    item.value,
-                    item.name,
-                    item,
-                    index,
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    item.payload as any
-                  )
+                  formatter(item.value, item.name, item, index, payload)
                 ) : (
                   <>
                     {itemConfig?.icon ? (
