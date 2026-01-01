@@ -1,3 +1,9 @@
+## [1.4.4](https://github.com/Andival-Sei/pennora/compare/v1.4.3...v1.4.4) (2026-01-01)
+
+### Bug Fixes
+
+- **tests:** исправить типизацию NextIntlClientProvider в моках ([1977570](https://github.com/Andival-Sei/pennora/commit/1977570bd45d225234c319de7de358dfe2ce31a8))
+
 ## [1.4.3](https://github.com/Andival-Sei/pennora/compare/v1.4.2...v1.4.3) (2026-01-01)
 
 ## [1.4.2](https://github.com/Andival-Sei/pennora/compare/v1.4.1...v1.4.2) (2026-01-01)
