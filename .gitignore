@@ -27,6 +27,7 @@
 .cursor
 .mcp.json
 .claude
+.idea
 
 # debug
 npm-debug.log*
